@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Google Play service account key
+google-play-key.json
+
+# Local env (keep .env.example but not .env)
+.env
