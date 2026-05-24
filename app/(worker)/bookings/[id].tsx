@@ -197,10 +197,16 @@ export default function WorkerBookingDetail() {
     );
   }
 
+  const bookingEnded = (() => {
+    const [y, mo, d] = booking.bookingDate.slice(0, 10).split("-").map(Number);
+    const [h, mi]    = booking.endTime.split(":").map(Number);
+    return Date.now() >= new Date(y, mo - 1, d, h, mi).getTime();
+  })();
+
   const canConfirm  = booking.status === "PENDING";
-  const canComplete = booking.status === "CONFIRMED";
-  const canNoShow   = booking.status === "CONFIRMED";
-  const canCancel   = booking.status === "PENDING" || booking.status === "CONFIRMED";
+  const canComplete = booking.status === "CONFIRMED" && bookingEnded;
+  const canNoShow   = booking.status === "CONFIRMED" && bookingEnded;
+  const canCancel   = booking.status === "PENDING" || (booking.status === "CONFIRMED" && !bookingEnded);
 
   return (
     <View style={s.container}>
@@ -255,6 +261,14 @@ export default function WorkerBookingDetail() {
         </Section>
 
         {/* Actions */}
+        {booking.status === "CONFIRMED" && !bookingEnded && (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: Colors.warningLight, borderRadius: 12, padding: 12, marginBottom: 10 }}>
+            <Ionicons name="time-outline" size={15} color={Colors.warning} />
+            <Text style={{ fontSize: 13, color: Colors.warning, fontWeight: "600", flex: 1 }}>
+              Mark Completed / No-Show available after the session ends ({booking.endTime})
+            </Text>
+          </View>
+        )}
         {(canConfirm || canComplete || canNoShow || canCancel) && (
           <View style={s.actions}>
             {canConfirm  && <ActionBtn label="Confirm Booking" color={Colors.primary} icon="checkmark-circle-outline" onPress={confirm}  />}

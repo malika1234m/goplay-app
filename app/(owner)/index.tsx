@@ -8,6 +8,7 @@ import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import * as SecureStore from "expo-secure-store";
 import { useAuth } from "@/lib/auth";
 import { useOwnerStats } from "@/lib/queries/owner";
 import { useColors } from "@/lib/theme";
@@ -54,6 +55,13 @@ export default function OwnerDashboard() {
   const [editGoal, setEditGoal]   = useState(false);
   const [goalInput, setGoalInput] = useState("");
 
+  useEffect(() => {
+    SecureStore.getItemAsync(GOAL_KEY).then((v) => {
+      const n = parseInt(v ?? "", 10);
+      if (n > 0) setGoal(n);
+    });
+  }, []);
+
   const animRevenue  = useCountUp(stats?.monthlyRevenue ?? 0);
   const animBookings = useCountUp(stats?.totalBookings ?? 0);
 
@@ -73,6 +81,7 @@ export default function OwnerDashboard() {
       return;
     }
     setGoal(val);
+    SecureStore.setItemAsync(GOAL_KEY, String(val));
     setEditGoal(false);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
