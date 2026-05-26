@@ -6,11 +6,13 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
+import { useRouter } from "expo-router";
 import { useAuth } from "@/lib/auth";
 import { useColors } from "@/lib/theme";
 
 export default function LoginScreen() {
   const Colors = useColors();
+  const router  = useRouter();
   const { login } = useAuth();
 
   const [email,    setEmail]    = useState("");
@@ -53,6 +55,20 @@ export default function LoginScreen() {
     btnIcon:    { marginTop: 1 },
 
     note: { fontSize: 12, color: Colors.textMuted, textAlign: "center", marginTop: 16 },
+    forgotRow: { alignItems: "flex-end", marginTop: -6, marginBottom: 12 },
+    forgotText: { fontSize: 13, fontWeight: "600", color: Colors.primary },
+
+    divider:     { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 24, marginBottom: 18 },
+    dividerLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.1)" },
+    dividerText: { fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: "600", textTransform: "uppercase", letterSpacing: 1 },
+
+    applyCard:    { backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 18, padding: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+    applyCardTop: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
+    applyIconBox: { width: 38, height: 38, borderRadius: 12, backgroundColor: Colors.primary + "22", alignItems: "center", justifyContent: "center" },
+    applyTitle:   { fontSize: 15, fontWeight: "800", color: "#fff" },
+    applySub:     { fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 18, marginBottom: 14 },
+    applyBtn:     { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, borderRadius: 13, height: 46 },
+    applyBtnText: { fontSize: 14, fontWeight: "700", color: Colors.white },
 
     bottomHint:     { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 20 },
     bottomHintText: { fontSize: 12, color: "rgba(255,255,255,0.4)" },
@@ -148,6 +164,11 @@ export default function LoginScreen() {
               </View>
             </View>
 
+            {/* Forgot password */}
+            <TouchableOpacity style={s.forgotRow} onPress={() => router.push("/(auth)/forgot-password")} activeOpacity={0.7}>
+              <Text style={s.forgotText}>Forgot password?</Text>
+            </TouchableOpacity>
+
             {/* Sign in button */}
             <TouchableOpacity
               onPress={handleLogin}
@@ -171,6 +192,39 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <Text style={s.note}>For facility owners and workers only</Text>
+          </View>
+
+          {/* Apply as Ground Owner CTA */}
+          <View style={s.divider}>
+            <View style={s.dividerLine} />
+            <Text style={s.dividerText}>New to GoPlay?</Text>
+            <View style={s.dividerLine} />
+          </View>
+
+          <View style={s.applyCard}>
+            <View style={s.applyCardTop}>
+              <View style={s.applyIconBox}>
+                <Ionicons name="business-outline" size={19} color={Colors.primary} />
+              </View>
+              <Text style={s.applyTitle}>Become a Ground Owner</Text>
+            </View>
+            <Text style={s.applySub}>
+              List your sports facility on GoPlay and start receiving bookings. Apply in minutes — our team reviews within 1–3 business days.
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/(auth)/apply")}
+              activeOpacity={0.88}
+            >
+              <LinearGradient
+                colors={[Colors.primary, Colors.primaryDark]}
+                style={s.applyBtn}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Ionicons name="add-circle-outline" size={18} color={Colors.white} />
+                <Text style={s.applyBtnText}>Apply Now</Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
 
           {/* Bottom hint */}

@@ -30,13 +30,10 @@ export default function NotificationsScreen() {
   const unreadCount   = data?.unreadCount ?? 0;
 
   const TYPE_ICON: Record<string, { icon: string; color: string; bg: string }> = {
-    BOOKING_CONFIRMED: { icon: "checkmark-circle", color: Colors.primary,  bg: Colors.primaryLight },
-    BOOKING_CANCELLED: { icon: "close-circle",     color: Colors.error,    bg: Colors.errorLight   },
-    BOOKING_REMINDER:  { icon: "alarm",            color: Colors.info,     bg: "#e0f2fe"           },
-    PAYMENT_RECEIVED:  { icon: "cash",             color: "#0891b2",       bg: "#e0f2fe"           },
-    NEW_REVIEW:        { icon: "star",             color: "#d97706",       bg: "#fffbeb"           },
-    REVIEW_REPORT:     { icon: "flag",             color: Colors.error,    bg: Colors.errorLight   },
-    NO_SHOW:           { icon: "person-remove",    color: "#d97706",       bg: "#fffbeb"           },
+    info:    { icon: "information-circle", color: Colors.info,    bg: "#e0f2fe"         },
+    success: { icon: "checkmark-circle",   color: Colors.primary, bg: Colors.primaryLight },
+    warning: { icon: "warning",            color: "#d97706",      bg: "#fffbeb"         },
+    error:   { icon: "alert-circle",       color: Colors.error,   bg: Colors.errorLight },
   };
 
   const s = StyleSheet.create({
@@ -47,7 +44,7 @@ export default function NotificationsScreen() {
     headerActions: { flexDirection: "row", alignItems: "center", gap: 8 },
     actionBtn:     { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: Colors.background, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
     actionText:    { fontSize: 12, fontWeight: "600", color: Colors.primary },
-    list:    { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 40 },
+    list:    { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 120 },
     listEmpty:{ flex: 1 },
     item:        { flexDirection: "row", alignItems: "flex-start", backgroundColor: Colors.card, borderRadius: 16, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 },
     itemUnread:  { borderColor: Colors.primaryMid, backgroundColor: Colors.primaryLight + "80" },

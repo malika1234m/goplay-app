@@ -83,7 +83,7 @@ export default function WorkerBookingsList() {
     searchWrap:  { flexDirection: "row", alignItems: "center", backgroundColor: Colors.card, marginHorizontal: 16, marginTop: 12, marginBottom: 4, borderRadius: 12, borderWidth: 1.5, borderColor: Colors.border, paddingHorizontal: 12, height: 44 },
     searchIcon:  { marginRight: 8 },
     searchInput: { flex: 1, fontSize: 14, color: Colors.text },
-    list:        { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 24 },
+    list:        { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 120 },
     listEmpty:   { flex: 1 },
     walkInWrap:    { marginBottom: 12 },
     walkInBtn:     { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 14, paddingVertical: 14 },

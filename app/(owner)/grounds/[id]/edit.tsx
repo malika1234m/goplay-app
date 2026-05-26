@@ -61,7 +61,7 @@ export default function EditGround() {
   }, [g]);
 
   const s = StyleSheet.create({
-    scroll:  { padding: 16, paddingBottom: 48 },
+    scroll:  { padding: 16, paddingBottom: 120 },
     row:     { flexDirection: "row", gap: 10 },
     halfLeft:{ flex: 1 },
     halfRight:{ flex: 1 },

@@ -51,7 +51,7 @@ export default function WorkerDashboard() {
     statPillLabel:{ fontSize: 10, color: "rgba(255,255,255,0.65)" },
 
     scroll:        { flex: 1 },
-    scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+    scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 120 },
 
     facilityCard:   { backgroundColor: Colors.card, borderRadius: 18, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1 },
     facilityHeader: { flexDirection: "row", alignItems: "center", marginBottom: 12 },

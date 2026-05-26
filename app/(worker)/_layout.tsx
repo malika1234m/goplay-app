@@ -1,9 +1,10 @@
 import { useRef, useEffect } from "react";
-import { View, Text, Animated, StyleSheet, Platform, TouchableOpacity } from "react-native";
+import { View, Text, Animated, StyleSheet, TouchableOpacity } from "react-native";
 import { Tabs, useRouter, useSegments } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/lib/theme";
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>["name"];
@@ -55,6 +56,7 @@ function WorkerTabBar({ state, descriptors, navigation }: any) {
   const Colors   = useColors();
   const router   = useRouter();
   const segments = useSegments();
+  const insets   = useSafeAreaInsets();
   const current  = (segments as string[])[1] ?? "index";
   const idx      = Math.max(WORKER_ROUTES.indexOf(current), 0);
 
@@ -69,7 +71,7 @@ function WorkerTabBar({ state, descriptors, navigation }: any) {
       alignItems:        "center",
       backgroundColor:   Colors.card,
       marginHorizontal:  14,
-      marginBottom:      Platform.OS === "ios" ? 22 : 12,
+      marginBottom:      insets.bottom + 12,
       borderRadius:      28,
       paddingVertical:   6,
       paddingHorizontal: 4,

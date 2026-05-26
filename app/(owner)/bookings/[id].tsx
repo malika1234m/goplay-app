@@ -37,7 +37,7 @@ export default function BookingDetail() {
 
   const s = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
-    scroll:    { padding: 16, paddingBottom: 40 },
+    scroll:    { padding: 16, paddingBottom: 120 },
     headerStrip:    { backgroundColor: Colors.card, borderRadius: 16, padding: 18, marginBottom: 12, borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
     headerStripTop: { flexDirection: "row", gap: 8, alignItems: "center", marginBottom: 12 },
     walkInBadge:    { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: Colors.primaryLight, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },

@@ -117,7 +117,7 @@ export default function OwnerDashboard() {
     goalSaveTxt: { fontSize: 13, fontWeight: "700", color: Colors.primaryDeep },
     goalCancelBtn:{ padding: 6 },
     scroll:        { flex: 1 },
-    scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+    scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 120 },
     quickRow:     { flexDirection: "row", gap: 10, marginBottom: 24 },
     quickBtn:     { flex: 1, alignItems: "center", backgroundColor: Colors.card, borderRadius: 16, paddingVertical: 12, borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
     quickIconWrap:{ width: 38, height: 38, borderRadius: 12, backgroundColor: Colors.primaryLight, alignItems: "center", justifyContent: "center", marginBottom: 6 },

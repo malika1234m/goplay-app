@@ -41,7 +41,7 @@ export default function EarningsScreen() {
   const FAC_COLORS = [Colors.primary, "#0891b2", "#8b5cf6", "#f59e0b", "#ef4444"];
 
   const s = StyleSheet.create({
-    scroll: { padding: 16, paddingBottom: 40 },
+    scroll: { padding: 16, paddingBottom: 120 },
 
     rangeRow:       { flexDirection: "row", gap: 6, marginBottom: 14, flexWrap: "wrap" },
     chip:           { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: Colors.card, borderWidth: 1.5, borderColor: Colors.border },

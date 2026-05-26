@@ -1,5 +1,6 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useOwnerGrounds } from "@/lib/queries/owner";
 import { useColors } from "@/lib/theme";
@@ -22,7 +23,7 @@ export default function GroundsList() {
   };
 
   const s = StyleSheet.create({
-    list:      { padding: 16, paddingBottom: 32 },
+    list:      { padding: 16, paddingBottom: 120 },
     listEmpty: { flex: 1 },
 
     card:      { backgroundColor: Colors.card, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
@@ -45,6 +46,8 @@ export default function GroundsList() {
     metaValue: { fontSize: 13, fontWeight: "600", color: Colors.textSecondary },
 
     chevronRow:{ position: "absolute", right: 14, top: "50%", marginTop: -9 },
+
+    fab: { position: "absolute", right: 20, bottom: 100, flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 28, paddingVertical: 13, paddingHorizontal: 20, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 12, elevation: 10, overflow: "hidden" },
   });
 
   if (isLoading) return <View style={{ flex: 1, backgroundColor: Colors.background }}><SkeletonList count={4} /></View>;
@@ -112,24 +115,31 @@ export default function GroundsList() {
   }
 
   return (
-    <FlatList
-      data={grounds}
-      keyExtractor={(g) => g.id}
-      contentContainerStyle={[s.list, grounds.length === 0 && s.listEmpty]}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={Colors.primary} />
-      }
-      renderItem={({ item }) => (
-        <GroundCard ground={item} onPress={() => router.push(`/(owner)/grounds/${item.id}`)} />
-      )}
-      ListEmptyComponent={
-        <EmptyState
-          icon="business-outline"
-          title="No grounds yet"
-          sub="Contact GoPlay to list your first facility and start accepting bookings."
-        />
-      }
-    />
+    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+      <FlatList
+        data={grounds}
+        keyExtractor={(g) => g.id}
+        contentContainerStyle={[s.list, grounds.length === 0 && s.listEmpty]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={Colors.primary} />
+        }
+        renderItem={({ item }) => (
+          <GroundCard ground={item} onPress={() => router.push(`/(owner)/grounds/${item.id}`)} />
+        )}
+        ListEmptyComponent={
+          <EmptyState
+            icon="business-outline"
+            title="No grounds yet"
+            sub="Tap the button below to add your first facility."
+          />
+        }
+      />
+      <TouchableOpacity style={s.fab} onPress={() => router.push("/(owner)/grounds/new")} activeOpacity={0.85}>
+        <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+        <Ionicons name="add" size={22} color="#fff" />
+        <Text style={{ color: "#fff", fontSize: 15, fontWeight: "700" }}>Add Ground</Text>
+      </TouchableOpacity>
+    </View>
   );
 }

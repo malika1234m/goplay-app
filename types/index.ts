@@ -251,6 +251,7 @@ export interface PayoutResponse {
   payouts:               Payout[];
   commissionSettlements: Payout[];
   cooldownRemaining:     number;
+  pendingCommissionRequest: { requestedAt: string; amount: number } | null;
   settings: {
     commissionRate:     number;
     minPayout:          number;

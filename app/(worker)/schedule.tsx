@@ -55,7 +55,7 @@ export default function WorkerSchedule() {
     bookingCountBadge: { backgroundColor: Colors.primaryLight, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 3 },
     bookingCountText:  { fontSize: 12, fontWeight: "600", color: Colors.primaryDark },
 
-    list:      { paddingHorizontal: 16, paddingBottom: 24 },
+    list:      { paddingHorizontal: 16, paddingBottom: 120 },
     listEmpty: { flex: 1 },
 
     slot:        { flexDirection: "row", backgroundColor: Colors.card, borderRadius: 16, marginBottom: 10, borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, overflow: "hidden" },

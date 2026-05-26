@@ -15,6 +15,7 @@ export default function GroundsStack() {
       }}
     >
       <Stack.Screen name="index"             options={{ title: "My Grounds"    }} />
+      <Stack.Screen name="new"               options={{ headerShown: false     }} />
       <Stack.Screen name="[id]/index"        options={{ title: "Ground"        }} />
       <Stack.Screen name="[id]/edit"         options={{ title: "Edit Details"  }} />
       <Stack.Screen name="[id]/courts"       options={{ title: "Courts"        }} />

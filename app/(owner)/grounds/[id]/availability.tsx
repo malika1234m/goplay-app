@@ -52,7 +52,7 @@ export default function AvailabilityScreen() {
 
   const s = StyleSheet.create({
     container:      { flex: 1, backgroundColor: Colors.background },
-    scroll:         { padding: 16, paddingBottom: 40 },
+    scroll:         { padding: 16, paddingBottom: 120 },
 
     hintCard:       { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.infoLight, borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: Colors.info + "30" },
     hintText:       { fontSize: 13, color: Colors.info, flex: 1, lineHeight: 18 },

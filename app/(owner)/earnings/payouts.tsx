@@ -41,6 +41,7 @@ export default function PayoutsScreen() {
   const onlineEarnings = data?.onlineEarnings ?? [];
   const settings   = data?.settings;
   const hasPending = payouts.some((p) => p.status === "PENDING" || p.status === "PROCESSING");
+  const pendingReq = data?.pendingCommissionRequest ?? null;
 
   const canRequest =
     !hasPending &&
@@ -68,7 +69,7 @@ export default function PayoutsScreen() {
   }
 
   const s = StyleSheet.create({
-    scroll: { padding: 16, paddingBottom: 48 },
+    scroll: { padding: 16, paddingBottom: 120 },
 
     hero:               { borderRadius: 20, padding: 22, marginBottom: 14, alignItems: "center" },
     heroLabel:          { fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 },
@@ -281,6 +282,28 @@ export default function PayoutsScreen() {
           <BalanceRow label="Still owed (cash bookings)" value={formatLKR(com?.cashUnpaid ?? 0)} bold />
           <Text style={s.commissionNote}>
             Cash booking commissions are collected separately by the admin and may be deducted from future payouts.
+          </Text>
+        </View>
+      )}
+
+      {/* Pending commission request from admin */}
+      {pendingReq && (
+        <View style={{ backgroundColor: "#fefce8", borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1.5, borderColor: "#fde047" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <Ionicons name="notifications-outline" size={16} color="#ca8a04" />
+            <Text style={{ fontSize: 11, fontWeight: "700", color: "#92400e", textTransform: "uppercase", letterSpacing: 0.5 }}>
+              Commission Payment Requested
+            </Text>
+          </View>
+          <Text style={{ fontSize: 22, fontWeight: "900", color: "#92400e", marginBottom: 4 }}>
+            {formatLKR(pendingReq.amount)}
+          </Text>
+          <Text style={{ fontSize: 13, color: "#92400e", lineHeight: 18 }}>
+            GoPlay admin has requested this amount as platform commission from your cash bookings.
+            Please contact the admin to arrange payment.
+          </Text>
+          <Text style={{ fontSize: 11, color: "#a16207", marginTop: 6 }}>
+            Requested on {new Date(pendingReq.requestedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </Text>
         </View>
       )}

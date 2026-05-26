@@ -1,128 +1,370 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch } from "react-native";
+import { useState, useEffect } from "react";
+import {
+  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
+  Alert, ActivityIndicator, Switch, RefreshControl, Modal,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/lib/auth";
 import { useTheme, useColors } from "@/lib/theme";
+import { useOwnerProfile, useUpdateOwnerProfile } from "@/lib/queries/owner";
+import { api } from "@/lib/api";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 
 export default function OwnerProfile() {
-  const { user, logout }     = useAuth();
-  const { isDark, toggleTheme } = useTheme();
-  const Colors               = useColors();
+  const Colors                       = useColors();
+  const { logout }                   = useAuth();
+  const { isDark, toggleTheme }      = useTheme();
+  const { data, isLoading, refetch, isRefetching } = useOwnerProfile();
+  const { mutate: save, isPending: saving }         = useUpdateOwnerProfile();
 
-  const bg     = Colors.background;
-  const cardBg = Colors.card;
-  const txt    = Colors.text;
-  const muted  = Colors.textMuted;
-  const border = Colors.border;
+  const [editing, setEditing]           = useState(false);
+  const [pwdModal,    setPwdModal]      = useState(false);
+  const [currentPwd,  setCurrentPwd]   = useState("");
+  const [newPwd,      setNewPwd]       = useState("");
+  const [confirmPwd,  setConfirmPwd]   = useState("");
+  const [pwdLoading,  setPwdLoading]   = useState(false);
+  const [showCurrent, setShowCurrent]  = useState(false);
+  const [showNew,     setShowNew]      = useState(false);
+  const [showConfirm, setShowConfirm]  = useState(false);
+  const [name,        setName]          = useState("");
+  const [phone,       setPhone]         = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [city,        setCity]          = useState("");
 
-  const initials = user?.name
-    ? user.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
+  useEffect(() => {
+    if (!data) return;
+    setName(data.user.name);
+    setPhone(data.user.phone ?? "");
+    setBusinessName(data.user.groundOwnerProfile?.businessName ?? "");
+    setCity(data.user.groundOwnerProfile?.city ?? "");
+  }, [data]);
+
+  const s = StyleSheet.create({
+    safe:   { flex: 1, backgroundColor: Colors.background },
+    scroll: { paddingBottom: 120 },
+
+    avatarSection: { paddingTop: 40, paddingBottom: 32, alignItems: "center" },
+    avatarRing:    { width: 88, height: 88, borderRadius: 44, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center", marginBottom: 14, borderWidth: 2, borderColor: "rgba(255,255,255,0.3)" },
+    avatarText:    { fontSize: 32, fontWeight: "800", color: "#ffffff" },
+    userName:      { fontSize: 22, fontWeight: "800", color: "#ffffff", marginBottom: 8 },
+    rolePill:      { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" },
+    roleText:      { fontSize: 12, fontWeight: "600", color: "#bbf7d0" },
+
+    statsRow:  { flexDirection: "row", marginHorizontal: 16, marginTop: 14, gap: 10 },
+    statBox:   { flex: 1, backgroundColor: Colors.card, borderRadius: 14, padding: 12, borderTopWidth: 3, alignItems: "center", borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+    statValue: { fontSize: 22, fontWeight: "800" },
+    statLabel: { fontSize: 11, color: Colors.textMuted, marginTop: 2, textAlign: "center" },
+
+    card:          { backgroundColor: Colors.card, borderRadius: 16, marginHorizontal: 16, marginTop: 14, padding: 16, borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+    cardHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
+    cardHeaderLeft:{ flexDirection: "row", alignItems: "center", gap: 6 },
+    cardLabel:     { fontSize: 11, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 },
+    editBtn:       { flexDirection: "row", alignItems: "center", gap: 4 },
+    editLink:      { fontSize: 13, fontWeight: "600", color: Colors.primary },
+    cancelLink:    { fontSize: 13, fontWeight: "600", color: Colors.error },
+
+    infoRow:    { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+    infoIconBox:{ width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.background, alignItems: "center", justifyContent: "center", marginRight: 12 },
+    infoBody:   { flex: 1 },
+    infoLabel:  { fontSize: 11, fontWeight: "600", color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.3, marginBottom: 2 },
+    infoValue:  { fontSize: 15, fontWeight: "600", color: Colors.text },
+
+    field:         { marginBottom: 12 },
+    fieldLabel:    { fontSize: 11, fontWeight: "700", color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 6 },
+    inputWrap:     { flexDirection: "row", alignItems: "center", backgroundColor: Colors.background, borderWidth: 1.5, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 12, height: 48 },
+    inputWrapFocused: { borderColor: Colors.primary },
+    inputIcon:     { marginRight: 8 },
+    fieldInput:    { flex: 1, fontSize: 15, color: Colors.text },
+    saveBtn:       { backgroundColor: Colors.primary, borderRadius: 12, paddingVertical: 13, alignItems: "center", marginTop: 4 },
+    saveBtnDisabled: { opacity: 0.6 },
+    saveBtnText:   { fontSize: 15, fontWeight: "700", color: Colors.white },
+
+    prefRow:   { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 6 },
+    prefLeft:  { flexDirection: "row", alignItems: "center", gap: 12 },
+    prefLabel: { fontSize: 15, fontWeight: "600", color: Colors.text },
+    prefSub:   { fontSize: 12, marginTop: 1, color: Colors.textMuted },
+
+    logoutBtn:  { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 16, marginTop: 16, borderWidth: 1.5, borderColor: Colors.error + "60", borderRadius: 14, paddingVertical: 14, backgroundColor: Colors.errorLight },
+    logoutText: { fontSize: 15, fontWeight: "700", color: Colors.error },
+
+    secRow:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 10 },
+    secLeft:    { flexDirection: "row", alignItems: "center", gap: 12 },
+    secLabel:   { fontSize: 15, fontWeight: "600", color: Colors.text },
+    secSub:     { fontSize: 12, marginTop: 1, color: Colors.textMuted },
+
+    pwdOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
+    pwdSheet:   { backgroundColor: Colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
+    pwdHandle:  { width: 40, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: "center", marginBottom: 20 },
+    pwdTitle:   { fontSize: 18, fontWeight: "800", color: Colors.text, marginBottom: 20 },
+    pwdField:   { marginBottom: 14 },
+    pwdLabel:   { fontSize: 11, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 6 },
+    pwdInputWrap:{ flexDirection: "row", alignItems: "center", backgroundColor: Colors.background, borderWidth: 1.5, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 12, height: 48 },
+    pwdInput:   { flex: 1, fontSize: 15, color: Colors.text },
+    pwdActions: { flexDirection: "row", gap: 10, marginTop: 8 },
+    pwdCancel:  { flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: "center", borderWidth: 1.5, borderColor: Colors.border },
+    pwdCancelText: { fontSize: 15, fontWeight: "600", color: Colors.textSecondary },
+    pwdSave:    { flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: "center", backgroundColor: Colors.primary },
+    pwdSaveText:{ fontSize: 15, fontWeight: "700", color: Colors.white },
+  });
+
+  if (isLoading) return <LoadingScreen />;
+
+  const profile  = data!;
+  const initials = profile.user.name
+    ? profile.user.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
     : "?";
 
-  return (
-    <SafeAreaView style={[s.safe, { backgroundColor: bg }]} edges={["top"]}>
-      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+  function handleSave() {
+    if (!name.trim() || name.trim().length < 2) {
+      return Alert.alert("Validation", "Name must be at least 2 characters.");
+    }
+    save(
+      { name: name.trim(), phone: phone.trim() || undefined, businessName: businessName.trim() || undefined, city: city.trim() || undefined },
+      {
+        onSuccess: () => { setEditing(false); Alert.alert("Saved", "Profile updated."); },
+        onError:   (e) => Alert.alert("Error", e.message),
+      }
+    );
+  }
 
-        {/* Gradient avatar section */}
+  async function handleChangePassword() {
+    if (!currentPwd || !newPwd || !confirmPwd) return Alert.alert("Required", "All fields are required.");
+    if (newPwd.length < 8) return Alert.alert("Validation", "New password must be at least 8 characters.");
+    if (newPwd !== confirmPwd) return Alert.alert("Validation", "New passwords do not match.");
+    setPwdLoading(true);
+    try {
+      await api.put("/api/ground-owner/force-change-password", { currentPassword: currentPwd, newPassword: newPwd, confirmPassword: confirmPwd });
+      setPwdModal(false);
+      setCurrentPwd(""); setNewPwd(""); setConfirmPwd("");
+      Alert.alert("Success", "Password changed successfully.");
+    } catch (err: unknown) {
+      Alert.alert("Error", err instanceof Error ? err.message : "Failed to change password.");
+    } finally {
+      setPwdLoading(false);
+    }
+  }
+
+  function cancelEdit() {
+    setEditing(false);
+    setName(profile.user.name);
+    setPhone(profile.user.phone ?? "");
+    setBusinessName(profile.user.groundOwnerProfile?.businessName ?? "");
+    setCity(profile.user.groundOwnerProfile?.city ?? "");
+  }
+
+  function InfoRow({ icon, label, value }: { icon: string; label: string; value: string }) {
+    return (
+      <View style={s.infoRow}>
+        <View style={s.infoIconBox}>
+          <Ionicons name={icon as never} size={16} color={Colors.textMuted} />
+        </View>
+        <View style={s.infoBody}>
+          <Text style={s.infoLabel}>{label}</Text>
+          <Text style={s.infoValue}>{value}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  function Field({ label, value, onChange, placeholder, keyboardType, icon }: {
+    label: string; value: string; onChange: (t: string) => void;
+    placeholder?: string; keyboardType?: "default" | "phone-pad"; icon?: string;
+  }) {
+    const [focused, setFocused] = useState(false);
+    return (
+      <View style={s.field}>
+        <Text style={s.fieldLabel}>{label}</Text>
+        <View style={[s.inputWrap, focused && s.inputWrapFocused]}>
+          {icon && <Ionicons name={icon as never} size={16} color={focused ? Colors.primary : Colors.textMuted} style={s.inputIcon} />}
+          <TextInput
+            style={s.fieldInput}
+            value={value}
+            onChangeText={onChange}
+            placeholder={placeholder}
+            placeholderTextColor={Colors.textMuted}
+            keyboardType={keyboardType ?? "default"}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={s.safe} edges={["top"]}>
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={Colors.primary} />}
+      >
+        {/* Gradient avatar */}
         <LinearGradient colors={[Colors.navy, Colors.navyDark]} style={s.avatarSection} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
           <View style={s.avatarRing}>
             <Text style={s.avatarText}>{initials}</Text>
           </View>
-          <Text style={s.userName}>{user?.name}</Text>
+          <Text style={s.userName}>{profile.user.name}</Text>
           <View style={s.rolePill}>
-            <Ionicons name="shield-checkmark-outline" size={12} color={Colors.primaryMid} />
+            <Ionicons name="shield-checkmark-outline" size={12} color="#bbf7d0" />
             <Text style={s.roleText}>Ground Owner</Text>
           </View>
         </LinearGradient>
 
-        {/* Account info card */}
-        <View style={[s.card, { backgroundColor: cardBg, borderColor: border }]}>
-          <View style={s.cardHeader}>
-            <Ionicons name="person-outline" size={14} color={muted} />
-            <Text style={[s.cardLabel, { color: muted }]}>ACCOUNT DETAILS</Text>
+        {/* Stats */}
+        <View style={s.statsRow}>
+          <View style={[s.statBox, { borderTopColor: Colors.primary }]}>
+            <Text style={[s.statValue, { color: Colors.primary }]}>{profile.stats.activeGrounds}</Text>
+            <Text style={s.statLabel}>Active Grounds</Text>
           </View>
-          <InfoRow icon="person-outline"      label="Full Name" value={user?.name ?? "—"}    muted={muted} txt={txt} bg={bg} border={border} />
-          <InfoRow icon="mail-outline"         label="Email"     value={user?.email ?? "—"}   muted={muted} txt={txt} bg={bg} border={border} />
-          <InfoRow icon="shield-outline"       label="Role"      value="Ground Owner"          muted={muted} txt={txt} bg={bg} border={border} />
+          <View style={[s.statBox, { borderTopColor: Colors.info }]}>
+            <Text style={[s.statValue, { color: Colors.info }]}>{profile.stats.totalBookings}</Text>
+            <Text style={s.statLabel}>Total Bookings</Text>
+          </View>
+          <View style={[s.statBox, { borderTopColor: "#f59e0b" }]}>
+            <Text style={[s.statValue, { color: "#f59e0b" }]}>{profile.stats.totalReviews}</Text>
+            <Text style={s.statLabel}>Reviews</Text>
+          </View>
         </View>
 
-        {/* Preferences card */}
-        <View style={[s.card, { backgroundColor: cardBg, borderColor: border }]}>
-          <View style={s.cardHeader}>
-            <Ionicons name="settings-outline" size={14} color={muted} />
-            <Text style={[s.cardLabel, { color: muted }]}>PREFERENCES</Text>
+        {/* Profile info / edit card */}
+        <View style={s.card}>
+          <View style={s.cardHeaderRow}>
+            <View style={s.cardHeaderLeft}>
+              <Ionicons name="person-outline" size={14} color={Colors.textMuted} />
+              <Text style={s.cardLabel}>PERSONAL INFO</Text>
+            </View>
+            {!editing ? (
+              <TouchableOpacity style={s.editBtn} onPress={() => setEditing(true)}>
+                <Ionicons name="pencil-outline" size={14} color={Colors.primary} />
+                <Text style={s.editLink}>Edit</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={cancelEdit}>
+                <Text style={s.cancelLink}>Cancel</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {editing ? (
+            <>
+              <Field label="NAME *"         value={name}         onChange={setName}         placeholder="Your full name"    icon="person-outline"   />
+              <Field label="PHONE"          value={phone}        onChange={setPhone}        placeholder="077 123 4567"      icon="call-outline"     keyboardType="phone-pad" />
+              <Field label="BUSINESS NAME"  value={businessName} onChange={setBusinessName} placeholder="GoPlay Sports Hub" icon="business-outline" />
+              <Field label="CITY"           value={city}         onChange={setCity}         placeholder="Colombo"           icon="location-outline" />
+              <TouchableOpacity style={[s.saveBtn, saving && s.saveBtnDisabled]} onPress={handleSave} disabled={saving}>
+                {saving ? <ActivityIndicator color={Colors.white} /> : <Text style={s.saveBtnText}>Save Changes</Text>}
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <InfoRow icon="person-outline"   label="Name"          value={profile.user.name} />
+              <InfoRow icon="mail-outline"     label="Email"         value={profile.user.email} />
+              <InfoRow icon="call-outline"     label="Phone"         value={profile.user.phone ?? "—"} />
+              {profile.user.groundOwnerProfile?.businessName && (
+                <InfoRow icon="business-outline"  label="Business Name" value={profile.user.groundOwnerProfile.businessName} />
+              )}
+              {profile.user.groundOwnerProfile?.city && (
+                <InfoRow icon="location-outline"  label="City"          value={profile.user.groundOwnerProfile.city} />
+              )}
+            </>
+          )}
+        </View>
+
+        {/* Preferences */}
+        <View style={s.card}>
+          <View style={s.cardHeaderRow}>
+            <View style={s.cardHeaderLeft}>
+              <Ionicons name="settings-outline" size={14} color={Colors.textMuted} />
+              <Text style={s.cardLabel}>PREFERENCES</Text>
+            </View>
           </View>
           <View style={s.prefRow}>
             <View style={s.prefLeft}>
-              <Ionicons name={isDark ? "moon" : "sunny-outline"} size={18} color={isDark ? "#818cf8" : "#d97706"} style={s.prefIcon} />
+              <Ionicons name={isDark ? "moon" : "sunny-outline"} size={18} color={isDark ? "#818cf8" : "#d97706"} />
               <View>
-                <Text style={[s.prefLabel, { color: txt }]}>Dark Mode</Text>
-                <Text style={[s.prefSub, { color: muted }]}>{isDark ? "Enabled" : "System default"}</Text>
+                <Text style={s.prefLabel}>Dark Mode</Text>
+                <Text style={s.prefSub}>{isDark ? "Enabled" : "System default"}</Text>
               </View>
             </View>
-            <Switch
-              value={isDark}
-              onValueChange={toggleTheme}
-              trackColor={{ false: Colors.border, true: Colors.primary }}
-              thumbColor={Colors.white}
-            />
+            <Switch value={isDark} onValueChange={toggleTheme} trackColor={{ false: Colors.border, true: Colors.primary }} thumbColor={Colors.white} />
           </View>
         </View>
 
-        {/* Sign out */}
-        <TouchableOpacity
-          style={[s.logoutBtnBase, { borderColor: Colors.error + "60", backgroundColor: Colors.errorLight }]}
-          onPress={logout}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="log-out-outline" size={18} color={Colors.error} />
-          <Text style={[s.logoutText, { color: Colors.error }]}>Sign Out</Text>
-        </TouchableOpacity>
+        {/* Security */}
+        <View style={s.card}>
+          <View style={s.cardHeaderRow}>
+            <View style={s.cardHeaderLeft}>
+              <Ionicons name="shield-outline" size={14} color={Colors.textMuted} />
+              <Text style={s.cardLabel}>SECURITY</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={s.secRow} onPress={() => setPwdModal(true)} activeOpacity={0.7}>
+            <View style={s.secLeft}>
+              <Ionicons name="lock-closed-outline" size={18} color={Colors.textSecondary} />
+              <View>
+                <Text style={s.secLabel}>Change Password</Text>
+                <Text style={s.secSub}>Update your account password</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+          </TouchableOpacity>
+        </View>
 
+        {/* Sign out */}
+        <TouchableOpacity style={s.logoutBtn} onPress={logout} activeOpacity={0.8}>
+          <Ionicons name="log-out-outline" size={18} color={Colors.error} />
+          <Text style={s.logoutText}>Sign Out</Text>
+        </TouchableOpacity>
       </ScrollView>
+
+      {/* Change Password Modal */}
+      <Modal visible={pwdModal} transparent animationType="slide" onRequestClose={() => setPwdModal(false)}>
+        <View style={s.pwdOverlay}>
+          <View style={s.pwdSheet}>
+            <View style={s.pwdHandle} />
+            <Text style={s.pwdTitle}>Change Password</Text>
+
+            {(["Current Password", "New Password", "Confirm New Password"] as const).map((label, i) => {
+              const val     = [currentPwd, newPwd, confirmPwd][i];
+              const set     = [setCurrentPwd, setNewPwd, setConfirmPwd][i];
+              const show    = [showCurrent, showNew, showConfirm][i];
+              const setShow = [setShowCurrent, setShowNew, setShowConfirm][i];
+              return (
+                <View key={label} style={s.pwdField}>
+                  <Text style={s.pwdLabel}>{label}</Text>
+                  <View style={s.pwdInputWrap}>
+                    <TextInput
+                      style={s.pwdInput}
+                      value={val}
+                      onChangeText={set}
+                      secureTextEntry={!show}
+                      placeholder="••••••••"
+                      placeholderTextColor={Colors.textMuted}
+                      returnKeyType={i === 2 ? "done" : "next"}
+                      onSubmitEditing={i === 2 ? handleChangePassword : undefined}
+                      editable={!pwdLoading}
+                    />
+                    <TouchableOpacity onPress={() => setShow((v) => !v)} hitSlop={8}>
+                      <Ionicons name={show ? "eye-off-outline" : "eye-outline"} size={18} color={Colors.textMuted} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+
+            <View style={s.pwdActions}>
+              <TouchableOpacity style={s.pwdCancel} onPress={() => { setPwdModal(false); setCurrentPwd(""); setNewPwd(""); setConfirmPwd(""); }}>
+                <Text style={s.pwdCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.pwdSave, pwdLoading && { opacity: 0.6 }]} onPress={handleChangePassword} disabled={pwdLoading}>
+                {pwdLoading ? <ActivityIndicator color={Colors.white} size="small" /> : <Text style={s.pwdSaveText}>Update</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
-
-function InfoRow({ icon, label, value, muted, txt, bg, border }: {
-  icon: string; label: string; value: string; muted: string; txt: string; bg: string; border: string;
-}) {
-  return (
-    <View style={[s.infoRow, { borderBottomColor: border }]}>
-      <View style={[s.infoIconBox, { backgroundColor: bg }]}>
-        <Ionicons name={icon as never} size={16} color={muted} />
-      </View>
-      <View style={s.infoBody}>
-        <Text style={[s.infoLabel, { color: muted }]}>{label}</Text>
-        <Text style={[s.infoValue, { color: txt }]}>{value}</Text>
-      </View>
-    </View>
-  );
-}
-
-const s = StyleSheet.create({
-  safe:   { flex: 1 },
-  scroll: { paddingBottom: 48 },
-  avatarSection: { paddingTop: 40, paddingBottom: 32, alignItems: "center" },
-  avatarRing:    { width: 88, height: 88, borderRadius: 44, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center", marginBottom: 14, borderWidth: 2, borderColor: "rgba(255,255,255,0.3)" },
-  avatarText:    { fontSize: 32, fontWeight: "800", color: "#ffffff" },
-  userName:      { fontSize: 22, fontWeight: "800", color: "#ffffff", marginBottom: 8 },
-  rolePill:      { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" },
-  roleText:      { fontSize: 12, fontWeight: "600", color: "#bbf7d0" },
-  card:          { borderRadius: 16, marginHorizontal: 16, marginTop: 16, padding: 16, borderWidth: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  cardHeader:    { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 14 },
-  cardLabel:     { fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5 },
-  infoRow:       { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1 },
-  infoIconBox:   { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", marginRight: 12 },
-  infoBody:      { flex: 1 },
-  infoLabel:     { fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3, marginBottom: 2 },
-  infoValue:     { fontSize: 15, fontWeight: "600" },
-  prefRow:       { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 6 },
-  prefLeft:      { flexDirection: "row", alignItems: "center", gap: 0 },
-  prefIcon:      { marginRight: 12 },
-  prefLabel:     { fontSize: 15, fontWeight: "600" },
-  prefSub:       { fontSize: 12, marginTop: 1 },
-  logoutBtnBase: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 16, marginTop: 16, borderWidth: 1.5, borderRadius: 14, paddingVertical: 14 },
-  logoutText:    { fontSize: 15, fontWeight: "700" },
-});

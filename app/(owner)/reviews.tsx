@@ -81,7 +81,7 @@ export default function ReviewsScreen() {
     flagPill:    { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "#fee2e2", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: "#fca5a5" },
     flagPillText:{ fontSize: 12, fontWeight: "700", color: "#b91c1c" },
 
-    list:      { padding: 16, paddingBottom: 40 },
+    list:      { padding: 16, paddingBottom: 120 },
     listEmpty: { flex: 1 },
 
     // Stats card

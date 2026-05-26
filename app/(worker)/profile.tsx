@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
-  Alert, ActivityIndicator, RefreshControl,
+  Alert, ActivityIndicator, RefreshControl, Modal, Switch,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/lib/auth";
 import { useWorkerProfile, useUpdateWorkerProfile } from "@/lib/queries/worker";
-import { useColors } from "@/lib/theme";
+import { useTheme, useColors } from "@/lib/theme";
+import { api } from "@/lib/api";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { formatDate } from "@/lib/utils";
 
 export default function WorkerProfile() {
   const Colors = useColors();
+  const { isDark, toggleTheme }                 = useTheme();
   const { logout }                              = useAuth();
   const { data, isLoading, refetch, isRefetching } = useWorkerProfile();
   const { mutate: save, isPending: saving }     = useUpdateWorkerProfile();
@@ -21,6 +23,14 @@ export default function WorkerProfile() {
   const [name,    setName]    = useState("");
   const [phone,   setPhone]   = useState("");
   const [editing, setEditing] = useState(false);
+  const [pwdModal,    setPwdModal]     = useState(false);
+  const [currentPwd,  setCurrentPwd]  = useState("");
+  const [newPwd,      setNewPwd]      = useState("");
+  const [confirmPwd,  setConfirmPwd]  = useState("");
+  const [pwdLoading,  setPwdLoading]  = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew,     setShowNew]     = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     if (!data) return;
@@ -30,7 +40,7 @@ export default function WorkerProfile() {
 
   const s = StyleSheet.create({
     safe:   { flex: 1, backgroundColor: Colors.background },
-    scroll: { paddingBottom: 48 },
+    scroll: { paddingBottom: 120 },
 
     avatarSection: { paddingTop: 36, paddingBottom: 28, alignItems: "center" },
     avatarRing:    { width: 88, height: 88, borderRadius: 44, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center", marginBottom: 12, borderWidth: 2, borderColor: "rgba(255,255,255,0.3)" },
@@ -81,6 +91,30 @@ export default function WorkerProfile() {
 
     logoutBtn:  { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 16, marginTop: 16, borderWidth: 1.5, borderColor: Colors.error + "60", borderRadius: 14, paddingVertical: 14, backgroundColor: Colors.errorLight },
     logoutText: { fontSize: 15, fontWeight: "700", color: Colors.error },
+
+    secRow:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 10 },
+    secLeft:    { flexDirection: "row", alignItems: "center", gap: 12 },
+    secLabel:   { fontSize: 15, fontWeight: "600", color: Colors.text },
+    secSub:     { fontSize: 12, marginTop: 1, color: Colors.textMuted },
+
+    pwdOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
+    pwdSheet:   { backgroundColor: Colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
+    pwdHandle:  { width: 40, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: "center", marginBottom: 20 },
+    pwdTitle:   { fontSize: 18, fontWeight: "800", color: Colors.text, marginBottom: 20 },
+    pwdField:   { marginBottom: 14 },
+    pwdLabel:   { fontSize: 11, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 6 },
+    pwdInputWrap:{ flexDirection: "row", alignItems: "center", backgroundColor: Colors.background, borderWidth: 1.5, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 12, height: 48 },
+    pwdInput:   { flex: 1, fontSize: 15, color: Colors.text },
+    pwdActions: { flexDirection: "row", gap: 10, marginTop: 8 },
+    pwdCancel:  { flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: "center", borderWidth: 1.5, borderColor: Colors.border },
+    pwdCancelText: { fontSize: 15, fontWeight: "600", color: Colors.textSecondary },
+    pwdSave:    { flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: "center", backgroundColor: Colors.primary },
+    pwdSaveText:{ fontSize: 15, fontWeight: "700", color: Colors.white },
+
+    prefRow:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 6 },
+    prefLeft:   { flexDirection: "row", alignItems: "center", gap: 12 },
+    prefLabel:  { fontSize: 15, fontWeight: "600", color: Colors.text },
+    prefSub:    { fontSize: 12, marginTop: 1, color: Colors.textMuted },
   });
 
   if (isLoading) return <LoadingScreen />;
@@ -91,6 +125,23 @@ export default function WorkerProfile() {
   const initials = profile.user.name
     ? profile.user.name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)
     : "?";
+
+  async function handleChangePassword() {
+    if (!currentPwd || !newPwd || !confirmPwd) return Alert.alert("Required", "All fields are required.");
+    if (newPwd.length < 8) return Alert.alert("Validation", "New password must be at least 8 characters.");
+    if (newPwd !== confirmPwd) return Alert.alert("Validation", "New passwords do not match.");
+    setPwdLoading(true);
+    try {
+      await api.put("/api/ground-owner/force-change-password", { currentPassword: currentPwd, newPassword: newPwd, confirmPassword: confirmPwd });
+      setPwdModal(false);
+      setCurrentPwd(""); setNewPwd(""); setConfirmPwd("");
+      Alert.alert("Success", "Password changed successfully.");
+    } catch (err: unknown) {
+      Alert.alert("Error", err instanceof Error ? err.message : "Failed to change password.");
+    } finally {
+      setPwdLoading(false);
+    }
+  }
 
   function handleSave() {
     if (!name.trim() || name.trim().length < 2) {
@@ -258,12 +309,99 @@ export default function WorkerProfile() {
           )}
         </View>
 
+        {/* Preferences */}
+        <View style={s.card}>
+          <View style={s.cardHeaderRow}>
+            <View style={s.cardHeaderLeft}>
+              <Ionicons name="settings-outline" size={14} color={Colors.textMuted} />
+              <Text style={s.cardLabel}>PREFERENCES</Text>
+            </View>
+          </View>
+          <View style={s.prefRow}>
+            <View style={s.prefLeft}>
+              <Ionicons name={isDark ? "moon" : "sunny-outline"} size={18} color={isDark ? "#818cf8" : "#d97706"} />
+              <View>
+                <Text style={s.prefLabel}>Dark Mode</Text>
+                <Text style={s.prefSub}>{isDark ? "Enabled" : "System default"}</Text>
+              </View>
+            </View>
+            <Switch value={isDark} onValueChange={toggleTheme} trackColor={{ false: Colors.border, true: Colors.primary }} thumbColor={Colors.white} />
+          </View>
+        </View>
+
+        {/* Security */}
+        <View style={s.card}>
+          <View style={s.cardHeaderRow}>
+            <View style={s.cardHeaderLeft}>
+              <Ionicons name="shield-outline" size={14} color={Colors.textMuted} />
+              <Text style={s.cardLabel}>SECURITY</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={s.secRow} onPress={() => setPwdModal(true)} activeOpacity={0.7}>
+            <View style={s.secLeft}>
+              <Ionicons name="lock-closed-outline" size={18} color={Colors.textSecondary} />
+              <View>
+                <Text style={s.secLabel}>Change Password</Text>
+                <Text style={s.secSub}>Update your account password</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+
         {/* Sign out */}
         <TouchableOpacity style={s.logoutBtn} onPress={logout} activeOpacity={0.8}>
           <Ionicons name="log-out-outline" size={18} color={Colors.error} />
           <Text style={s.logoutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Change Password Modal */}
+      <Modal visible={pwdModal} transparent animationType="slide" onRequestClose={() => setPwdModal(false)}>
+        <View style={s.pwdOverlay}>
+          <View style={s.pwdSheet}>
+            <View style={s.pwdHandle} />
+            <Text style={s.pwdTitle}>Change Password</Text>
+
+            {(["Current Password", "New Password", "Confirm New Password"] as const).map((label, i) => {
+              const val     = [currentPwd, newPwd, confirmPwd][i];
+              const set     = [setCurrentPwd, setNewPwd, setConfirmPwd][i];
+              const show    = [showCurrent, showNew, showConfirm][i];
+              const setShow = [setShowCurrent, setShowNew, setShowConfirm][i];
+              return (
+                <View key={label} style={s.pwdField}>
+                  <Text style={s.pwdLabel}>{label}</Text>
+                  <View style={s.pwdInputWrap}>
+                    <TextInput
+                      style={s.pwdInput}
+                      value={val}
+                      onChangeText={set}
+                      secureTextEntry={!show}
+                      placeholder="••••••••"
+                      placeholderTextColor={Colors.textMuted}
+                      returnKeyType={i === 2 ? "done" : "next"}
+                      onSubmitEditing={i === 2 ? handleChangePassword : undefined}
+                      editable={!pwdLoading}
+                    />
+                    <TouchableOpacity onPress={() => setShow((v) => !v)} hitSlop={8}>
+                      <Ionicons name={show ? "eye-off-outline" : "eye-outline"} size={18} color={Colors.textMuted} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+
+            <View style={s.pwdActions}>
+              <TouchableOpacity style={s.pwdCancel} onPress={() => { setPwdModal(false); setCurrentPwd(""); setNewPwd(""); setConfirmPwd(""); }}>
+                <Text style={s.pwdCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.pwdSave, pwdLoading && { opacity: 0.6 }]} onPress={handleChangePassword} disabled={pwdLoading}>
+                {pwdLoading ? <ActivityIndicator color={Colors.white} size="small" /> : <Text style={s.pwdSaveText}>Update</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

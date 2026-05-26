@@ -117,7 +117,7 @@ export default function BookingsList() {
     searchWrap:     { flexDirection: "row", alignItems: "center", backgroundColor: Colors.card, marginHorizontal: 16, marginTop: 12, marginBottom: 4, borderRadius: 12, borderWidth: 1.5, borderColor: Colors.border, paddingHorizontal: 12, height: 44 },
     searchIcon:     { marginRight: 8 },
     searchInput:    { flex: 1, fontSize: 14, color: Colors.text },
-    list:           { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 24 },
+    list:           { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 120 },
     listEmpty:      { flex: 1 },
     footer:         { paddingVertical: 10, alignItems: "center", borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: Colors.card },
     footerText:     { fontSize: 12, color: Colors.textMuted, fontWeight: "500" },

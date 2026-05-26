@@ -52,7 +52,7 @@ export default function BankDetailsScreen() {
   }
 
   const s = StyleSheet.create({
-    scroll: { padding: 16, paddingBottom: 48 },
+    scroll: { padding: 16, paddingBottom: 120 },
 
     infoCard:    { flexDirection: "row", alignItems: "flex-start", gap: 12, backgroundColor: Colors.primaryLight, borderRadius: 14, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: Colors.primaryMid },
     infoIconBox: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.card, alignItems: "center", justifyContent: "center" },

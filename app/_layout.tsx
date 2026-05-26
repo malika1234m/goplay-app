@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import { ONBOARDING_KEY } from "@/app/onboarding";
+import { PENDING_APP_KEY } from "@/app/(auth)/apply";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,7 @@ function AuthGuard() {
   const router   = useRouter();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
+  const [pendingApp,        setPendingApp]        = useState<string | null | undefined>(undefined);
   const notifListener = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
 
@@ -50,36 +52,49 @@ function AuthGuard() {
       setHasSeenOnboarding(!!val);
       setOnboardingChecked(true);
     });
-  }, [segments]); // re-read on every navigation so finish() is picked up immediately
+  }, [segments]);
 
   useEffect(() => {
-    if (isLoading || !onboardingChecked) return;
+    SecureStore.getItemAsync(PENDING_APP_KEY).then((val) => setPendingApp(val ?? null));
+  }, [segments]);
+
+  useEffect(() => {
+    if (isLoading || !onboardingChecked || pendingApp === undefined) return;
 
     const inAuth        = segments[0] === "(auth)";
     const inOwner       = segments[0] === "(owner)";
     const inWorker      = segments[0] === "(worker)";
     const inOnboarding  = segments[0] === "onboarding";
 
-    if (!user) {
-      if (!hasSeenOnboarding && !inOnboarding && !inAuth) {
-        router.replace("/onboarding");
-      } else if (hasSeenOnboarding && !inAuth) {
-        router.replace("/(auth)/login");
+    // Logged-in user — clear any pending application flag silently
+    if (user) {
+      if (pendingApp) SecureStore.deleteItemAsync(PENDING_APP_KEY).catch(() => {});
+
+      if (user.mustChangePassword) {
+        router.replace("/(auth)/change-password");
+        return;
+      }
+      if (user.role === "GROUND_OWNER" && !inOwner) {
+        router.replace("/(owner)");
+      } else if (user.role === "GROUND_WORKER" && !inWorker) {
+        router.replace("/(worker)");
       }
       return;
     }
 
-    if (user.mustChangePassword) {
-      router.replace("/(auth)/change-password");
+    // Not logged in — check for pending application
+    if (pendingApp) {
+      const inAppStatus = (segments as string[]).includes("application-status");
+      if (!inAppStatus) router.replace("/(auth)/application-status");
       return;
     }
 
-    if (user.role === "GROUND_OWNER" && !inOwner) {
-      router.replace("/(owner)");
-    } else if (user.role === "GROUND_WORKER" && !inWorker) {
-      router.replace("/(worker)");
+    if (!hasSeenOnboarding && !inOnboarding && !inAuth) {
+      router.replace("/onboarding");
+    } else if (hasSeenOnboarding && !inAuth) {
+      router.replace("/(auth)/login");
     }
-  }, [user, isLoading, segments, onboardingChecked, hasSeenOnboarding]);
+  }, [user, isLoading, segments, onboardingChecked, hasSeenOnboarding, pendingApp]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

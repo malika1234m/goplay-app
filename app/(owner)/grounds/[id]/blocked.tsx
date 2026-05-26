@@ -41,7 +41,7 @@ export default function BlockedDatesScreen() {
 
   const s = StyleSheet.create({
     container:   { flex: 1, backgroundColor: Colors.background },
-    list:        { padding: 16, paddingBottom: 32 },
+    list:        { padding: 16, paddingBottom: 120 },
     listEmpty:   { flex: 1 },
 
     addBtnWrap:  { marginBottom: 14 },

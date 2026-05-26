@@ -36,7 +36,7 @@ export default function GroundHub() {
   ];
 
   const s = StyleSheet.create({
-    scroll:       { padding: 16, paddingBottom: 40 },
+    scroll:       { padding: 16, paddingBottom: 120 },
 
     headerCard:   { backgroundColor: Colors.card, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.border },
     statusRow:    { flexDirection: "row", marginBottom: 8 },
