@@ -25,6 +25,59 @@ const AMENITIES = [
   "Lockers", "Water Supply", "Security Guard", "CCTV",
 ];
 
+// TOP-LEVEL — must not be inside EditGround or it remounts on every render
+function Field({
+  label, value, onChangeText, placeholder, keyboardType, multiline, icon, colors,
+}: {
+  label: string; value: string; onChangeText: (t: string) => void;
+  placeholder?: string; keyboardType?: "default" | "numeric"; multiline?: boolean;
+  icon?: string; colors: ReturnType<typeof useColors>;
+}) {
+  const [focused, setFocused] = useState(false);
+  const s = fieldStyles(colors);
+  return (
+    <View style={s.field}>
+      <Text style={s.fieldLabel}>{label}</Text>
+      <View style={[s.inputWrap, focused && s.inputWrapFocused, multiline && s.inputWrapMultiline]}>
+        {icon && (
+          <Ionicons
+            name={icon as never}
+            size={16}
+            color={focused ? colors.primary : colors.textMuted}
+            style={s.inputIcon}
+          />
+        )}
+        <TextInput
+          style={[s.input, multiline && s.inputMultiline]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={colors.textMuted}
+          keyboardType={keyboardType ?? "default"}
+          multiline={multiline}
+          numberOfLines={multiline ? 3 : 1}
+          textAlignVertical={multiline ? "top" : "center"}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+        />
+      </View>
+    </View>
+  );
+}
+
+function fieldStyles(Colors: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    field:            { marginBottom: 12 },
+    fieldLabel:       { fontSize: 11, fontWeight: "700", color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 6 },
+    inputWrap:        { flexDirection: "row", alignItems: "center", backgroundColor: Colors.background, borderWidth: 1.5, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 12, minHeight: 48 },
+    inputWrapFocused: { borderColor: Colors.primary, backgroundColor: Colors.card },
+    inputWrapMultiline:{ alignItems: "flex-start", paddingTop: 10 },
+    inputIcon:        { marginRight: 8 },
+    input:            { flex: 1, fontSize: 15, color: Colors.text, paddingVertical: 0 },
+    inputMultiline:   { minHeight: 72, paddingTop: 2 },
+  });
+}
+
 export default function EditGround() {
   const Colors = useColors();
   const { id }   = useLocalSearchParams<{ id: string }>();
@@ -72,15 +125,6 @@ export default function EditGround() {
     section:       { backgroundColor: Colors.card, borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
     sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 14 },
     sectionLabel:  { fontSize: 11, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 },
-
-    field:          { marginBottom: 12 },
-    fieldLabel:     { fontSize: 11, fontWeight: "700", color: Colors.textSecondary, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.4 },
-    inputWrap:      { flexDirection: "row", alignItems: "center", backgroundColor: Colors.background, borderWidth: 1.5, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 12, minHeight: 48 },
-    inputWrapFocused:{ borderColor: Colors.primary, backgroundColor: Colors.card },
-    inputWrapMultiline:{ alignItems: "flex-start", paddingTop: 10 },
-    inputIcon:      { marginRight: 8 },
-    input:          { flex: 1, fontSize: 15, color: Colors.text, paddingVertical: 0 },
-    inputMultiline: { minHeight: 72, paddingTop: 2 },
 
     chipWrap:      { flexDirection: "row", flexWrap: "wrap", gap: 8 },
     chip:          { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, backgroundColor: Colors.background, borderWidth: 1.5, borderColor: Colors.border },
@@ -160,43 +204,6 @@ export default function EditGround() {
     );
   }
 
-  function Field({
-    label, value, onChangeText, placeholder, keyboardType, multiline, icon,
-  }: {
-    label: string; value: string; onChangeText: (t: string) => void;
-    placeholder?: string; keyboardType?: "default" | "numeric"; multiline?: boolean; icon?: string;
-  }) {
-    const [focused, setFocused] = useState(false);
-    return (
-      <View style={s.field}>
-        <Text style={s.fieldLabel}>{label}</Text>
-        <View style={[s.inputWrap, focused && s.inputWrapFocused, multiline && s.inputWrapMultiline]}>
-          {icon && (
-            <Ionicons
-              name={icon as never}
-              size={16}
-              color={focused ? Colors.primary : Colors.textMuted}
-              style={s.inputIcon}
-            />
-          )}
-          <TextInput
-            style={[s.input, multiline && s.inputMultiline]}
-            value={value}
-            onChangeText={onChangeText}
-            placeholder={placeholder}
-            placeholderTextColor={Colors.textMuted}
-            keyboardType={keyboardType ?? "default"}
-            multiline={multiline}
-            numberOfLines={multiline ? 3 : 1}
-            textAlignVertical={multiline ? "top" : "center"}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-          />
-        </View>
-      </View>
-    );
-  }
-
   const statusMeta = g ? STATUS_META[g.status as FacilityStatus] : null;
 
   return (
@@ -213,63 +220,24 @@ export default function EditGround() {
         </View>
       )}
 
-      {/* Basic info section */}
+      {/* Basic info */}
       <View style={s.section}>
         <View style={s.sectionHeader}>
           <Ionicons name="business-outline" size={14} color={Colors.textMuted} />
           <Text style={s.sectionLabel}>FACILITY DETAILS</Text>
         </View>
-        <Field
-          label="Ground Name *"
-          value={name}
-          onChangeText={setName}
-          placeholder="Green Cricket Ground"
-          icon="text-outline"
-        />
-        <Field
-          label="Address *"
-          value={address}
-          onChangeText={setAddress}
-          placeholder="123 Main St, Colombo"
-          icon="location-outline"
-        />
-        <Field
-          label="City *"
-          value={city}
-          onChangeText={setCity}
-          placeholder="Colombo"
-          icon="map-outline"
-        />
+        <Field label="Ground Name *"     value={name}        onChangeText={setName}        placeholder="Green Cricket Ground"   icon="text-outline"          colors={Colors} />
+        <Field label="Address *"          value={address}     onChangeText={setAddress}     placeholder="123 Main St, Colombo"   icon="location-outline"      colors={Colors} />
+        <Field label="City *"             value={city}        onChangeText={setCity}        placeholder="Colombo"                icon="map-outline"           colors={Colors} />
         <View style={s.row}>
           <View style={s.halfLeft}>
-            <Field
-              label="Hourly Rate (Rs.) *"
-              value={hourlyRate}
-              onChangeText={setHourlyRate}
-              placeholder="1500"
-              keyboardType="numeric"
-              icon="cash-outline"
-            />
+            <Field label="Hourly Rate (Rs.) *" value={hourlyRate} onChangeText={setHourlyRate} placeholder="1500" keyboardType="numeric" icon="cash-outline"    colors={Colors} />
           </View>
           <View style={s.halfRight}>
-            <Field
-              label="Capacity"
-              value={capacity}
-              onChangeText={setCapacity}
-              placeholder="20"
-              keyboardType="numeric"
-              icon="people-outline"
-            />
+            <Field label="Capacity"            value={capacity}  onChangeText={setCapacity}  placeholder="20"   keyboardType="numeric" icon="people-outline"   colors={Colors} />
           </View>
         </View>
-        <Field
-          label="Description"
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Describe your facility…"
-          multiline
-          icon="document-text-outline"
-        />
+        <Field label="Description" value={description} onChangeText={setDescription} placeholder="Describe your facility…" multiline icon="document-text-outline" colors={Colors} />
       </View>
 
       {/* Categories */}
@@ -282,15 +250,8 @@ export default function EditGround() {
           {(catData?.categories ?? []).map((c) => {
             const active = categoryIds.includes(c.id);
             return (
-              <TouchableOpacity
-                key={c.id}
-                style={[s.chip, active && s.chipActive]}
-                onPress={() => toggleCategory(c.id)}
-                activeOpacity={0.7}
-              >
-                <Text style={[s.chipText, active && s.chipTextActive]}>
-                  {c.icon ?? ""} {c.name}
-                </Text>
+              <TouchableOpacity key={c.id} style={[s.chip, active && s.chipActive]} onPress={() => toggleCategory(c.id)} activeOpacity={0.7}>
+                <Text style={[s.chipText, active && s.chipTextActive]}>{c.icon ?? ""} {c.name}</Text>
               </TouchableOpacity>
             );
           })}
@@ -307,12 +268,7 @@ export default function EditGround() {
           {AMENITIES.map((a) => {
             const active = amenities.includes(a);
             return (
-              <TouchableOpacity
-                key={a}
-                style={[s.chip, active && s.chipActive]}
-                onPress={() => toggleAmenity(a)}
-                activeOpacity={0.7}
-              >
+              <TouchableOpacity key={a} style={[s.chip, active && s.chipActive]} onPress={() => toggleAmenity(a)} activeOpacity={0.7}>
                 <Text style={[s.chipText, active && s.chipTextActive]}>{a}</Text>
               </TouchableOpacity>
             );

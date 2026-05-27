@@ -10,10 +10,69 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 import { useColors } from "@/lib/theme";
+import { BASE_URL } from "@/lib/api";
+import { useAuth, PENDING_APP_KEY } from "@/lib/auth";
 
-export const PENDING_APP_KEY = "goplay_pending_app";
+function FieldInput({ label, value, onChange, placeholder, keyboardType, icon, secure, showToggle, onToggle, multiline, colors }: {
+  label: string; value: string; onChange: (v: string) => void;
+  placeholder?: string; keyboardType?: any; icon?: string;
+  secure?: boolean; showToggle?: boolean; onToggle?: () => void; multiline?: boolean;
+  colors: ReturnType<typeof useColors>;
+}) {
+  const [focused, setFocused] = useState(false);
+  const s = fieldStyles(colors);
+  if (multiline) {
+    return (
+      <View style={s.field}>
+        <Text style={s.fieldLabel}>{label}</Text>
+        <TextInput
+          style={[s.textArea, focused && s.textAreaFocused]}
+          value={value} onChangeText={onChange}
+          placeholder={placeholder} placeholderTextColor={colors.textMuted}
+          multiline numberOfLines={3}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+        />
+      </View>
+    );
+  }
+  return (
+    <View style={s.field}>
+      <Text style={s.fieldLabel}>{label}</Text>
+      <View style={[s.inputWrap, focused && s.inputWrapFocused]}>
+        {icon && <Ionicons name={icon as never} size={17} color={focused ? colors.primary : colors.textMuted} style={s.inputIcon} />}
+        <TextInput
+          style={s.input}
+          value={value} onChangeText={onChange}
+          placeholder={placeholder} placeholderTextColor={colors.textMuted}
+          keyboardType={keyboardType ?? "default"}
+          secureTextEntry={secure && !showToggle}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          autoCapitalize={keyboardType === "email-address" ? "none" : "sentences"}
+          autoCorrect={false}
+        />
+        {secure !== undefined && (
+          <TouchableOpacity onPress={onToggle} style={s.eyeBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Ionicons name={showToggle ? "eye-outline" : "eye-off-outline"} size={17} color={colors.textMuted} />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+}
 
-const BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+function fieldStyles(Colors: ReturnType<typeof useColors>) {
+  return StyleSheet.create({
+    field:           { marginBottom: 14 },
+    fieldLabel:      { fontSize: 11, fontWeight: "700", color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 6 },
+    inputWrap:       { flexDirection: "row", alignItems: "center", backgroundColor: Colors.background, borderRadius: 13, borderWidth: 1.5, borderColor: Colors.border, paddingHorizontal: 13, height: 50 },
+    inputWrapFocused:{ borderColor: Colors.primary },
+    inputIcon:       { marginRight: 10 },
+    input:           { flex: 1, fontSize: 15, color: Colors.text },
+    eyeBtn:          { padding: 4 },
+    textArea:        { backgroundColor: Colors.background, borderWidth: 1.5, borderColor: Colors.border, borderRadius: 13, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, fontSize: 15, color: Colors.text, minHeight: 90, textAlignVertical: "top" },
+    textAreaFocused: { borderColor: Colors.primary },
+  });
+}
 
 const AMENITIES = [
   "Parking", "Changing Rooms", "Showers", "Floodlights",
@@ -29,6 +88,7 @@ interface Category { id: string; name: string; icon: string | null }
 export default function ApplyScreen() {
   const Colors = useColors();
   const router  = useRouter();
+  const { clearPendingApp } = useAuth();
 
   const [step,      setStep]      = useState(0);
   const [error,     setError]     = useState("");
@@ -85,7 +145,7 @@ export default function ApplyScreen() {
     stepLabel:   { fontSize: 10, fontWeight: "600", letterSpacing: 0.2 },
     stepLine:    { height: 2, flex: 1, marginBottom: 18, marginHorizontal: 2 },
 
-    scroll:   { paddingHorizontal: 16, paddingBottom: 48 },
+    scroll:   { paddingHorizontal: 16, paddingBottom: 24 },
     card:     { backgroundColor: Colors.card, borderRadius: 24, padding: 22, shadowColor: "#000", shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.18, shadowRadius: 24, elevation: 12 },
 
     sectionTitle: { fontSize: 18, fontWeight: "800", color: Colors.text, marginBottom: 4 },
@@ -94,20 +154,9 @@ export default function ApplyScreen() {
     errorBox: { flexDirection: "row", alignItems: "flex-start", gap: 8, backgroundColor: Colors.errorLight, borderRadius: 12, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: "#fecaca" },
     errorText:{ fontSize: 13, color: Colors.error, flex: 1, lineHeight: 19 },
 
-    field:           { marginBottom: 14 },
-    fieldLabel:      { fontSize: 11, fontWeight: "700", color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 6 },
-    inputWrap:       { flexDirection: "row", alignItems: "center", backgroundColor: Colors.background, borderRadius: 13, borderWidth: 1.5, borderColor: Colors.border, paddingHorizontal: 13, height: 50 },
-    inputWrapFocused:{ borderColor: Colors.primary },
-    inputIcon:       { marginRight: 10 },
-    input:           { flex: 1, fontSize: 15, color: Colors.text },
-    eyeBtn:          { padding: 4 },
-
     tagsWrap:  { flexDirection: "row", flexWrap: "wrap", gap: 8 },
     tag:       { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 20, borderWidth: 1.5 },
     tagText:   { fontSize: 13, fontWeight: "600" },
-
-    textArea:  { backgroundColor: Colors.background, borderWidth: 1.5, borderColor: Colors.border, borderRadius: 13, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, fontSize: 15, color: Colors.text, minHeight: 90, textAlignVertical: "top" },
-    textAreaFocused: { borderColor: Colors.primary },
 
     reviewSection: { backgroundColor: Colors.background, borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: Colors.border },
     reviewLabel:   { fontSize: 11, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10 },
@@ -118,12 +167,12 @@ export default function ApplyScreen() {
     disclaimer: { backgroundColor: "#fffbeb", borderRadius: 12, padding: 14, borderWidth: 1, borderColor: "#fde68a", marginTop: 4 },
     disclText:  { fontSize: 12, color: "#92400e", lineHeight: 18 },
 
-    navRow:   { flexDirection: "row", gap: 10, marginTop: 20 },
-    backNavBtn:{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 14, height: 52, borderWidth: 1.5, borderColor: Colors.border },
-    backNavText:{ fontSize: 15, fontWeight: "600", color: Colors.textSecondary },
-    nextBtn:  { flex: 2, borderRadius: 14, height: 52, overflow: "hidden" },
-    nextGrad: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
-    nextText: { fontSize: 15, fontWeight: "700", color: Colors.white },
+    navFooter:  { flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: 20, backgroundColor: "transparent", borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.1)" },
+    backNavBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 14, height: 52, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", backgroundColor: "rgba(255,255,255,0.08)" },
+    backNavText:{ fontSize: 15, fontWeight: "600", color: "rgba(255,255,255,0.75)" },
+    nextBtn:    { flex: 2, borderRadius: 14, height: 52, overflow: "hidden" },
+    nextGrad:   { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+    nextText:   { fontSize: 15, fontWeight: "700", color: Colors.white },
 
     // Success screen
     successBg:      { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
@@ -199,6 +248,7 @@ export default function ApplyScreen() {
       if (!res.ok) { setError(data.error ?? "Submission failed. Please try again."); return; }
 
       await SecureStore.setItemAsync(PENDING_APP_KEY, email.trim().toLowerCase());
+      // no-op: AuthContext reads PENDING_APP_KEY on next mount via clearPendingApp
 
       Animated.spring(successAnim, { toValue: 1, useNativeDriver: true, tension: 60, friction: 8 }).start();
       setSubmitted(true);
@@ -217,51 +267,6 @@ export default function ApplyScreen() {
   function toggleAmenity(a: string) {
     setAmenities((prev) =>
       prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]
-    );
-  }
-
-  function FieldInput({ label, value, onChange, placeholder, keyboardType, icon, secure, showToggle, onToggle, multiline }: {
-    label: string; value: string; onChange: (v: string) => void;
-    placeholder?: string; keyboardType?: any; icon?: string;
-    secure?: boolean; showToggle?: boolean; onToggle?: () => void; multiline?: boolean;
-  }) {
-    const [focused, setFocused] = useState(false);
-    if (multiline) {
-      return (
-        <View style={s.field}>
-          <Text style={s.fieldLabel}>{label}</Text>
-          <TextInput
-            style={[s.textArea, focused && s.textAreaFocused]}
-            value={value} onChangeText={onChange}
-            placeholder={placeholder} placeholderTextColor={Colors.textMuted}
-            multiline numberOfLines={3}
-            onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-          />
-        </View>
-      );
-    }
-    return (
-      <View style={s.field}>
-        <Text style={s.fieldLabel}>{label}</Text>
-        <View style={[s.inputWrap, focused && s.inputWrapFocused]}>
-          {icon && <Ionicons name={icon as never} size={17} color={focused ? Colors.primary : Colors.textMuted} style={s.inputIcon} />}
-          <TextInput
-            style={s.input}
-            value={value} onChangeText={onChange}
-            placeholder={placeholder} placeholderTextColor={Colors.textMuted}
-            keyboardType={keyboardType ?? "default"}
-            secureTextEntry={secure && !showToggle}
-            onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-            autoCapitalize={keyboardType === "email-address" ? "none" : "sentences"}
-            autoCorrect={false}
-          />
-          {secure !== undefined && (
-            <TouchableOpacity onPress={onToggle} style={s.eyeBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Ionicons name={showToggle ? "eye-outline" : "eye-off-outline"} size={17} color={Colors.textMuted} />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
     );
   }
 
@@ -329,7 +334,7 @@ export default function ApplyScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <StatusBar style="light" />
       <LinearGradient colors={[Colors.navy, Colors.navyDark, "#0a1628"]} style={s.bg}>
         <SafeAreaView style={s.safeTop} edges={["top"]}>
@@ -346,6 +351,7 @@ export default function ApplyScreen() {
         </SafeAreaView>
 
         <ScrollView
+          style={{ flex: 1 }}
           contentContainerStyle={s.scroll}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -357,11 +363,11 @@ export default function ApplyScreen() {
                 <Text style={s.sectionTitle}>Create Your Account</Text>
                 <Text style={s.sectionSub}>Start by setting up your login credentials.</Text>
                 {!!error && <View style={s.errorBox}><Ionicons name="alert-circle-outline" size={16} color={Colors.error} /><Text style={s.errorText}>{error}</Text></View>}
-                <FieldInput label="FULL NAME *" value={name} onChange={setName} placeholder="Your full name" icon="person-outline" />
-                <FieldInput label="EMAIL ADDRESS *" value={email} onChange={setEmail} placeholder="you@example.com" keyboardType="email-address" icon="mail-outline" />
-                <FieldInput label="MOBILE NUMBER *" value={phone} onChange={setPhone} placeholder="077 123 4567" keyboardType="phone-pad" icon="call-outline" />
-                <FieldInput label="PASSWORD *" value={password} onChange={setPassword} placeholder="Min 8 chars, include a number" icon="lock-closed-outline" secure showToggle={showPass} onToggle={() => setShowPass((v) => !v)} />
-                <FieldInput label="CONFIRM PASSWORD *" value={confirmPassword} onChange={setConfirmPassword} placeholder="Re-enter your password" icon="lock-closed-outline" secure showToggle={showConfirm} onToggle={() => setShowConfirm((v) => !v)} />
+                <FieldInput label="FULL NAME *" value={name} onChange={setName} placeholder="Your full name" icon="person-outline"  colors={Colors}/>
+                <FieldInput label="EMAIL ADDRESS *" value={email} onChange={setEmail} placeholder="you@example.com" keyboardType="email-address" icon="mail-outline"  colors={Colors}/>
+                <FieldInput label="MOBILE NUMBER *" value={phone} onChange={setPhone} placeholder="077 123 4567" keyboardType="phone-pad" icon="call-outline"  colors={Colors}/>
+                <FieldInput label="PASSWORD *" value={password} onChange={setPassword} placeholder="Min 8 chars, include a number" icon="lock-closed-outline" secure showToggle={showPass} onToggle={() => setShowPass((v) => !v)}  colors={Colors}/>
+                <FieldInput label="CONFIRM PASSWORD *" value={confirmPassword} onChange={setConfirmPassword} placeholder="Re-enter your password" icon="lock-closed-outline" secure showToggle={showConfirm} onToggle={() => setShowConfirm((v) => !v)}  colors={Colors}/>
               </>
             )}
 
@@ -371,8 +377,8 @@ export default function ApplyScreen() {
                 <Text style={s.sectionTitle}>Your Details</Text>
                 <Text style={s.sectionSub}>Tell us where you're based. This stays private.</Text>
                 {!!error && <View style={s.errorBox}><Ionicons name="alert-circle-outline" size={16} color={Colors.error} /><Text style={s.errorText}>{error}</Text></View>}
-                <FieldInput label="HOME / BUSINESS ADDRESS *" value={address} onChange={setAddress} placeholder="Street address" icon="home-outline" />
-                <FieldInput label="CITY *" value={city} onChange={setCity} placeholder="e.g. Colombo" icon="location-outline" />
+                <FieldInput label="HOME / BUSINESS ADDRESS *" value={address} onChange={setAddress} placeholder="Street address" icon="home-outline"  colors={Colors}/>
+                <FieldInput label="CITY *" value={city} onChange={setCity} placeholder="e.g. Colombo" icon="location-outline"  colors={Colors}/>
               </>
             )}
 
@@ -382,9 +388,9 @@ export default function ApplyScreen() {
                 <Text style={s.sectionTitle}>Your Facility</Text>
                 <Text style={s.sectionSub}>Tell us about the sports ground you want to list.</Text>
                 {!!error && <View style={s.errorBox}><Ionicons name="alert-circle-outline" size={16} color={Colors.error} /><Text style={s.errorText}>{error}</Text></View>}
-                <FieldInput label="FACILITY NAME *" value={facilityName} onChange={setFacilityName} placeholder="e.g. Colombo Cricket Academy" icon="business-outline" />
-                <FieldInput label="FACILITY ADDRESS *" value={facilityAddress} onChange={setFacilityAddress} placeholder="Street address of the ground" icon="location-outline" />
-                <FieldInput label="FACILITY CITY *" value={facilityCity} onChange={setFacilityCity} placeholder="e.g. Colombo" icon="map-outline" />
+                <FieldInput label="FACILITY NAME *" value={facilityName} onChange={setFacilityName} placeholder="e.g. Colombo Cricket Academy" icon="business-outline"  colors={Colors}/>
+                <FieldInput label="FACILITY ADDRESS *" value={facilityAddress} onChange={setFacilityAddress} placeholder="Street address of the ground" icon="location-outline"  colors={Colors}/>
+                <FieldInput label="FACILITY CITY *" value={facilityCity} onChange={setFacilityCity} placeholder="e.g. Colombo" icon="map-outline"  colors={Colors}/>
 
                 <View style={s.field}>
                   <Text style={s.fieldLabel}>
@@ -412,10 +418,10 @@ export default function ApplyScreen() {
 
                 <View style={{ flexDirection: "row", gap: 12 }}>
                   <View style={{ flex: 1 }}>
-                    <FieldInput label="HOURLY RATE (RS.) *" value={proposedHourlyRate} onChange={setProposedHourlyRate} placeholder="2500" keyboardType="numeric" icon="cash-outline" />
+                    <FieldInput label="HOURLY RATE (RS.) *" value={proposedHourlyRate} onChange={setProposedHourlyRate} placeholder="2500" keyboardType="numeric" icon="cash-outline"  colors={Colors}/>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <FieldInput label="CAPACITY" value={capacity} onChange={setCapacity} placeholder="22" keyboardType="numeric" icon="people-outline" />
+                    <FieldInput label="CAPACITY" value={capacity} onChange={setCapacity} placeholder="22" keyboardType="numeric" icon="people-outline"  colors={Colors}/>
                   </View>
                 </View>
 
@@ -438,7 +444,7 @@ export default function ApplyScreen() {
                   </View>
                 </View>
 
-                <FieldInput label="DESCRIPTION" value={facilityDescription} onChange={setFacilityDescription} placeholder="Describe your facility, rules, and what makes it special…" multiline />
+                <FieldInput label="DESCRIPTION" value={facilityDescription} onChange={setFacilityDescription} placeholder="Describe your facility, rules, and what makes it special…" multiline  colors={Colors}/>
               </>
             )}
 
@@ -483,44 +489,46 @@ export default function ApplyScreen() {
                 </View>
               </>
             )}
-
-            {/* Navigation */}
-            <View style={s.navRow}>
-              {step > 0 && (
-                <TouchableOpacity style={s.backNavBtn} onPress={back}>
-                  <Ionicons name="chevron-back" size={16} color={Colors.textSecondary} />
-                  <Text style={s.backNavText}>Back</Text>
-                </TouchableOpacity>
-              )}
-
-              {step < 3 ? (
-                <TouchableOpacity style={[s.nextBtn, step === 0 && { flex: 1 }]} onPress={next} activeOpacity={0.88}>
-                  <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={s.nextGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                    <Text style={s.nextText}>Continue</Text>
-                    <Ionicons name="chevron-forward" size={17} color={Colors.white} />
-                  </LinearGradient>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={[s.nextBtn, { flex: step > 0 ? 2 : 1, opacity: loading ? 0.65 : 1 }]}
-                  onPress={handleSubmit}
-                  disabled={loading}
-                  activeOpacity={0.88}
-                >
-                  <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={s.nextGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                    {loading
-                      ? <ActivityIndicator color={Colors.white} />
-                      : <>
-                          <Ionicons name="send-outline" size={17} color={Colors.white} />
-                          <Text style={s.nextText}>Submit Application</Text>
-                        </>
-                    }
-                  </LinearGradient>
-                </TouchableOpacity>
-              )}
-            </View>
           </View>
         </ScrollView>
+
+        {/* ── Navigation buttons — fixed footer, always visible ─────────────── */}
+        <SafeAreaView edges={["bottom"]} style={{ backgroundColor: "transparent" }}>
+          <View style={s.navFooter}>
+            {step > 0 && (
+              <TouchableOpacity style={s.backNavBtn} onPress={back}>
+                <Ionicons name="chevron-back" size={16} color="rgba(255,255,255,0.75)" />
+                <Text style={s.backNavText}>Back</Text>
+              </TouchableOpacity>
+            )}
+
+            {step < 3 ? (
+              <TouchableOpacity style={[s.nextBtn, step === 0 && { flex: 1 }]} onPress={next} activeOpacity={0.88}>
+                <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={s.nextGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                  <Text style={s.nextText}>Continue</Text>
+                  <Ionicons name="chevron-forward" size={17} color={Colors.white} />
+                </LinearGradient>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[s.nextBtn, { flex: step > 0 ? 2 : 1, opacity: loading ? 0.65 : 1 }]}
+                onPress={handleSubmit}
+                disabled={loading}
+                activeOpacity={0.88}
+              >
+                <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={s.nextGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                  {loading
+                    ? <ActivityIndicator color={Colors.white} />
+                    : <>
+                        <Ionicons name="send-outline" size={17} color={Colors.white} />
+                        <Text style={s.nextText}>Submit Application</Text>
+                      </>
+                  }
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
+          </View>
+        </SafeAreaView>
       </LinearGradient>
     </KeyboardAvoidingView>
   );

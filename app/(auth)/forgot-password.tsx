@@ -8,8 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useColors } from "@/lib/theme";
-
-const BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+import { BASE_URL } from "@/lib/api";
 
 export default function ForgotPasswordScreen() {
   const Colors = useColors();

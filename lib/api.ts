@@ -1,6 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 
-const BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+export const BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 
 // Registered by AuthProvider so a 401 anywhere auto-triggers logout
 let _onAuthError: (() => void) | null = null;
@@ -32,13 +32,18 @@ export async function apiRequest<T = unknown>(
     throw new Error("Network error — check your internet connection.");
   }
 
-  // Token expired or revoked → clear session immediately
-  if (response.status === 401) {
+  const data = await response.json().catch(() => ({}));
+
+  if (response.status === 401 || response.status === 403) {
+    const serverMsg = (data as { error?: string })?.error;
+    if (serverMsg && serverMsg !== "Forbidden") {
+      // Server sent a real error (e.g. wrong password) — show it as-is, don't logout
+      throw new Error(serverMsg);
+    }
+    // No error body or generic "Forbidden" → expired/revoked token → clear session
     _onAuthError?.();
     throw new Error("Session expired. Please log in again.");
   }
-
-  const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
     throw new Error((data as { error?: string })?.error ?? "Request failed");
@@ -67,11 +72,15 @@ export async function uploadFormData<T = unknown>(path: string, body: FormData):
   } catch {
     throw new Error("Network error — check your internet connection.");
   }
-  if (response.status === 401) {
+  const data = await response.json().catch(() => ({}));
+  if (response.status === 401 || response.status === 403) {
+    const serverMsg = (data as { error?: string })?.error;
+    if (serverMsg && serverMsg !== "Forbidden") {
+      throw new Error(serverMsg);
+    }
     _onAuthError?.();
     throw new Error("Session expired. Please log in again.");
   }
-  const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error((data as { error?: string })?.error ?? "Request failed");
   }

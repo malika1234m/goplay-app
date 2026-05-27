@@ -1,4 +1,4 @@
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -26,8 +26,11 @@ export default function GroundsList() {
     list:      { padding: 16, paddingBottom: 120 },
     listEmpty: { flex: 1 },
 
-    card:      { backgroundColor: Colors.card, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-    cardTop:   { flexDirection: "row", alignItems: "flex-start", marginBottom: 12 },
+    card:        { backgroundColor: Colors.card, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, overflow: "hidden" },
+    coverImg:    { width: "100%", height: 140 },
+    coverPlaceholder: { width: "100%", height: 0 },
+    cardBody:    { padding: 16 },
+    cardTop:     { flexDirection: "row", alignItems: "flex-start", marginBottom: 12 },
     flex:      { flex: 1 },
     name:      { fontSize: 16, fontWeight: "700", color: Colors.text, marginBottom: 4 },
     locationRow:{ flexDirection: "row", alignItems: "center", gap: 3 },
@@ -56,6 +59,12 @@ export default function GroundsList() {
     const cfg = STATUS_CONFIG[ground.status] ?? { color: Colors.textMuted, bg: Colors.background };
     return (
       <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.75}>
+        {/* Cover image */}
+        {ground.images?.[0] ? (
+          <Image source={{ uri: ground.images[0] }} style={s.coverImg} resizeMode="cover" />
+        ) : null}
+
+        <View style={s.cardBody}>
         {/* Name row + status badge */}
         <View style={s.cardTop}>
           <View style={s.flex}>
@@ -110,6 +119,7 @@ export default function GroundsList() {
         <View style={s.chevronRow}>
           <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
         </View>
+        </View>{/* cardBody */}
       </TouchableOpacity>
     );
   }

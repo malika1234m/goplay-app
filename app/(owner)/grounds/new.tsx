@@ -1,12 +1,13 @@
 import { useState } from "react";
 import {
-  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, ScrollView, Image, StyleSheet,
   Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { useCategories } from "@/lib/queries/groundManagement";
+import { useCategories, useUploadGroundImages } from "@/lib/queries/groundManagement";
 import { useCreateGround } from "@/lib/queries/owner";
 import { useColors } from "@/lib/theme";
 
@@ -23,7 +24,8 @@ export default function NewGround() {
   const { data: catData } = useCategories();
   const categories = catData?.categories ?? [];
 
-  const { mutate: create, isPending: saving } = useCreateGround();
+  const { mutate: create,  isPending: saving }    = useCreateGround();
+  const { mutate: uploadImgs, isPending: uploading } = useUploadGroundImages();
 
   const [name,        setName]        = useState("");
   const [description, setDescription] = useState("");
@@ -33,12 +35,36 @@ export default function NewGround() {
   const [capacity,    setCapacity]    = useState("");
   const [amenities,   setAmenities]   = useState<string[]>([]);
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [images,      setImages]      = useState<string[]>([]);
 
   function toggleCategory(id: string) {
     setCategoryIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   }
   function toggleAmenity(a: string) {
     setAmenities((prev) => prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]);
+  }
+
+  async function pickImages() {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Required", "Allow photo library access to add images.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsMultipleSelection: true,
+      selectionLimit: 8 - images.length,
+      quality: 0.85,
+    });
+    if (result.canceled || !result.assets.length) return;
+    uploadImgs(result.assets, {
+      onSuccess: (res) => setImages((prev) => [...prev, ...res.urls]),
+      onError:   (e)   => Alert.alert("Upload Failed", e.message),
+    });
+  }
+
+  function removeImage(uri: string) {
+    setImages((prev) => prev.filter((u) => u !== uri));
   }
 
   function handleSubmit() {
@@ -57,7 +83,12 @@ export default function NewGround() {
     if (cap !== undefined && cap < 1) return Alert.alert("Validation", "Capacity must be at least 1.");
 
     create(
-      { name: trimName, description: description.trim() || undefined, address: trimAddress, city: trimCity, hourlyRate: rate, capacity: cap, amenities, categoryIds },
+      {
+        name: trimName, description: description.trim() || undefined,
+        address: trimAddress, city: trimCity,
+        hourlyRate: rate, capacity: cap,
+        amenities, categoryIds, images,
+      },
       {
         onSuccess: () => {
           Alert.alert(
@@ -99,6 +130,13 @@ export default function NewGround() {
     chipText:  { fontSize: 13, fontWeight: "600", color: Colors.textSecondary },
     chipTextActive: { color: Colors.primary },
 
+    imgGrid:   { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    imgCell:   { width: 88, height: 88, borderRadius: 10, overflow: "visible" },
+    imgThumb:  { width: 88, height: 88, borderRadius: 10 },
+    imgRemove: { position: "absolute", top: -8, right: -8, zIndex: 1 },
+    imgAdd:    { width: 88, height: 88, borderRadius: 10, backgroundColor: Colors.background, borderWidth: 1.5, borderColor: Colors.primary, borderStyle: "dashed", alignItems: "center", justifyContent: "center", gap: 2 },
+    imgAddText:{ fontSize: 11, fontWeight: "600", color: Colors.primary },
+
     submitSection: { marginTop: 28, marginBottom: 8 },
     infoBox: { flexDirection: "row", alignItems: "flex-start", gap: 10, backgroundColor: Colors.primaryLight, borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: Colors.primary + "44" },
     infoText:{ fontSize: 13, color: Colors.primary, flex: 1, lineHeight: 19 },
@@ -136,7 +174,7 @@ export default function NewGround() {
           <View style={s.field}>
             <Text style={s.fieldLabel}>Description</Text>
             <View style={[s.inputWrap, s.inputMulti]}>
-              <TextInput style={[s.input, s.inputMultiText]} value={description} onChangeText={setDescription} placeholder="Describe your facility, facilities, and what makes it special…" placeholderTextColor={Colors.textMuted} multiline numberOfLines={4} />
+              <TextInput style={[s.input, s.inputMultiText]} value={description} onChangeText={setDescription} placeholder="Describe your facility…" placeholderTextColor={Colors.textMuted} multiline numberOfLines={4} />
             </View>
           </View>
 
@@ -182,12 +220,7 @@ export default function NewGround() {
           </View>
           <View style={s.chips}>
             {categories.map((c) => (
-              <TouchableOpacity
-                key={c.id}
-                style={[s.chip, categoryIds.includes(c.id) && s.chipActive]}
-                onPress={() => toggleCategory(c.id)}
-                activeOpacity={0.7}
-              >
+              <TouchableOpacity key={c.id} style={[s.chip, categoryIds.includes(c.id) && s.chipActive]} onPress={() => toggleCategory(c.id)} activeOpacity={0.7}>
                 <Text style={[s.chipText, categoryIds.includes(c.id) && s.chipTextActive]}>
                   {c.icon ? `${c.icon} ` : ""}{c.name}
                 </Text>
@@ -204,15 +237,39 @@ export default function NewGround() {
           </View>
           <View style={s.chips}>
             {AMENITIES.map((a) => (
-              <TouchableOpacity
-                key={a}
-                style={[s.chip, amenities.includes(a) && s.chipActive]}
-                onPress={() => toggleAmenity(a)}
-                activeOpacity={0.7}
-              >
+              <TouchableOpacity key={a} style={[s.chip, amenities.includes(a) && s.chipActive]} onPress={() => toggleAmenity(a)} activeOpacity={0.7}>
                 <Text style={[s.chipText, amenities.includes(a) && s.chipTextActive]}>{a}</Text>
               </TouchableOpacity>
             ))}
+          </View>
+        </View>
+
+        {/* Photos */}
+        <View style={s.section}>
+          <View style={s.sectionLabel}>
+            <Ionicons name="images-outline" size={15} color={Colors.textMuted} />
+            <Text style={s.sectionTitle}>Photos (optional, max 8)</Text>
+          </View>
+          <View style={s.imgGrid}>
+            {images.map((uri) => (
+              <View key={uri} style={s.imgCell}>
+                <Image source={{ uri }} style={s.imgThumb} resizeMode="cover" />
+                <TouchableOpacity style={s.imgRemove} onPress={() => removeImage(uri)} hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}>
+                  <Ionicons name="close-circle" size={20} color={Colors.error} />
+                </TouchableOpacity>
+              </View>
+            ))}
+            {images.length < 8 && (
+              <TouchableOpacity style={s.imgAdd} onPress={pickImages} disabled={uploading} activeOpacity={0.7}>
+                {uploading
+                  ? <ActivityIndicator color={Colors.primary} />
+                  : <>
+                      <Ionicons name="add-outline" size={28} color={Colors.primary} />
+                      <Text style={s.imgAddText}>Add</Text>
+                    </>
+                }
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -222,12 +279,7 @@ export default function NewGround() {
             <Ionicons name="information-circle-outline" size={16} color={Colors.primary} />
             <Text style={s.infoText}>Your ground will be reviewed by the GoPlay team before going live. This usually takes 1–3 business days.</Text>
           </View>
-          <TouchableOpacity
-            style={[s.submitBtn, saving && { opacity: 0.65 }]}
-            onPress={handleSubmit}
-            disabled={saving}
-            activeOpacity={0.88}
-          >
+          <TouchableOpacity style={[s.submitBtn, (saving || uploading) && { opacity: 0.65 }]} onPress={handleSubmit} disabled={saving || uploading} activeOpacity={0.88}>
             <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={s.submitGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
               {saving
                 ? <ActivityIndicator color={Colors.white} />

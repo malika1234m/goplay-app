@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
+  BackHandler,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { useAuth } from "@/lib/auth";
-import { api } from "@/lib/api";
+import { BASE_URL } from "@/lib/api";
 import { useColors } from "@/lib/theme";
+import * as SecureStore from "expo-secure-store";
 
 type FieldKey = "current" | "next" | "confirm";
 
@@ -20,7 +24,13 @@ const FIELDS: { key: FieldKey; label: string; placeholder: string; icon: "lock-c
 
 export default function ChangePasswordScreen() {
   const Colors = useColors();
-  const { user, logout } = useAuth();
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  async function signOut() {
+    await logout();
+    router.replace("/(auth)/login");
+  }
 
   const [values,  setValues]  = useState<Record<FieldKey, string>>({ current: "", next: "", confirm: "" });
   const [show,    setShow]    = useState<Record<FieldKey, boolean>>({ current: false, next: false, confirm: false });
@@ -28,18 +38,27 @@ export default function ChangePasswordScreen() {
   const [error,   setError]   = useState("");
   const [loading, setLoading] = useState(false);
 
-  const endpoint =
-    user?.role === "GROUND_OWNER"
-      ? "/api/ground-owner/force-change-password"
-      : "/api/user/password";
+  // Android hardware back button → sign out
+  useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      signOut();
+      return true;
+    });
+    return () => sub.remove();
+  }, []);
 
   const s = StyleSheet.create({
     flex: { flex: 1 },
     bg:   { flex: 1 },
 
-    scroll: { paddingHorizontal: 20, paddingVertical: 40 },
+    header:      { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
+    headerTitle: { fontSize: 17, fontWeight: "800", color: Colors.white },
+    signOutBtn:  { flexDirection: "row", alignItems: "center", gap: 4, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.1)", borderWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
+    signOutText: { fontSize: 13, fontWeight: "600", color: "rgba(255,255,255,0.75)" },
 
-    brandSection: { alignItems: "center", paddingBottom: 28 },
+    scroll: { paddingHorizontal: 20, paddingVertical: 24 },
+
+    brandSection: { alignItems: "center", paddingBottom: 24 },
     iconCircle:   { width: 72, height: 72, borderRadius: 36, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" },
     brandTitle:   { fontSize: 24, fontWeight: "800", color: Colors.white, letterSpacing: -0.5 },
     brandSub:     { fontSize: 13, color: "rgba(255,255,255,0.55)", marginTop: 4 },
@@ -63,9 +82,6 @@ export default function ChangePasswordScreen() {
     btn:        { flexDirection: "row", alignItems: "center", justifyContent: "center", borderRadius: 14, height: 52, gap: 8 },
     btnDisabled:{ opacity: 0.6 },
     btnText:    { fontSize: 16, fontWeight: "700", color: Colors.white },
-
-    logoutRow:  { alignItems: "center", marginTop: 16 },
-    logoutText: { fontSize: 14, color: Colors.textMuted },
   });
 
   async function handleSubmit() {
@@ -85,10 +101,31 @@ export default function ChangePasswordScreen() {
     setLoading(true);
     setError("");
     try {
-      await api.put(endpoint, { currentPassword: values.current, newPassword: values.next });
-      await logout();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update password.");
+      const token = await SecureStore.getItemAsync("goplay_token");
+      const res = await fetch(`${BASE_URL}/api/ground-owner/force-change-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          currentPassword: values.current,
+          newPassword:     values.next,
+          confirmPassword: values.confirm,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401 || res.status === 403) {
+        await signOut();
+        return;
+      }
+      if (!res.ok) {
+        setError((data as any)?.error ?? "Failed to update password.");
+        return;
+      }
+      await signOut();
+    } catch {
+      setError("Network error — check your connection.");
     } finally {
       setLoading(false);
     }
@@ -101,6 +138,18 @@ export default function ChangePasswordScreen() {
     >
       <StatusBar style="light" />
       <LinearGradient colors={[Colors.navy, Colors.navyDark, "#0a1628"]} style={s.bg}>
+
+        {/* Fixed header — always visible above keyboard */}
+        <SafeAreaView edges={["top"]}>
+          <View style={s.header}>
+            <Text style={s.headerTitle}>Security Update</Text>
+            <TouchableOpacity style={s.signOutBtn} onPress={signOut} activeOpacity={0.75}>
+              <Ionicons name="log-out-outline" size={15} color="rgba(255,255,255,0.75)" />
+              <Text style={s.signOutText}>Sign out</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
           {/* Branding */}
@@ -184,10 +233,6 @@ export default function ChangePasswordScreen() {
                     </>
                 }
               </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={s.logoutRow} onPress={logout}>
-              <Text style={s.logoutText}>Sign out instead</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

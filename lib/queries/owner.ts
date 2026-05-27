@@ -120,6 +120,7 @@ export function useCreateGround() {
       capacity?:    number;
       amenities?:   string[];
       categoryIds:  string[];
+      images?:      string[];
     }) => api.post("/api/ground-owner/grounds", body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["owner", "grounds"] });

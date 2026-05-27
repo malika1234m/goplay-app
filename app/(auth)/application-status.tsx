@@ -6,12 +6,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
-import * as SecureStore from "expo-secure-store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useColors } from "@/lib/theme";
-import { PENDING_APP_KEY } from "./apply";
-
-const BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+import { useAuth, PENDING_APP_KEY } from "@/lib/auth";
+import { BASE_URL } from "@/lib/api";
 
 type AppStatus = "PENDING" | "APPROVED" | "REJECTED" | "NOT_FOUND" | null;
 
@@ -25,16 +23,16 @@ interface StatusData {
 export default function ApplicationStatusScreen() {
   const Colors = useColors();
   const router  = useRouter();
+  const { clearPendingApp } = useAuth();
 
-  const [data,     setData]     = useState<StatusData | null>(null);
-  const [loading,  setLoading]  = useState(true);
-  const [email,    setEmail]    = useState<string | null>(null);
+  const [data,        setData]        = useState<StatusData | null>(null);
+  const [loading,     setLoading]     = useState(true);
+  const [email,       setEmail]       = useState<string | null>(null);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim  = useRef(new Animated.Value(0)).current;
 
-  // Pulse animation for PENDING state
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -65,19 +63,19 @@ export default function ApplicationStatusScreen() {
     }
   }, []);
 
-  // Load stored email and fetch status on mount
   useEffect(() => {
-    SecureStore.getItemAsync(PENDING_APP_KEY).then((storedEmail) => {
-      if (storedEmail) {
-        setEmail(storedEmail);
-        fetchStatus(storedEmail);
-      } else {
-        setLoading(false);
-      }
+    import("expo-secure-store").then(({ getItemAsync }) => {
+      getItemAsync(PENDING_APP_KEY).then((storedEmail) => {
+        if (storedEmail) {
+          setEmail(storedEmail);
+          fetchStatus(storedEmail);
+        } else {
+          setLoading(false);
+        }
+      });
     });
   }, [fetchStatus]);
 
-  // Auto-refresh every 30 seconds while PENDING
   useEffect(() => {
     if (data?.status !== "PENDING" || !email) return;
     const id = setInterval(() => fetchStatus(email), 30_000);
@@ -90,12 +88,12 @@ export default function ApplicationStatusScreen() {
   }
 
   async function handleApproved() {
-    await SecureStore.deleteItemAsync(PENDING_APP_KEY);
+    await clearPendingApp();        // clears SecureStore AND updates AuthContext state synchronously
     router.replace("/(auth)/login");
   }
 
   async function handleReapply() {
-    await SecureStore.deleteItemAsync(PENDING_APP_KEY);
+    await clearPendingApp();
     router.replace("/(auth)/apply");
   }
 
@@ -104,7 +102,7 @@ export default function ApplicationStatusScreen() {
     bg:   { flex: 1 },
     safe: { flex: 1 },
 
-    header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
+    header:      { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
     headerTitle: { flex: 1, textAlign: "center", fontSize: 17, fontWeight: "800", color: "#fff", marginRight: 40 },
 
     container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 28 },
@@ -117,18 +115,18 @@ export default function ApplicationStatusScreen() {
     emailPill: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, marginBottom: 32, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
     emailText: { fontSize: 13, color: "rgba(255,255,255,0.65)", fontWeight: "500" },
 
-    primaryBtn: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.white, borderRadius: 16, paddingVertical: 15, paddingHorizontal: 28, marginBottom: 12, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 5 },
+    primaryBtn:     { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: Colors.white, borderRadius: 16, paddingVertical: 15, paddingHorizontal: 28, marginBottom: 12, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 5 },
     primaryBtnText: { fontSize: 16, fontWeight: "800" },
 
-    secondaryBtn: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 24, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.2)", marginBottom: 8 },
+    secondaryBtn:     { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 24, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.2)", marginBottom: 8 },
     secondaryBtnText: { fontSize: 14, fontWeight: "600", color: "rgba(255,255,255,0.65)" },
 
     refreshRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 },
     refreshText:{ fontSize: 12, color: "rgba(255,255,255,0.35)" },
 
-    rejectCard: { backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", width: "100%" },
-    rejectLabel:{ fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 },
-    rejectReason:{ fontSize: 14, color: "rgba(255,255,255,0.8)", lineHeight: 20 },
+    rejectCard:   { backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", width: "100%" },
+    rejectLabel:  { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 },
+    rejectReason: { fontSize: 14, color: "rgba(255,255,255,0.8)", lineHeight: 20 },
   });
 
   if (loading && !data) {
@@ -181,7 +179,7 @@ export default function ApplicationStatusScreen() {
             <Text style={[s.primaryBtnText, { color: Colors.primary }]}>Refresh Status</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={s.secondaryBtn} onPress={() => router.replace("/(auth)/login")}>
+          <TouchableOpacity style={s.secondaryBtn} onPress={handleApproved} activeOpacity={0.85}>
             <Ionicons name="arrow-back-outline" size={16} color="rgba(255,255,255,0.65)" />
             <Text style={s.secondaryBtnText}>Back to Sign In</Text>
           </TouchableOpacity>
@@ -249,7 +247,7 @@ export default function ApplicationStatusScreen() {
             <Text style={[s.primaryBtnText, { color: Colors.primary }]}>Apply Again</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={s.secondaryBtn} onPress={() => router.replace("/(auth)/login")}>
+          <TouchableOpacity style={s.secondaryBtn} onPress={handleApproved} activeOpacity={0.85}>
             <Text style={s.secondaryBtnText}>Back to Sign In</Text>
           </TouchableOpacity>
         </Animated.View>

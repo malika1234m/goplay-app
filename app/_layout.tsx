@@ -8,12 +8,10 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import { ONBOARDING_KEY } from "@/app/onboarding";
-import { PENDING_APP_KEY } from "@/app/(auth)/apply";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Don't retry on auth errors; retry once on anything else
       retry: (count, error) =>
         !(error instanceof Error && error.message.startsWith("Session expired")) &&
         count < 1,
@@ -26,16 +24,15 @@ const queryClient = new QueryClient({
 });
 
 function AuthGuard() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, pendingApp } = useAuth();
   const segments = useSegments();
   const router   = useRouter();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
-  const [pendingApp,        setPendingApp]        = useState<string | null | undefined>(undefined);
-  const notifListener = useRef<Notifications.Subscription | null>(null);
+  const notifListener    = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
 
-  // Handle notification taps — navigate to the link if provided
+  // Handle notification taps
   useEffect(() => {
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
       const link = response.notification.request.content.data?.link as string | undefined;
@@ -55,25 +52,14 @@ function AuthGuard() {
   }, [segments]);
 
   useEffect(() => {
-    SecureStore.getItemAsync(PENDING_APP_KEY).then((val) => setPendingApp(val ?? null));
-  }, [segments]);
+    if (isLoading || !onboardingChecked) return;
 
-  useEffect(() => {
-    if (isLoading || !onboardingChecked || pendingApp === undefined) return;
+    const inAuth       = segments[0] === "(auth)";
+    const inOwner      = segments[0] === "(owner)";
+    const inWorker     = segments[0] === "(worker)";
+    const inOnboarding = segments[0] === "onboarding";
 
-    const inAuth        = segments[0] === "(auth)";
-    const inOwner       = segments[0] === "(owner)";
-    const inWorker      = segments[0] === "(worker)";
-    const inOnboarding  = segments[0] === "onboarding";
-
-    // Logged-in user — clear any pending application flag silently
     if (user) {
-      if (pendingApp) SecureStore.deleteItemAsync(PENDING_APP_KEY).catch(() => {});
-
-      if (user.mustChangePassword) {
-        router.replace("/(auth)/change-password");
-        return;
-      }
       if (user.role === "GROUND_OWNER" && !inOwner) {
         router.replace("/(owner)");
       } else if (user.role === "GROUND_WORKER" && !inWorker) {
@@ -82,7 +68,7 @@ function AuthGuard() {
       return;
     }
 
-    // Not logged in — check for pending application
+    // Not logged in — pendingApp comes from AuthContext (updates synchronously)
     if (pendingApp) {
       const inAppStatus = (segments as string[]).includes("application-status");
       if (!inAppStatus) router.replace("/(auth)/application-status");

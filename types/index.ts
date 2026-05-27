@@ -5,11 +5,10 @@ export type PaymentStatus   = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
 export type FacilityStatus  = "PENDING" | "ACTIVE" | "INACTIVE" | "REJECTED";
 
 export interface AuthUser {
-  id:                 string;
-  name:               string;
-  email:              string;
-  role:               UserRole;
-  mustChangePassword: boolean;
+  id:   string;
+  name: string;
+  email:string;
+  role: UserRole;
 }
 
 export interface MobileLoginResponse {
@@ -83,6 +82,7 @@ export interface Ground {
   city:        string;
   status:      FacilityStatus;
   hourlyRate:  number;
+  images:      string[];
   categories:  Array<{ name: string; icon: string | null }>;
   avgRating:   number | null;
   totalReviews:number;
