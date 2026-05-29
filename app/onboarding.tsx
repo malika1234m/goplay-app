@@ -265,7 +265,7 @@ const s = StyleSheet.create({
   skipText: { fontSize: 14, color: "rgba(255,255,255,0.45)", fontWeight: "600" },
 
   nextBtn:  { flex: 1, borderRadius: 16, overflow: "hidden" },
-  fullBtn:  { borderRadius: 16, overflow: "hidden" },
+  fullBtn:  { flex: 1, borderRadius: 16, overflow: "hidden" },
   nextGrad: {
     flexDirection: "row", alignItems: "center", justifyContent: "center",
     paddingVertical: 16, gap: 7,

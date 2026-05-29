@@ -146,53 +146,53 @@ export default function ApplicationStatusScreen() {
     return (
       <LinearGradient colors={[Colors.navy, Colors.navyDark, "#0a1628"]} style={s.bg}>
         <StatusBar style="light" />
-        <SafeAreaView style={s.safe} edges={["top"]}>
+        <SafeAreaView style={s.safe} edges={["top", "bottom"]}>
           <View style={s.header}>
             <Text style={s.headerTitle}>Application Status</Text>
           </View>
-        </SafeAreaView>
-        <Animated.View style={[s.container, { opacity: fadeAnim }]}>
-          <Animated.View style={[
-            s.iconRing,
-            { backgroundColor: "#d97706" + "22", borderColor: "#d97706" + "55" },
-            { transform: [{ scale: pulseAnim }] },
-          ]}>
-            <Ionicons name="time-outline" size={50} color="#fbbf24" />
+          <Animated.View style={[s.container, { opacity: fadeAnim }]}>
+            <Animated.View style={[
+              s.iconRing,
+              { backgroundColor: "#d97706" + "22", borderColor: "#d97706" + "55" },
+              { transform: [{ scale: pulseAnim }] },
+            ]}>
+              <Ionicons name="time-outline" size={50} color="#fbbf24" />
+            </Animated.View>
+
+            <Text style={s.title}>Under Review</Text>
+            <Text style={s.sub}>Your application is being reviewed by our team.</Text>
+            <Text style={s.detail}>We'll send you an email once it's processed.</Text>
+
+            {!!email && (
+              <View style={s.emailPill}>
+                <Ionicons name="mail-outline" size={14} color="rgba(255,255,255,0.5)" />
+                <Text style={s.emailText}>{email}</Text>
+              </View>
+            )}
+
+            <TouchableOpacity style={s.primaryBtn} onPress={handleRefresh} disabled={loading} activeOpacity={0.85}>
+              {loading
+                ? <ActivityIndicator color={Colors.primary} size="small" />
+                : <Ionicons name="refresh-outline" size={20} color={Colors.primary} />
+              }
+              <Text style={[s.primaryBtnText, { color: Colors.primary }]}>Refresh Status</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={s.secondaryBtn} onPress={handleApproved} activeOpacity={0.85}>
+              <Ionicons name="arrow-back-outline" size={16} color="rgba(255,255,255,0.65)" />
+              <Text style={s.secondaryBtnText}>Back to Sign In</Text>
+            </TouchableOpacity>
+
+            {lastChecked && (
+              <View style={s.refreshRow}>
+                <Ionicons name="checkmark-outline" size={12} color="rgba(255,255,255,0.3)" />
+                <Text style={s.refreshText}>
+                  Last checked {lastChecked.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </Text>
+              </View>
+            )}
           </Animated.View>
-
-          <Text style={s.title}>Under Review</Text>
-          <Text style={s.sub}>Your application is being reviewed by our team.</Text>
-          <Text style={s.detail}>We'll send you an email once it's processed.</Text>
-
-          {!!email && (
-            <View style={s.emailPill}>
-              <Ionicons name="mail-outline" size={14} color="rgba(255,255,255,0.5)" />
-              <Text style={s.emailText}>{email}</Text>
-            </View>
-          )}
-
-          <TouchableOpacity style={s.primaryBtn} onPress={handleRefresh} disabled={loading} activeOpacity={0.85}>
-            {loading
-              ? <ActivityIndicator color={Colors.primary} size="small" />
-              : <Ionicons name="refresh-outline" size={20} color={Colors.primary} />
-            }
-            <Text style={[s.primaryBtnText, { color: Colors.primary }]}>Refresh Status</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={s.secondaryBtn} onPress={handleApproved} activeOpacity={0.85}>
-            <Ionicons name="arrow-back-outline" size={16} color="rgba(255,255,255,0.65)" />
-            <Text style={s.secondaryBtnText}>Back to Sign In</Text>
-          </TouchableOpacity>
-
-          {lastChecked && (
-            <View style={s.refreshRow}>
-              <Ionicons name="checkmark-outline" size={12} color="rgba(255,255,255,0.3)" />
-              <Text style={s.refreshText}>
-                Last checked {lastChecked.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </Text>
-            </View>
-          )}
-        </Animated.View>
+        </SafeAreaView>
       </LinearGradient>
     );
   }
@@ -202,22 +202,27 @@ export default function ApplicationStatusScreen() {
     return (
       <LinearGradient colors={[Colors.navy, Colors.navyDark, "#0a1628"]} style={s.bg}>
         <StatusBar style="light" />
-        <Animated.View style={[s.container, { opacity: fadeAnim }]}>
-          <View style={[s.iconRing, { backgroundColor: Colors.primary + "22", borderColor: Colors.primary + "55" }]}>
-            <Ionicons name="checkmark-circle" size={52} color="#bbf7d0" />
+        <SafeAreaView style={s.safe} edges={["top", "bottom"]}>
+          <View style={s.header}>
+            <Text style={s.headerTitle}>Application Status</Text>
           </View>
+          <Animated.View style={[s.container, { opacity: fadeAnim }]}>
+            <View style={[s.iconRing, { backgroundColor: Colors.primary + "22", borderColor: Colors.primary + "55" }]}>
+              <Ionicons name="checkmark-circle" size={52} color="#bbf7d0" />
+            </View>
 
-          <Text style={s.title}>
-            {data.name ? `Welcome, ${data.name.split(" ")[0]}!` : "You're Approved!"}
-          </Text>
-          <Text style={s.sub}>Your provider application has been approved. You're now a Ground Owner on GoPlay.</Text>
-          <Text style={s.detail}>Log in below to access your dashboard and start managing your facility.</Text>
+            <Text style={s.title}>
+              {data.name ? `Welcome, ${data.name.split(" ")[0]}!` : "You're Approved!"}
+            </Text>
+            <Text style={s.sub}>Your provider application has been approved. You're now a Ground Owner on GoPlay.</Text>
+            <Text style={s.detail}>Log in below to access your dashboard and start managing your facility.</Text>
 
-          <TouchableOpacity style={s.primaryBtn} onPress={handleApproved} activeOpacity={0.85}>
-            <Ionicons name="log-in-outline" size={20} color={Colors.primary} />
-            <Text style={[s.primaryBtnText, { color: Colors.primary }]}>Log In Now</Text>
-          </TouchableOpacity>
-        </Animated.View>
+            <TouchableOpacity style={s.primaryBtn} onPress={handleApproved} activeOpacity={0.85}>
+              <Ionicons name="log-in-outline" size={20} color={Colors.primary} />
+              <Text style={[s.primaryBtnText, { color: Colors.primary }]}>Log In Now</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </SafeAreaView>
       </LinearGradient>
     );
   }
@@ -227,30 +232,35 @@ export default function ApplicationStatusScreen() {
     return (
       <LinearGradient colors={[Colors.navy, Colors.navyDark, "#0a1628"]} style={s.bg}>
         <StatusBar style="light" />
-        <Animated.View style={[s.container, { opacity: fadeAnim }]}>
-          <View style={[s.iconRing, { backgroundColor: Colors.error + "22", borderColor: Colors.error + "55" }]}>
-            <Ionicons name="close-circle-outline" size={52} color="#fca5a5" />
+        <SafeAreaView style={s.safe} edges={["top", "bottom"]}>
+          <View style={s.header}>
+            <Text style={s.headerTitle}>Application Status</Text>
           </View>
-
-          <Text style={s.title}>Application Not Approved</Text>
-          <Text style={s.sub}>Unfortunately your application was not approved at this time.</Text>
-
-          {!!data.rejectionReason && (
-            <View style={s.rejectCard}>
-              <Text style={s.rejectLabel}>Reason from Admin</Text>
-              <Text style={s.rejectReason}>{data.rejectionReason}</Text>
+          <Animated.View style={[s.container, { opacity: fadeAnim }]}>
+            <View style={[s.iconRing, { backgroundColor: Colors.error + "22", borderColor: Colors.error + "55" }]}>
+              <Ionicons name="close-circle-outline" size={52} color="#fca5a5" />
             </View>
-          )}
 
-          <TouchableOpacity style={s.primaryBtn} onPress={handleReapply} activeOpacity={0.85}>
-            <Ionicons name="refresh-outline" size={20} color={Colors.primary} />
-            <Text style={[s.primaryBtnText, { color: Colors.primary }]}>Apply Again</Text>
-          </TouchableOpacity>
+            <Text style={s.title}>Application Not Approved</Text>
+            <Text style={s.sub}>Unfortunately your application was not approved at this time.</Text>
 
-          <TouchableOpacity style={s.secondaryBtn} onPress={handleApproved} activeOpacity={0.85}>
-            <Text style={s.secondaryBtnText}>Back to Sign In</Text>
-          </TouchableOpacity>
-        </Animated.View>
+            {!!data.rejectionReason && (
+              <View style={s.rejectCard}>
+                <Text style={s.rejectLabel}>Reason from Admin</Text>
+                <Text style={s.rejectReason}>{data.rejectionReason}</Text>
+              </View>
+            )}
+
+            <TouchableOpacity style={s.primaryBtn} onPress={handleReapply} activeOpacity={0.85}>
+              <Ionicons name="refresh-outline" size={20} color={Colors.primary} />
+              <Text style={[s.primaryBtnText, { color: Colors.primary }]}>Apply Again</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={s.secondaryBtn} onPress={handleApproved} activeOpacity={0.85}>
+              <Text style={s.secondaryBtnText}>Back to Sign In</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </SafeAreaView>
       </LinearGradient>
     );
   }
