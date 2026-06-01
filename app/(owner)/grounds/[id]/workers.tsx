@@ -75,9 +75,13 @@ export default function WorkersScreen() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimEmail)) {
       return Alert.alert("Validation", "Enter a valid email address.");
     }
+    const trimName = workerName.trim();
+    if (trimName && (trimName.length < 2 || trimName.length > 50)) {
+      return Alert.alert("Validation", "Worker name must be 2–50 characters.");
+    }
 
     addWorker(
-      { facilityId, email: trimEmail, name: workerName.trim() || undefined },
+      { facilityId, email: trimEmail, name: trimName || undefined },
       {
         onSuccess: (res) => {
           setShowModal(false);

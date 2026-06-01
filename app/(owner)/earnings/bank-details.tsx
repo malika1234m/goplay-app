@@ -33,9 +33,15 @@ export default function BankDetailsScreen() {
   if (isLoading) return <LoadingScreen />;
 
   function handleSave() {
-    if (!bankName.trim())          return Alert.alert("Validation", "Bank name is required.");
-    if (!accountNumber.trim())     return Alert.alert("Validation", "Account number is required.");
-    if (!accountHolderName.trim()) return Alert.alert("Validation", "Account holder name is required.");
+    if (!bankName.trim())                        return Alert.alert("Validation", "Bank name is required.");
+    if (bankName.trim().length > 50)             return Alert.alert("Validation", "Bank name must be under 50 characters.");
+    if (!accountNumber.trim())                   return Alert.alert("Validation", "Account number is required.");
+    const accNum = accountNumber.trim();
+    if (accNum.length < 5 || accNum.length > 20) return Alert.alert("Validation", "Account number must be 5–20 characters.");
+    if (!accountHolderName.trim())               return Alert.alert("Validation", "Account holder name is required.");
+    const holder = accountHolderName.trim();
+    if (holder.length < 2 || holder.length > 50) return Alert.alert("Validation", "Account holder name must be 2–50 characters.");
+    if (bankBranch.trim().length > 50)           return Alert.alert("Validation", "Branch name must be under 50 characters.");
 
     save(
       {

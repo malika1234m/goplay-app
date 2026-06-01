@@ -93,6 +93,10 @@ export default function ChangePasswordScreen() {
       setError("New password must be at least 8 characters.");
       return;
     }
+    if (values.next === values.current) {
+      setError("New password must be different from your current password.");
+      return;
+    }
     if (values.next !== values.confirm) {
       setError("Passwords do not match.");
       return;

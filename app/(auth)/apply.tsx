@@ -95,6 +95,7 @@ export default function ApplyScreen() {
   const [loading,   setLoading]   = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Account
   const [name,            setName]            = useState("");
@@ -167,6 +168,16 @@ export default function ApplyScreen() {
     disclaimer: { backgroundColor: "#fffbeb", borderRadius: 12, padding: 14, borderWidth: 1, borderColor: "#fde68a", marginTop: 4 },
     disclText:  { fontSize: 12, color: "#92400e", lineHeight: 18 },
 
+    termsBox:   { backgroundColor: Colors.background, borderRadius: 12, padding: 14, borderWidth: 1.5, borderColor: Colors.border, marginTop: 12 },
+    termsTitle: { fontSize: 11, fontWeight: "700", color: Colors.textSecondary, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10 },
+    termsBullet:{ flexDirection: "row", gap: 6, marginBottom: 5 },
+    termsDot:   { fontSize: 11, color: Colors.textMuted, lineHeight: 17 },
+    termsItem:  { fontSize: 12, color: Colors.textSecondary, lineHeight: 17, flex: 1 },
+    checkRow:   { flexDirection: "row", alignItems: "flex-start", gap: 10, marginTop: 14, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 14 },
+    checkBox:   { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: Colors.border, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+    checkBoxOn: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+    checkLabel: { flex: 1, fontSize: 12, color: Colors.text, lineHeight: 18 },
+
     navFooter:  { flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: 20, backgroundColor: "transparent", borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.1)" },
     backNavBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 14, height: 52, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", backgroundColor: "rgba(255,255,255,0.08)" },
     backNavText:{ fontSize: 15, fontWeight: "600", color: "rgba(255,255,255,0.75)" },
@@ -226,6 +237,7 @@ export default function ApplyScreen() {
   }
 
   async function handleSubmit() {
+    if (!agreedToTerms) { setError("You must agree to the Terms & Conditions to proceed."); return; }
     if (!validateStep()) return;
     setLoading(true);
     setError("");
@@ -487,6 +499,34 @@ export default function ApplyScreen() {
                     After submission, our team will review your application within 1–3 business days. Once approved, you'll receive an email and can log in to the GoPlay app. Your facility listing will also need a separate review before going live.
                   </Text>
                 </View>
+
+                <View style={s.termsBox}>
+                  <Text style={s.termsTitle}>Terms & Conditions</Text>
+                  {[
+                    "GoPlay charges a platform commission on each booking made through the app. This is automatically deducted from customer payments at the time of booking.",
+                    "As a Ground Owner, you are responsible for maintaining your facility in good condition and honoring all confirmed bookings.",
+                    "You may manage your listings, set availability, add courts, and track earnings through the GoPlay Owner Dashboard.",
+                    "GoPlay may suspend or remove listings that violate platform guidelines or receive repeated complaints from users.",
+                    "All facility information you provide must be accurate. Misleading listings may result in account suspension.",
+                  ].map((item, i) => (
+                    <View key={i} style={s.termsBullet}>
+                      <Text style={s.termsDot}>•</Text>
+                      <Text style={s.termsItem}>{item}</Text>
+                    </View>
+                  ))}
+                  <TouchableOpacity
+                    style={s.checkRow}
+                    onPress={() => setAgreedToTerms((v) => !v)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[s.checkBox, agreedToTerms && s.checkBoxOn]}>
+                      {agreedToTerms && <Ionicons name="checkmark" size={14} color="#fff" />}
+                    </View>
+                    <Text style={s.checkLabel}>
+                      I have read and agree to the Terms & Conditions above, including the platform commission policy.
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </>
             )}
           </View>
@@ -511,9 +551,9 @@ export default function ApplyScreen() {
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                style={[s.nextBtn, { flex: step > 0 ? 2 : 1, opacity: loading ? 0.65 : 1 }]}
+                style={[s.nextBtn, { flex: step > 0 ? 2 : 1, opacity: (loading || !agreedToTerms) ? 0.55 : 1 }]}
                 onPress={handleSubmit}
-                disabled={loading}
+                disabled={loading || !agreedToTerms}
                 activeOpacity={0.88}
               >
                 <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={s.nextGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>

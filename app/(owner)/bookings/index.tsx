@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl,
   TextInput, Modal, ScrollView, Alert, ActivityIndicator, Platform, Pressable, Animated,
@@ -10,6 +10,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Haptics from "expo-haptics";
 import { useOwnerBookings, useOwnerGrounds, useGroundCourts, useCreateOwnerWalkIn } from "@/lib/queries/owner";
 import { useColors } from "@/lib/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BookingCard from "@/components/bookings/BookingCard";
 import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonList } from "@/components/ui/Skeleton";
@@ -254,6 +255,7 @@ function dateToTime(d: Date) {
 
 // ─── Walk-in modal ───────────────────────────────────────────────────────────
 function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: () => void; Colors: ReturnType<typeof useColors> }) {
+  const insets = useSafeAreaInsets();
   const { data: groundsData } = useOwnerGrounds();
   const grounds = groundsData?.grounds?.filter((g) => g.status === "ACTIVE") ?? [];
 
@@ -269,9 +271,15 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
   const [showStart,      setShowStart]      = useState(false);
   const [showEnd,        setShowEnd]        = useState(false);
 
-  // Auto-select first ground if only one
+  // Once grounds load, pin facilityId so useGroundCourts fires with the real ID
+  useEffect(() => {
+    if (!facilityId && grounds.length > 0) {
+      setFacilityId(grounds[0].id);
+    }
+  }, [grounds, facilityId]);
+
   const resolvedFacilityId = facilityId || grounds[0]?.id || "";
-  const { data: courtsData } = useGroundCourts(resolvedFacilityId || null);
+  const { data: courtsData, isLoading: courtsLoading } = useGroundCourts(resolvedFacilityId || null);
   const courts = courtsData?.courts?.filter((c) => c.isActive) ?? [];
 
   const { mutate: createWalkIn, isPending: creating } = useCreateOwnerWalkIn();
@@ -285,10 +293,15 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
   function handleClose() { reset(); onClose(); }
 
   function handleSubmit() {
-    if (!playerName.trim())      return Alert.alert("Required", "Player name is required.");
-    if (!resolvedFacilityId)     return Alert.alert("Required", "Please select a facility.");
+    const name = playerName.trim();
+    if (!name)              return Alert.alert("Required", "Player name is required.");
+    if (name.length < 2)    return Alert.alert("Required", "Player name must be at least 2 characters.");
+    if (!resolvedFacilityId) return Alert.alert("Required", "Please select a facility.");
     if (courts.length > 0 && !courtId) return Alert.alert("Required", "Please select a court.");
-    if (startTime >= endTime)    return Alert.alert("Invalid Time", "End time must be after start time.");
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const selected = new Date(bookingDate); selected.setHours(0, 0, 0, 0);
+    if (selected < today)   return Alert.alert("Invalid Date", "Booking date cannot be in the past.");
+    if (startTime >= endTime) return Alert.alert("Invalid Time", "End time must be after start time.");
 
     createWalkIn(
       {
@@ -297,14 +310,14 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
         bookingDate:   isoDate(bookingDate),
         startTime,
         endTime,
-        playerName:    playerName.trim(),
+        playerName:    name,
         contactNumber: contactNumber.trim() || undefined,
         notes:         notes.trim() || undefined,
       },
       {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          Alert.alert("Booked!", `Walk-in for ${playerName.trim()} confirmed.`);
+          Alert.alert("Booked!", `Walk-in for ${name} confirmed.`);
           handleClose();
         },
         onError: (e) => Alert.alert("Error", e.message),
@@ -316,7 +329,7 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
 
   const w = StyleSheet.create({
     root:           { flex: 1, backgroundColor: Colors.card },
-    header:         { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.border },
+    header:         { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingTop: Math.max(insets.top, 20), paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: Colors.border },
     title:          { fontSize: 17, fontWeight: "800", color: Colors.text },
     body:           { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40, gap: 4 },
     field:          { marginBottom: 14 },
@@ -345,8 +358,8 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
       <View style={w.root}>
         {/* Header */}
         <View style={w.header}>
-          <TouchableOpacity onPress={handleClose} hitSlop={12}>
-            <Ionicons name="close" size={22} color={Colors.textMuted} />
+          <TouchableOpacity onPress={handleClose} hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }} style={{ padding: 4 }}>
+            <Ionicons name="close" size={24} color={Colors.textMuted} />
           </TouchableOpacity>
           <Text style={w.title}>Walk-in / Phone Booking</Text>
           <View style={{ width: 22 }} />
@@ -379,26 +392,37 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
           )}
 
           {/* Court selector */}
-          {courts.length > 0 && (
+          {resolvedFacilityId ? (
             <View style={w.field}>
               <View style={w.fieldLabel}>
                 <Ionicons name="grid-outline" size={13} color={Colors.textMuted} />
-                <Text style={w.fieldLabelText}>Court</Text>
+                <Text style={w.fieldLabelText}>Court (optional)</Text>
               </View>
-              <View style={w.segmentRow}>
-                {courts.map((c) => (
-                  <TouchableOpacity
-                    key={c.id}
-                    style={[w.seg, courtId === c.id && w.segActive]}
-                    onPress={() => setCourtId(c.id)}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[w.segText, courtId === c.id && w.segTextActive]}>{c.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              {courtsLoading ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6 }}>
+                  <ActivityIndicator size="small" color={Colors.primary} />
+                  <Text style={{ fontSize: 13, color: Colors.textMuted }}>Loading courts…</Text>
+                </View>
+              ) : courts.length === 0 ? (
+                <Text style={{ fontSize: 13, color: Colors.textMuted, fontStyle: "italic" }}>
+                  No courts set up — booking will apply to the whole facility.
+                </Text>
+              ) : (
+                <View style={w.segmentRow}>
+                  {courts.map((c) => (
+                    <TouchableOpacity
+                      key={c.id}
+                      style={[w.seg, courtId === c.id && w.segActive]}
+                      onPress={() => setCourtId(c.id)}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={[w.segText, courtId === c.id && w.segTextActive]}>{c.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
-          )}
+          ) : null}
 
           {/* Date */}
           <View style={w.field}>

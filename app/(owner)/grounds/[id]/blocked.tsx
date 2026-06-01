@@ -89,6 +89,9 @@ export default function BlockedDatesScreen() {
   const upcoming = blocked.filter((b) => new Date(b.date) >= new Date(new Date().toDateString()));
 
   function handleAdd() {
+    if (partial && startTime >= endTime) {
+      return Alert.alert("Invalid Time", "End time must be after start time.");
+    }
     addBlock(
       {
         facilityId,

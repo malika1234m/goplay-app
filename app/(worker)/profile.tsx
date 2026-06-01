@@ -129,6 +129,7 @@ export default function WorkerProfile() {
   async function handleChangePassword() {
     if (!currentPwd || !newPwd || !confirmPwd) return Alert.alert("Required", "All fields are required.");
     if (newPwd.length < 8) return Alert.alert("Validation", "New password must be at least 8 characters.");
+    if (newPwd === currentPwd) return Alert.alert("Validation", "New password must be different from current password.");
     if (newPwd !== confirmPwd) return Alert.alert("Validation", "New passwords do not match.");
     setPwdLoading(true);
     try {
@@ -144,11 +145,17 @@ export default function WorkerProfile() {
   }
 
   function handleSave() {
-    if (!name.trim() || name.trim().length < 2) {
-      return Alert.alert("Validation", "Name must be at least 2 characters.");
+    const trimName = name.trim();
+    if (trimName.length < 2)  return Alert.alert("Validation", "Name must be at least 2 characters.");
+    if (trimName.length > 50) return Alert.alert("Validation", "Name must be under 50 characters.");
+    const trimPhone = phone.trim();
+    if (trimPhone) {
+      const cleaned = trimPhone.replace(/[\s\-().]/g, "");
+      if (!/^(?:\+94|0)7[0-9]{8}$/.test(cleaned))
+        return Alert.alert("Validation", "Enter a valid Sri Lankan mobile number (e.g. 077 123 4567).");
     }
     save(
-      { name: name.trim(), phone: phone.trim() || undefined },
+      { name: trimName, phone: trimPhone || undefined },
       {
         onSuccess: () => { setEditing(false); Alert.alert("Saved", "Profile updated."); },
         onError:   (e) => Alert.alert("Error", e.message),

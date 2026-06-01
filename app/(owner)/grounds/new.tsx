@@ -74,13 +74,15 @@ export default function NewGround() {
     const rate        = Number(hourlyRate);
     const cap         = capacity.trim() ? Number(capacity.trim()) : undefined;
 
-    if (trimName.length < 3)        return Alert.alert("Validation", "Ground name must be at least 3 characters.");
-    if (trimAddress.length < 5)     return Alert.alert("Validation", "Address must be at least 5 characters.");
-    if (trimCity.length < 2)        return Alert.alert("Validation", "City must be at least 2 characters.");
-    if (!rate || rate < 1)          return Alert.alert("Validation", "Enter a valid hourly rate (at least Rs. 1).");
-    if (rate > 100000)              return Alert.alert("Validation", "Hourly rate cannot exceed Rs. 100,000.");
-    if (categoryIds.length === 0)   return Alert.alert("Validation", "Select at least one sport category.");
-    if (cap !== undefined && cap < 1) return Alert.alert("Validation", "Capacity must be at least 1.");
+    if (trimName.length < 3)          return Alert.alert("Validation", "Ground name must be at least 3 characters.");
+    if (trimName.length > 100)        return Alert.alert("Validation", "Ground name must be under 100 characters.");
+    if (trimAddress.length < 5)       return Alert.alert("Validation", "Address must be at least 5 characters.");
+    if (trimCity.length < 2)          return Alert.alert("Validation", "City must be at least 2 characters.");
+    if (!rate || rate < 1)            return Alert.alert("Validation", "Enter a valid hourly rate (at least Rs. 1).");
+    if (rate > 100000)                return Alert.alert("Validation", "Hourly rate cannot exceed Rs. 100,000.");
+    if (categoryIds.length === 0)     return Alert.alert("Validation", "Select at least one sport category.");
+    if (cap !== undefined && cap < 1)   return Alert.alert("Validation", "Capacity must be at least 1.");
+    if (cap !== undefined && cap > 500) return Alert.alert("Validation", "Capacity cannot exceed 500 players.");
 
     create(
       {
