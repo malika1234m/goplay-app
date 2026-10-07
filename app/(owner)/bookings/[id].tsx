@@ -12,6 +12,7 @@ import { useOwnerBookings, useUpdateBookingStatus, useMarkNoShow } from "@/lib/q
 import { useColors } from "@/lib/theme";
 import Badge from "@/components/ui/Badge";
 import LoadingScreen from "@/components/ui/LoadingScreen";
+import TransferReview from "@/components/payments/TransferReview";
 import { formatDate, formatLKR } from "@/lib/utils";
 
 export default function BookingDetail() {
@@ -200,7 +201,9 @@ export default function BookingDetail() {
     return Date.now() >= new Date(y, mo - 1, d, h, mi).getTime();
   })();
 
-  const canConfirm  = booking.status === "PENDING";
+  // "Pay online" bookings are confirmed by accepting the transfer receipt below
+  const awaitingTransfer = booking.paymentMethod === "ONLINE" && booking.paymentStatus !== "PAID";
+  const canConfirm  = booking.status === "PENDING" && !awaitingTransfer;
   const canComplete = booking.status === "CONFIRMED" && bookingEnded;
   const canNoShow   = booking.status === "CONFIRMED" && bookingEnded;
   const canCancel   = booking.status === "PENDING" || (booking.status === "CONFIRMED" && !bookingEnded);
@@ -271,9 +274,28 @@ export default function BookingDetail() {
           </View>
           <View style={s.sectionBody}>
             <View style={s.row}><Text style={s.rowLabel}>Amount</Text><Text style={[s.rowValue, s.rowBold]} numberOfLines={2}>{formatLKR(booking.totalAmount)}</Text></View>
-            <View style={s.row}><Text style={s.rowLabel}>Method</Text><Text style={s.rowValue} numberOfLines={2}>{booking.paymentMethod === "ONLINE" ? "Online (PayHere)" : "Cash on Arrival"}</Text></View>
-            <View style={s.row}><Text style={s.rowLabel}>Status</Text><Text style={s.rowValue} numberOfLines={2}>{booking.paymentMethod === "ONLINE" ? booking.paymentStatus : "—"}</Text></View>
+            <View style={s.row}><Text style={s.rowLabel}>Method</Text><Text style={s.rowValue} numberOfLines={2}>{booking.paymentMethod === "ONLINE" ? "Bank transfer" : "Cash on Arrival"}</Text></View>
+            {booking.paymentMethod === "ONLINE" && (
+              <View style={[s.row, { alignItems: "center" }]}><Text style={s.rowLabel}>Status</Text><Badge paymentStatus={booking.paymentStatus} /></View>
+            )}
+            {booking.refundStatus === "NEEDED" && (
+              <View style={s.row}><Text style={s.rowLabel}>Refund due</Text><Text style={[s.rowValue, { color: Colors.error }]}>{formatLKR(booking.refundAmount ?? booking.totalAmount)}</Text></View>
+            )}
           </View>
+          {booking.paymentMethod === "ONLINE" && booking.status !== "CANCELLED" && (
+            <View style={{ marginTop: 14 }}>
+              <TransferReview
+                kind="booking"
+                id={booking.id}
+                playerName={playerName}
+                amount={booking.totalAmount}
+                paymentStatus={booking.paymentStatus}
+                receiptUrl={booking.receiptUrl}
+                rejectReason={booking.receiptRejectReason}
+                onReviewed={(action) => { if (action === "confirm") setReceipt(true); }}
+              />
+            </View>
+          )}
         </View>
 
         {/* Actions */}
@@ -329,7 +351,7 @@ export default function BookingDetail() {
               {booking.court && <View style={r.row}><Text style={r.rowLabel}>Court</Text><Text style={r.rowValue}>{booking.court.name}</Text></View>}
               <View style={r.row}><Text style={r.rowLabel}>Date</Text><Text style={r.rowValue}>{formatDate(booking.bookingDate)}</Text></View>
               <View style={r.row}><Text style={r.rowLabel}>Time</Text><Text style={r.rowValue}>{`${booking.startTime} – ${booking.endTime}`}</Text></View>
-              <View style={r.row}><Text style={r.rowLabel}>Payment</Text><Text style={r.rowValue}>{booking.paymentMethod === "ONLINE" ? "Online (PayHere)" : "Cash on Arrival"}</Text></View>
+              <View style={r.row}><Text style={r.rowLabel}>Payment</Text><Text style={r.rowValue}>{booking.paymentMethod === "ONLINE" ? "Bank transfer" : "Cash on Arrival"}</Text></View>
               <View style={r.divider} />
               <View style={r.row}><Text style={r.rowLabel}>Status</Text><Text style={[r.rowValue, { color: Colors.primary, fontWeight: "700" }]}>{booking.status}</Text></View>
             </View>

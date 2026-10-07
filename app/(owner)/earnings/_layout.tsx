@@ -15,8 +15,7 @@ export default function EarningsStack() {
       }}
     >
       <Stack.Screen name="index"        options={{ title: "Earnings"     }} />
-      <Stack.Screen name="payouts"      options={{ title: "Payouts"      }} />
-      <Stack.Screen name="bank-details" options={{ title: "Bank Details" }} />
+      <Stack.Screen name="bank-details" options={{ title: "Payment accounts" }} />
     </Stack>
   );
 }

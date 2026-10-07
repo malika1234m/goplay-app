@@ -16,6 +16,7 @@ export default function WorkerBookingsStack() {
     >
       <Stack.Screen name="index" options={{ title: "Bookings" }} />
       <Stack.Screen name="[id]"  options={{ title: "Booking Detail" }} />
+      <Stack.Screen name="payments" options={{ title: "Needs action" }} />
     </Stack>
   );
 }

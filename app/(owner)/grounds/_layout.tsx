@@ -22,6 +22,7 @@ export default function GroundsStack() {
       <Stack.Screen name="[id]/availability" options={{ title: "Availability"  }} />
       <Stack.Screen name="[id]/blocked"      options={{ title: "Blocked Dates" }} />
       <Stack.Screen name="[id]/workers"      options={{ title: "Workers"       }} />
+      <Stack.Screen name="[id]/payment"      options={{ title: "Payment Details" }} />
     </Stack>
   );
 }

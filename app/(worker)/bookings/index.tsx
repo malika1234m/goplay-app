@@ -12,6 +12,7 @@ import { useWorkerBookings, useCreateWalkIn, useWorkerFacility } from "@/lib/que
 import { useColors } from "@/lib/theme";
 import Badge from "@/components/ui/Badge";
 import EmptyState from "@/components/ui/EmptyState";
+import ReceiptsBanner from "@/components/payments/ReceiptsBanner";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { formatDate, formatLKR, isoDate } from "@/lib/utils";
 import type { BookingStatus } from "@/types";
@@ -194,6 +195,10 @@ export default function WorkerBookingsList() {
             </TouchableOpacity>
           )}
         />
+      </View>
+
+      <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+        <ReceiptsBanner href="/(worker)/bookings/payments" />
       </View>
 
       {/* Search bar */}

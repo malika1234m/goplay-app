@@ -33,6 +33,7 @@ export default function GroundHub() {
     { route: "availability", icon: "time-outline",              title: "Availability",  sub: "Opening hours"          },
     { route: "blocked",      icon: "ban-outline",               title: "Blocked Dates", sub: "Close for maintenance"  },
     { route: "workers",      icon: "people-outline",            title: "Workers",       sub: "Manage facility staff"  },
+    { route: "payment",      icon: "card-outline",              title: "Payment Details", sub: "Where players pay online" },
   ];
 
   const s = StyleSheet.create({

@@ -9,6 +9,7 @@ import { useWorkerBookings, useUpdateWorkerBookingStatus } from "@/lib/queries/w
 import { useColors } from "@/lib/theme";
 import Badge from "@/components/ui/Badge";
 import LoadingScreen from "@/components/ui/LoadingScreen";
+import TransferReview from "@/components/payments/TransferReview";
 import { formatDate, formatLKR } from "@/lib/utils";
 
 export default function WorkerBookingDetail() {
@@ -203,7 +204,8 @@ export default function WorkerBookingDetail() {
     return Date.now() >= new Date(y, mo - 1, d, h, mi).getTime();
   })();
 
-  const canConfirm  = booking.status === "PENDING";
+  // "Pay online" bookings are confirmed by accepting the transfer receipt
+  const canConfirm  = booking.status === "PENDING" && !(booking.paymentMethod === "ONLINE" && booking.paymentStatus !== "PAID");
   const canComplete = booking.status === "CONFIRMED" && bookingEnded;
   const canNoShow   = booking.status === "CONFIRMED" && bookingEnded;
   const canCancel   = booking.status === "PENDING" || (booking.status === "CONFIRMED" && !bookingEnded);
@@ -254,9 +256,22 @@ export default function WorkerBookingDetail() {
         {/* Payment */}
         <Section title="Payment" icon="card-outline">
           <Row label="Amount" value={formatLKR(booking.totalAmount)} bold />
-          <Row label="Method" value={booking.paymentMethod === "ONLINE" ? "Online (PayHere)" : "Cash on Arrival"} />
+          <Row label="Method" value={booking.paymentMethod === "ONLINE" ? "Bank transfer" : "Cash on Arrival"} />
           {booking.paymentMethod === "ONLINE" && (
-            <Row label="Status" value={booking.paymentStatus} />
+            <Row label="Status" value={booking.paymentStatus.replace("_", " ").toLowerCase()} />
+          )}
+          {booking.paymentMethod === "ONLINE" && booking.status !== "CANCELLED" && (
+            <View style={{ marginTop: 12 }}>
+              <TransferReview
+                kind="booking"
+                id={booking.id}
+                playerName={booking.playerName}
+                amount={booking.totalAmount}
+                paymentStatus={booking.paymentStatus}
+                receiptUrl={booking.receiptUrl}
+                rejectReason={booking.receiptRejectReason}
+              />
+            </View>
           )}
         </Section>
 

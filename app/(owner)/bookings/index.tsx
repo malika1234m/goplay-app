@@ -13,6 +13,7 @@ import { useColors } from "@/lib/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BookingCard from "@/components/bookings/BookingCard";
 import EmptyState from "@/components/ui/EmptyState";
+import ReceiptsBanner from "@/components/payments/ReceiptsBanner";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { isoDate } from "@/lib/utils";
 import type { BookingStatus } from "@/types";
@@ -160,6 +161,10 @@ export default function BookingsList() {
   return (
     <View style={s.container}>
       {filterBar}
+
+      <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+        <ReceiptsBanner href="/(owner)/bookings/payments" />
+      </View>
 
       {/* Search bar */}
       <View style={s.searchWrap}>

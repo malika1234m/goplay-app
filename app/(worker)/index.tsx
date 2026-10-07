@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { useWorkerBookings, useWorkerFacility } from "@/lib/queries/worker";
 import { useColors } from "@/lib/theme";
 import Badge from "@/components/ui/Badge";
+import ReceiptsBanner from "@/components/payments/ReceiptsBanner";
 import { formatLKR, isoDate } from "@/lib/utils";
 import type { WorkerBooking } from "@/types";
 
@@ -146,6 +147,8 @@ export default function WorkerDashboard() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={Colors.info} />}
       >
+        <ReceiptsBanner href="/(worker)/bookings/payments" />
+
         {/* Facility card */}
         {facility && (
           <View style={s.facilityCard}>

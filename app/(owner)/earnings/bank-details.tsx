@@ -7,6 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useBankDetails, useSaveBankDetails } from "@/lib/queries/earnings";
+import { useOwnerGrounds } from "@/lib/queries/owner";
 import { useColors } from "@/lib/theme";
 import { useKeyboardPadding } from "@/lib/keyboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
@@ -17,6 +18,7 @@ export default function BankDetailsScreen() {
   const router = useRouter();
   const { data, isLoading }           = useBankDetails();
   const { mutate: save, isPending }   = useSaveBankDetails();
+  const { data: groundsData }         = useOwnerGrounds();
 
   const [bankName,          setBankName]          = useState("");
   const [bankBranch,        setBankBranch]        = useState("");
@@ -53,7 +55,7 @@ export default function BankDetailsScreen() {
         accountHolderName: accountHolderName.trim(),
       },
       {
-        onSuccess: () => { Alert.alert("Saved", "Bank details updated."); router.back(); },
+        onSuccess: () => { Alert.alert("Saved", "Payment details updated."); router.back(); },
         onError:   (e) => Alert.alert("Error", e.message),
       }
     );
@@ -122,13 +124,39 @@ export default function BankDetailsScreen() {
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
+      {/* Each ground's account — owners with several grounds can use a different account per ground */}
+      {(groundsData?.grounds?.length ?? 0) > 0 && (
+        <View style={s.section}>
+          <View style={s.sectionHeader}>
+            <Ionicons name="business-outline" size={14} color={Colors.textMuted} />
+            <Text style={s.sectionLabel}>YOUR GROUNDS</Text>
+          </View>
+          {groundsData!.grounds.map((g) => {
+            const own = !!(g.paymentBankName && g.paymentAccountName && g.paymentAccountNumber);
+            return (
+              <TouchableOpacity key={g.id} activeOpacity={0.8}
+                onPress={() => router.push(`/(owner)/grounds/${g.id}/payment` as never)}
+                style={{ flexDirection: "row", alignItems: "center", paddingVertical: 12, borderTopWidth: 1, borderTopColor: Colors.border, gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 15, fontWeight: "600", color: Colors.text }}>{g.name}</Text>
+                  <Text style={{ fontSize: 12.5, color: own ? Colors.textMuted : Colors.textSecondary, marginTop: 2 }}>
+                    {own ? `${g.paymentAccountName}, ${g.paymentBankName} ••${g.paymentAccountNumber!.replace(/\s+/g, "").slice(-4)}` : "Uses the default account below"}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+
       {/* Info card */}
       <View style={s.infoCard}>
         <View style={s.infoIconBox}>
           <Ionicons name="lock-closed-outline" size={20} color={Colors.primary} />
         </View>
         <Text style={s.infoText}>
-          Your bank details are used by the admin to transfer payouts. They are stored securely and never shared publicly.
+          Players who choose "Pay online" transfer straight to this account and upload the receipt for you to confirm. It is used for every ground that doesn't have its own payment details, and is only shown to players who are booking.
         </Text>
       </View>
 
@@ -182,7 +210,7 @@ export default function BankDetailsScreen() {
           ) : (
             <>
               <Ionicons name="checkmark-outline" size={20} color={Colors.white} />
-              <Text style={s.saveBtnText}>Save Bank Details</Text>
+              <Text style={s.saveBtnText}>Save Payment Details</Text>
             </>
           )}
         </LinearGradient>

@@ -1,7 +1,7 @@
 export type UserRole        = "GROUND_OWNER" | "GROUND_WORKER";
 export type BookingStatus   = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
 export type PaymentMethod   = "ONLINE" | "ON_ARRIVAL";
-export type PaymentStatus   = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+export type PaymentStatus   = "PENDING" | "RECEIPT_SUBMITTED" | "REJECTED" | "PAID" | "FAILED" | "REFUNDED";
 export type FacilityStatus  = "PENDING" | "ACTIVE" | "INACTIVE" | "REJECTED";
 
 export interface AuthUser {
@@ -29,6 +29,11 @@ export interface Booking {
   status:          BookingStatus;
   paymentMethod:   PaymentMethod;
   paymentStatus:   PaymentStatus;
+  receiptUrl?:          string | null;
+  receiptUploadedAt?:   string | null;
+  receiptRejectReason?: string | null;
+  refundStatus?:        "NONE" | "NEEDED" | "PROCESSED";
+  refundAmount?:        number | null;
   specialRequests: string | null;
   contactNumber:   string | null;
   cancelledAt:     string | null;
@@ -84,6 +89,9 @@ export interface Ground {
   hourlyRate:  number;
   images:      string[];
   categories:  Array<{ name: string; icon: string | null }>;
+  paymentBankName?:      string | null;
+  paymentAccountName?:   string | null;
+  paymentAccountNumber?: string | null;
   avgRating:   number | null;
   totalReviews:number;
   bookingCount:number;
@@ -211,52 +219,56 @@ export interface TrendsResponse {
   trends: { labels: string[]; revenue: number[] };
 }
 
-// ── Payouts ──────────────────────────────────────────────────────────────────
+// ── Bank transfer payments ───────────────────────────────────────────────────
 
-export type PayoutStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
-
-export interface Payout {
-  id:          string;
-  amount:      number;
-  commission:  number;
-  netAmount:   number;
-  status:      PayoutStatus;
-  requestedAt: string;
-  processedAt: string | null;
-  reference:   string | null;
-  notes:       string | null;
+export interface PaymentItem {
+  kind:                "booking" | "spot";
+  id:                  string;
+  playerName:          string;
+  playerPhone:         string | null;
+  playerEmail:         string;
+  facilityId:          string;
+  facilityName:        string;
+  label:               string;
+  matchId?:            string;
+  date:                string;
+  startTime:           string;
+  endTime:             string;
+  amount:              number;
+  bookingStatus:       string;
+  paymentStatus:       "RECEIPT_SUBMITTED" | "REJECTED" | "PAID" | "REFUNDED";
+  receiptUrl:          string;
+  receiptUploadedAt:   string | null;
+  receiptReviewedAt:   string | null;
+  receiptRejectReason: string | null;
 }
 
-export interface PayoutBalance {
-  grossOnline:       number;
-  feeOnline:         number;
-  netOnline:         number;
-  paidOut:           number;
-  inFlight:          number;
-  availableBalance:  number;
+export interface PaymentsResponse {
+  items:       PaymentItem[];
+  reviewCount: number;
 }
 
-export interface PayoutCommission {
-  totalCommission:  number;
-  paidCommission:   number;
-  unpaidCommission: number;
-  cashUnpaid:       number;
+export interface RefundItem {
+  id:            string;
+  bookingDate:   string;
+  startTime:     string;
+  endTime:       string;
+  totalAmount:   number;
+  refundAmount:  number | null;
+  refundPercent: number | null;
+  cancelledAt:   string | null;
+  cancelledBy:   string | null;
+  contactNumber: string | null;
+  user:          { name: string; phone: string | null; email: string };
+  facility:      { name: string };
 }
 
-export interface PayoutResponse {
-  balance:               PayoutBalance;
-  commission:            PayoutCommission;
-  hasBankDetails:        boolean;
-  onlineEarnings:        OnlineEarning[];
-  payouts:               Payout[];
-  commissionSettlements: Payout[];
-  cooldownRemaining:     number;
-  pendingCommissionRequest: { requestedAt: string; amount: number } | null;
-  settings: {
-    commissionRate:     number;
-    minPayout:          number;
-    payoutCooldownDays: number;
-  };
+export interface GroundPaymentDetails {
+  paymentBankName:      string | null;
+  paymentBankBranch:    string | null;
+  paymentAccountName:   string | null;
+  paymentAccountNumber: string | null;
+  paymentInstructions:  string | null;
 }
 
 export interface BankDetails {
@@ -319,6 +331,11 @@ export interface WorkerBooking {
   status:          BookingStatus;
   paymentMethod:   PaymentMethod;
   paymentStatus:   PaymentStatus;
+  receiptUrl?:          string | null;
+  receiptUploadedAt?:   string | null;
+  receiptRejectReason?: string | null;
+  refundStatus?:        "NONE" | "NEEDED" | "PROCESSED";
+  refundAmount?:        number | null;
   totalAmount:     number;
   playerName:      string;
   playerEmail:     string;
@@ -364,4 +381,23 @@ export interface WorkerProfileResponse {
   } | null;
   workerSince: string | null;
   stats:       { walkins: number };
+}
+
+// ── Needs-action inbox (bookings + payments in one list) ─────────────────────
+
+export interface InboxSlot {
+  id: string; player: string; phone: string | null;
+  facilityId: string; facilityName: string; court: string | null;
+  date: string; startTime: string; endTime: string; amount: number;
+}
+export interface InboxReceipt extends InboxSlot { kind: "booking" | "spot"; label: string | null; receiptUrl: string; receiptUploadedAt: string | null }
+export interface InboxAwaiting extends InboxSlot { rejected: boolean; rejectReason: string | null; disputed: boolean; bookedAt: string }
+export interface InboxRefund extends InboxSlot { percent: number; cancelledBy: string | null }
+export interface InboxResponse {
+  canEditAccounts:  boolean;
+  grounds:          { id: string; name: string; status: string; account: { bankName: string; accountName: string; accountNumber: string } | null }[];
+  toReview:         InboxReceipt[];
+  cashToConfirm:    InboxSlot[];
+  awaitingTransfer: InboxAwaiting[];
+  refunds:          InboxRefund[];
 }

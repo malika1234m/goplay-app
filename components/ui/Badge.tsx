@@ -13,13 +13,15 @@ const STATUS_STYLES: Record<BookingStatus, { bg: string; text: string; label: st
 
 const PAYMENT_STATUS_STYLES: Record<PaymentStatus, { bg: string; text: string; label: string }> = {
   PENDING:  { bg: "#fef9c3", text: "#92400e", label: "Unpaid"    },
+  RECEIPT_SUBMITTED: { bg: "#ffedd5", text: "#9a3412", label: "Receipt to review" },
+  REJECTED: { bg: "#fee2e2", text: "#7f1d1d", label: "Receipt rejected" },
   PAID:     { bg: "#dcfce7", text: "#14532d", label: "Paid"      },
   FAILED:   { bg: "#fee2e2", text: "#7f1d1d", label: "Failed"    },
   REFUNDED: { bg: "#dbeafe", text: "#1e3a8a", label: "Refunded"  },
 };
 
 const METHOD_STYLES: Record<PaymentMethod, { bg: string; text: string; label: string }> = {
-  ONLINE:     { bg: "#ede9fe", text: "#4c1d95", label: "Online"     },
+  ONLINE:     { bg: "#ede9fe", text: "#4c1d95", label: "Bank transfer" },
   ON_ARRIVAL: { bg: "#f1f5f9", text: "#334155", label: "On Arrival" },
 };
 

@@ -18,7 +18,7 @@ const STATUS_META: Record<string, { color: string; icon: string; label: string }
 };
 
 const PAY_LABEL: Record<string, string> = {
-  ONLINE:     "Online",
+  ONLINE:     "Transfer",
   ON_ARRIVAL: "Cash",
 };
 
@@ -113,7 +113,12 @@ export default function BookingCard({ booking, onPress }: Props) {
             size={11}
             color={meta.color}
           />
-          <Text style={s.payText}>{PAY_LABEL[booking.paymentMethod] ?? booking.paymentMethod}</Text>
+          <Text style={s.payText}>
+            {PAY_LABEL[booking.paymentMethod] ?? booking.paymentMethod}
+            {booking.paymentMethod === "ONLINE" && booking.paymentStatus === "RECEIPT_SUBMITTED" ? " · receipt to review"
+              : booking.paymentMethod === "ONLINE" && booking.paymentStatus === "PENDING" ? " · awaiting receipt"
+              : booking.paymentMethod === "ONLINE" && booking.paymentStatus === "REJECTED" ? " · rejected" : ""}
+          </Text>
         </View>
       </View>
 

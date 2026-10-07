@@ -66,12 +66,12 @@ export default function EarningsScreen() {
     chartTitle:  { fontSize: 11, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 14 },
     chartXLabel: { fontSize: 9, color: Colors.textMuted, textAlign: "center" },
 
-    // Payout shortcut
-    payoutCard:  { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: Colors.card, borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1.5, borderColor: Colors.primaryMid },
-    payoutLeft:  { flexDirection: "row", alignItems: "center", gap: 12 },
-    payoutIcon:  { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight, alignItems: "center", justifyContent: "center" },
-    payoutTitle: { fontSize: 15, fontWeight: "700", color: Colors.text },
-    payoutSub:   { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
+    // Payments shortcuts
+    payCard:  { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: Colors.card, borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1.5, borderColor: Colors.primaryMid },
+    payLeft:  { flexDirection: "row", alignItems: "center", gap: 12 },
+    payIcon:  { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight, alignItems: "center", justifyContent: "center" },
+    payTitle: { fontSize: 15, fontWeight: "700", color: Colors.text },
+    paySub:   { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
 
     // Facility section
     section:      { gap: 8 },
@@ -220,19 +220,35 @@ export default function EarningsScreen() {
         </View>
       )}
 
-      {/* ── Payout shortcut ── */}
+      {/* ── Payments shortcuts ── */}
       <TouchableOpacity
-        style={s.payoutCard}
-        onPress={() => router.push("/(owner)/earnings/payouts")}
+        style={s.payCard}
+        onPress={() => router.push("/(owner)/bookings/payments")}
         activeOpacity={0.8}
       >
-        <View style={s.payoutLeft}>
-          <View style={s.payoutIcon}>
-            <Ionicons name="wallet-outline" size={20} color={Colors.primary} />
+        <View style={s.payLeft}>
+          <View style={s.payIcon}>
+            <Ionicons name="receipt-outline" size={20} color={Colors.primary} />
           </View>
           <View>
-            <Text style={s.payoutTitle}>Payout Centre</Text>
-            <Text style={s.payoutSub}>Balance · request payment · history</Text>
+            <Text style={s.payTitle}>Payments</Text>
+            <Text style={s.paySub}>Review transfer receipts · refunds due</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={Colors.primary} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={s.payCard}
+        onPress={() => router.push("/(owner)/earnings/bank-details")}
+        activeOpacity={0.8}
+      >
+        <View style={s.payLeft}>
+          <View style={s.payIcon}>
+            <Ionicons name="business-outline" size={20} color={Colors.primary} />
+          </View>
+          <View>
+            <Text style={s.payTitle}>Payment Details</Text>
+            <Text style={s.paySub}>Bank account players pay online to</Text>
           </View>
         </View>
         <Ionicons name="chevron-forward" size={18} color={Colors.primary} />
