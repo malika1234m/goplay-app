@@ -8,12 +8,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { useCourts, useAddCourt, useUpdateCourt, useDeleteCourt } from "@/lib/queries/groundManagement";
 import { useColors } from "@/lib/theme";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import EmptyState from "@/components/ui/EmptyState";
 import type { Court } from "@/types";
 
 export default function CourtsScreen() {
   const Colors = useColors();
+  const keyboardPad = useKeyboardPadding();
   const { id: facilityId }             = useLocalSearchParams<{ id: string }>();
   const { data, isLoading, refetch, isRefetching } = useCourts(facilityId);
   const { mutate: addCourt, isPending: adding }        = useAddCourt(facilityId);
@@ -204,7 +206,7 @@ export default function CourtsScreen() {
       {/* Edit Court Modal */}
       <Modal visible={!!editCourt} transparent animationType="slide" onRequestClose={() => setEditCourt(null)}>
         <View style={s.overlay}>
-          <View style={s.sheet}>
+          <View style={[s.sheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.sheetHandle} />
             <Text style={s.sheetTitle}>Edit Court</Text>
 
@@ -249,7 +251,7 @@ export default function CourtsScreen() {
       {/* Add Court Modal */}
       <Modal visible={showModal} transparent animationType="slide" onRequestClose={() => setShowModal(false)}>
         <View style={s.overlay}>
-          <View style={s.sheet}>
+          <View style={[s.sheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.sheetHandle} />
             <Text style={s.sheetTitle}>New Court</Text>
 

@@ -8,12 +8,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/lib/auth";
 import { useTheme, useColors } from "@/lib/theme";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import { useOwnerProfile, useUpdateOwnerProfile } from "@/lib/queries/owner";
 import { api } from "@/lib/api";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 
 export default function OwnerProfile() {
   const Colors                       = useColors();
+  const keyboardPad = useKeyboardPadding();
   const { logout }                   = useAuth();
   const { isDark, toggleTheme }      = useTheme();
   const { data, isLoading, refetch, isRefetching } = useOwnerProfile();
@@ -331,7 +333,7 @@ export default function OwnerProfile() {
       {/* Change Password Modal */}
       <Modal visible={pwdModal} transparent animationType="slide" onRequestClose={() => setPwdModal(false)}>
         <View style={s.pwdOverlay}>
-          <View style={s.pwdSheet}>
+          <View style={[s.pwdSheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.pwdHandle} />
             <Text style={s.pwdTitle}>Change Password</Text>
 

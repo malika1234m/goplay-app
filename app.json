@@ -5,17 +5,17 @@
     "scheme": "goplay",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.goplay.app",
+      "bundleIdentifier": "lk.goplay.app",
       "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "Used to upload facility photos.",
@@ -23,20 +23,23 @@
       }
     },
     "android": {
-      "package": "com.goplay.app",
+      "package": "lk.goplay.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/icons/android-icon-foreground.png",
+        "backgroundColor": "#12315e"
       },
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.READ_MEDIA_IMAGES"
+        "android.permission.CAMERA"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO"
       ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icons/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -47,14 +50,14 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#ffffff",
-          "image": "./assets/splash-icon.png",
+          "image": "./assets/splash/splash-icon.png",
           "imageWidth": 200
         }
       ],
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
+          "icon": "./assets/icons/icon.png",
           "color": "#16a34a",
           "sounds": []
         }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Image,
@@ -11,6 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { useColors } from "@/lib/theme";
 
 export default function LoginScreen() {
+  const keyboardPad = useKeyboardPadding();
   const Colors = useColors();
   const router  = useRouter();
   const { login } = useAuth();
@@ -91,7 +93,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView style={s.flex} enabled={false}>
       <StatusBar style="light" />
 
       <LinearGradient colors={[Colors.navy, Colors.navyDark, "#0a1628"]} style={s.bg}>
@@ -99,7 +101,7 @@ export default function LoginScreen() {
         {/* Top branding */}
         <View style={s.brandSection}>
           <View style={s.logoWrap}>
-            <Image source={require("../../assets/icon.png")} style={s.logo} resizeMode="cover" />
+            <Image source={require("../../assets/icons/icon.png")} style={s.logo} resizeMode="cover" />
           </View>
           <Text style={s.appName}>GoPlay</Text>
           <View style={s.taglineRow}>
@@ -110,7 +112,7 @@ export default function LoginScreen() {
         </View>
 
         <ScrollView
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={[s.scroll, keyboardPad > 0 && { paddingBottom: keyboardPad }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -158,6 +160,8 @@ export default function LoginScreen() {
                     onFocus={() => setFocused("password")}
                     onBlur={() => setFocused(null)}
                     secureTextEntry={!showPass}
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     returnKeyType="done"
                     onSubmitEditing={handleLogin}
                     editable={!loading}

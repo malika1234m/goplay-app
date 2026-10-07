@@ -8,10 +8,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useBankDetails, useSaveBankDetails } from "@/lib/queries/earnings";
 import { useColors } from "@/lib/theme";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 
 export default function BankDetailsScreen() {
   const Colors = useColors();
+  const keyboardPad = useKeyboardPadding();
   const router = useRouter();
   const { data, isLoading }           = useBankDetails();
   const { mutate: save, isPending }   = useSaveBankDetails();
@@ -116,7 +118,7 @@ export default function BankDetailsScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={s.scroll}
+      contentContainerStyle={[s.scroll, keyboardPad > 0 && { paddingBottom: keyboardPad }]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >

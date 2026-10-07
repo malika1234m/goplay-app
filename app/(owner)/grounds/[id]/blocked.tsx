@@ -9,6 +9,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams } from "expo-router";
 import { useBlockedDates, useAddBlockedDate, useDeleteBlockedDate } from "@/lib/queries/groundManagement";
 import { useColors } from "@/lib/theme";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import EmptyState from "@/components/ui/EmptyState";
 import { formatDate, formatDateShort, isoDate } from "@/lib/utils";
@@ -24,6 +25,7 @@ function dateToTime(d: Date): string {
 
 export default function BlockedDatesScreen() {
   const Colors = useColors();
+  const keyboardPad = useKeyboardPadding();
   const { id: facilityId } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading, refetch, isRefetching } = useBlockedDates(facilityId);
   const { mutate: addBlock,    isPending: adding  } = useAddBlockedDate();
@@ -186,7 +188,7 @@ export default function BlockedDatesScreen() {
       {/* Add block modal */}
       <Modal visible={showModal} transparent animationType="slide" onRequestClose={() => setShowModal(false)}>
         <View style={s.overlay}>
-          <View style={s.sheet}>
+          <View style={[s.sheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.sheetHandle} />
             <Text style={s.sheetTitle}>Block a Date</Text>
 

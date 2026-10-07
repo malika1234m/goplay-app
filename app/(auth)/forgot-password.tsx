@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
@@ -11,6 +12,7 @@ import { useColors } from "@/lib/theme";
 import { BASE_URL } from "@/lib/api";
 
 export default function ForgotPasswordScreen() {
+  const keyboardPad = useKeyboardPadding();
   const Colors = useColors();
   const router  = useRouter();
 
@@ -81,10 +83,10 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView style={s.flex} enabled={false}>
       <StatusBar style="light" />
       <LinearGradient colors={[Colors.navy, Colors.navyDark, "#0a1628"]} style={s.bg}>
-        <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[s.scroll, keyboardPad > 0 && { paddingBottom: keyboardPad }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
           <View style={s.brandSection}>
             <View style={s.iconCircle}>

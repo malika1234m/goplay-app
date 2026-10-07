@@ -37,7 +37,7 @@ export default function LoadingScreen() {
 
       <Animated.View style={[s.logoWrap, { transform: [{ scale: logoScale }] }]}>
         <View style={s.logoCircle}>
-          <Image source={require("@/assets/icon.png")} style={s.logo} resizeMode="cover" />
+          <Image source={require("@/assets/icons/icon.png")} style={s.logo} resizeMode="cover" />
         </View>
       </Animated.View>
 

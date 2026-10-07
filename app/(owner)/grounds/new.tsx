@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, Image, StyleSheet,
   Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
@@ -18,6 +19,7 @@ const AMENITIES = [
 ];
 
 export default function NewGround() {
+  const keyboardPad = useKeyboardPadding();
   const Colors = useColors();
   const router  = useRouter();
 
@@ -45,11 +47,8 @@ export default function NewGround() {
   }
 
   async function pickImages() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission Required", "Allow photo library access to add images.");
-      return;
-    }
+    // Uses the Android system photo picker on Android 13+ — no storage
+    // permission required (complies with Google Play Photo & Video Permissions policy).
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: "images",
       allowsMultipleSelection: true,
@@ -148,7 +147,7 @@ export default function NewGround() {
   });
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView style={s.flex} enabled={false}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="arrow-back" size={22} color={Colors.primary} />
@@ -156,7 +155,7 @@ export default function NewGround() {
         <Text style={s.headerTitle}>Add New Ground</Text>
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.scroll, keyboardPad > 0 && { paddingBottom: keyboardPad }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
         {/* Basic info */}
         <View style={s.section}>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import * as SecureStore from "expo-secure-store";
 import * as Notifications from "expo-notifications";
 import * as Application from "expo-application";
@@ -14,18 +15,6 @@ import ForceUpdateScreen from "@/components/ui/ForceUpdateScreen";
 import OTAUpdateBanner from "@/components/ui/OTAUpdateBanner";
 import { BASE_URL } from "@/lib/api";
 import { ONBOARDING_KEY } from "@/app/onboarding";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: (count, error) =>
-        !(error instanceof Error && error.message.startsWith("Session expired")) &&
-        count < 1,
-      staleTime: 30_000,
-    },
-    mutations: { retry: false },
-  },
-});
 
 // Compare semver strings — returns true if current < min
 function isOutdated(current: string, min: string): boolean {

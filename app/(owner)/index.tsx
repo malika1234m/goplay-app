@@ -9,15 +9,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as SecureStore from "expo-secure-store";
-import { useAuth } from "@/lib/auth";
+import { useAuth, GOAL_KEY } from "@/lib/auth";
 import { useOwnerStats } from "@/lib/queries/owner";
 import { useColors } from "@/lib/theme";
 import Badge from "@/components/ui/Badge";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { formatLKR } from "@/lib/utils";
 import type { TodayBooking } from "@/types";
-
-const GOAL_KEY = "revenue_goal";
 
 function useCountUp(target: number, duration = 1200) {
   const anim = useRef(new Animated.Value(0)).current;

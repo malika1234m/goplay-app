@@ -1,0 +1,61 @@
+# NOTE: when .easignore exists, EAS uses it INSTEAD of .gitignore,
+# so this file must contain the .gitignore rules plus EAS-only exclusions.
+
+# ---- from .gitignore ----
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files (build env comes from eas.json / EAS environments)
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# generated native folders
+/ios
+/android
+
+# Google Play service account key
+google-play-key.json
+
+# ---- EAS-only exclusions (keep uploads small) ----
+
+# Build artifacts — not needed on EAS build servers
+*.aab
+*.apk
+
+# Play Store listing assets (uploaded to Play Console manually, not part of the app)
+screenshots/
+playstore-*.png
+logoo.png
+assets/legacy/
+store-listing/

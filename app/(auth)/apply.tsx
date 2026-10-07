@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
   KeyboardAvoidingView, Platform, ActivityIndicator, Animated,
@@ -42,12 +43,13 @@ function FieldInput({ label, value, onChange, placeholder, keyboardType, icon, s
         {icon && <Ionicons name={icon as never} size={17} color={focused ? colors.primary : colors.textMuted} style={s.inputIcon} />}
         <TextInput
           style={s.input}
-          value={value} onChangeText={onChange}
+          value={value}
+          onChangeText={(v) => onChange(secure ? v.replace(/\s/g, "") : v)}
           placeholder={placeholder} placeholderTextColor={colors.textMuted}
           keyboardType={keyboardType ?? "default"}
           secureTextEntry={secure && !showToggle}
           onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-          autoCapitalize={keyboardType === "email-address" ? "none" : "sentences"}
+          autoCapitalize={secure || keyboardType === "email-address" ? "none" : "sentences"}
           autoCorrect={false}
         />
         {secure !== undefined && (
@@ -86,6 +88,7 @@ const STEP_LABELS = ["Account", "Personal", "Facility", "Review"];
 interface Category { id: string; name: string; icon: string | null }
 
 export default function ApplyScreen() {
+  const keyboardPad = useKeyboardPadding();
   const Colors = useColors();
   const router  = useRouter();
   const { clearPendingApp } = useAuth();
@@ -346,7 +349,7 @@ export default function ApplyScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView style={s.flex} enabled={false}>
       <StatusBar style="light" />
       <LinearGradient colors={[Colors.navy, Colors.navyDark, "#0a1628"]} style={s.bg}>
         <SafeAreaView style={s.safeTop} edges={["top"]}>
@@ -364,7 +367,7 @@ export default function ApplyScreen() {
 
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={[s.scroll, keyboardPad > 0 && { paddingBottom: keyboardPad }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -533,7 +536,7 @@ export default function ApplyScreen() {
         </ScrollView>
 
         {/* ── Navigation buttons — fixed footer, always visible ─────────────── */}
-        <SafeAreaView edges={["bottom"]} style={{ backgroundColor: "transparent" }}>
+        <SafeAreaView edges={["bottom"]} style={[{ backgroundColor: "transparent" }, keyboardPad > 0 && { marginBottom: keyboardPad }]}>
           <View style={s.navFooter}>
             {step > 0 && (
               <TouchableOpacity style={s.backNavBtn} onPress={back}>

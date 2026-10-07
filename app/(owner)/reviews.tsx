@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useReviews, useReportReview, useUnreportReview } from "@/lib/queries/reviews";
 import { useColors } from "@/lib/theme";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import EmptyState from "@/components/ui/EmptyState";
 import { formatDate } from "@/lib/utils";
@@ -55,6 +56,7 @@ function Stars({ rating, size }: { rating: number; size: number }) {
 
 export default function ReviewsScreen() {
   const Colors = useColors();
+  const keyboardPad = useKeyboardPadding();
   const [star, setStar] = useState<StarFilter>(0);
   const [sort, setSort] = useState<SortKey>("newest");
 
@@ -402,7 +404,7 @@ export default function ReviewsScreen() {
         onRequestClose={() => setReportModal(null)}
       >
         <View style={s.overlay}>
-          <View style={s.sheet}>
+          <View style={[s.sheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.sheetHandle} />
             <View style={s.sheetTitleRow}>
               <View style={s.sheetIconBox}>

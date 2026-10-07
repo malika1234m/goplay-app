@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
@@ -23,6 +24,7 @@ const FIELDS: { key: FieldKey; label: string; placeholder: string; icon: "lock-c
 ];
 
 export default function ChangePasswordScreen() {
+  const keyboardPad = useKeyboardPadding();
   const Colors = useColors();
   const router = useRouter();
   const { logout } = useAuth();
@@ -138,7 +140,7 @@ export default function ChangePasswordScreen() {
   return (
     <KeyboardAvoidingView
       style={s.flex}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      enabled={false}
     >
       <StatusBar style="light" />
       <LinearGradient colors={[Colors.navy, Colors.navyDark, "#0a1628"]} style={s.bg}>
@@ -154,7 +156,7 @@ export default function ChangePasswordScreen() {
           </View>
         </SafeAreaView>
 
-        <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[s.scroll, keyboardPad > 0 && { paddingBottom: keyboardPad }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
           {/* Branding */}
           <View style={s.brandSection}>
@@ -203,6 +205,8 @@ export default function ChangePasswordScreen() {
                       onFocus={() => setFocused(key)}
                       onBlur={() => setFocused(null)}
                       secureTextEntry={!show[key]}
+                      autoCapitalize="none"
+                      autoCorrect={false}
                       returnKeyType={key === "confirm" ? "done" : "next"}
                       onSubmitEditing={key === "confirm" ? handleSubmit : undefined}
                       editable={!loading}

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import { apiRequest, setAuthErrorHandler } from "@/lib/api";
+import { queryClient } from "@/lib/queryClient";
 import { registerPushToken, clearPushToken } from "@/lib/pushNotifications";
 import type { AuthUser, MobileLoginResponse } from "@/types";
 
@@ -10,6 +11,8 @@ SplashScreen.preventAutoHideAsync();
 const TOKEN_KEY = "goplay_token";
 const USER_KEY  = "goplay_user";
 export const PENDING_APP_KEY = "goplay_pending_app";
+/** Owner's monthly earnings target — a per-account preference, cleared on sign-out. */
+export const GOAL_KEY = "revenue_goal";
 
 interface AuthContextValue {
   user:            AuthUser | null;
@@ -34,9 +37,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await Promise.all([
       SecureStore.deleteItemAsync(TOKEN_KEY),
       SecureStore.deleteItemAsync(USER_KEY),
+      // Per-owner preference — without this the next owner to sign in on this
+      // device inherits the previous owner's earnings target.
+      SecureStore.deleteItemAsync(GOAL_KEY),
     ]);
     setToken(null);
     setUser(null);
+    // Drop every cached response — the process keeps running after sign-out, so
+    // without this the next account to sign in on this device renders the
+    // previous owner's data until each query refetches.
+    queryClient.clear();
   }, []);
 
   const clearPendingApp = useCallback(async () => {

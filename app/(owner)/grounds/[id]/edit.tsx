@@ -9,6 +9,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useGround, useUpdateGround, useCategories, useUploadGroundImages } from "@/lib/queries/groundManagement";
 import { useColors } from "@/lib/theme";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import type { FacilityStatus } from "@/types";
 
@@ -80,6 +81,7 @@ function fieldStyles(Colors: ReturnType<typeof useColors>) {
 
 export default function EditGround() {
   const Colors = useColors();
+  const keyboardPad = useKeyboardPadding();
   const { id }   = useLocalSearchParams<{ id: string }>();
   const router   = useRouter();
 
@@ -147,11 +149,8 @@ export default function EditGround() {
   if (isLoading) return <LoadingScreen />;
 
   async function pickImages() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission Required", "Allow photo library access to add images.");
-      return;
-    }
+    // Uses the Android system photo picker on Android 13+ — no storage
+    // permission required (complies with Google Play Photo & Video Permissions policy).
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: "images",
       allowsMultipleSelection: true,
@@ -208,7 +207,7 @@ export default function EditGround() {
 
   return (
     <ScrollView
-      contentContainerStyle={s.scroll}
+      contentContainerStyle={[s.scroll, keyboardPad > 0 && { paddingBottom: keyboardPad }]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >

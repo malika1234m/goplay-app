@@ -9,12 +9,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/lib/auth";
 import { useWorkerProfile, useUpdateWorkerProfile } from "@/lib/queries/worker";
 import { useTheme, useColors } from "@/lib/theme";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import { api } from "@/lib/api";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { formatDate } from "@/lib/utils";
 
 export default function WorkerProfile() {
   const Colors = useColors();
+  const keyboardPad = useKeyboardPadding();
   const { isDark, toggleTheme }                 = useTheme();
   const { logout }                              = useAuth();
   const { data, isLoading, refetch, isRefetching } = useWorkerProfile();
@@ -366,7 +368,7 @@ export default function WorkerProfile() {
       {/* Change Password Modal */}
       <Modal visible={pwdModal} transparent animationType="slide" onRequestClose={() => setPwdModal(false)}>
         <View style={s.pwdOverlay}>
-          <View style={s.pwdSheet}>
+          <View style={[s.pwdSheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.pwdHandle} />
             <Text style={s.pwdTitle}>Change Password</Text>
 

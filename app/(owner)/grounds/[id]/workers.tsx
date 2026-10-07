@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { useWorkers, useAddWorker, useRemoveWorker } from "@/lib/queries/workers";
 import { useColors } from "@/lib/theme";
+import { useKeyboardPadding } from "@/lib/keyboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import EmptyState from "@/components/ui/EmptyState";
 import { formatDate } from "@/lib/utils";
@@ -15,6 +16,7 @@ import type { Worker } from "@/types";
 
 export default function WorkersScreen() {
   const Colors = useColors();
+  const keyboardPad = useKeyboardPadding();
   const { id: facilityId } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading, refetch, isRefetching } = useWorkers(facilityId);
   const { mutate: addWorker,    isPending: adding   } = useAddWorker();
@@ -198,7 +200,7 @@ export default function WorkersScreen() {
       {/* Add Worker Modal */}
       <Modal visible={showModal} transparent animationType="slide" onRequestClose={() => setShowModal(false)}>
         <View style={s.overlay}>
-          <View style={s.sheet}>
+          <View style={[s.sheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.sheetHandle} />
             <Text style={s.sheetTitle}>Add Worker</Text>
             <Text style={s.sheetSub}>
