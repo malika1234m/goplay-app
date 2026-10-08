@@ -11,8 +11,10 @@ import { useOwnerGrounds } from "@/lib/queries/owner";
 import { useColors } from "@/lib/theme";
 import { useKeyboardPadding } from "@/lib/keyboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 export default function BankDetailsScreen() {
+  const { t } = useT();
   const Colors = useColors();
   const keyboardPad = useKeyboardPadding();
   const router = useRouter();
@@ -37,15 +39,15 @@ export default function BankDetailsScreen() {
   if (isLoading) return <LoadingScreen />;
 
   function handleSave() {
-    if (!bankName.trim())                        return Alert.alert("Validation", "Bank name is required.");
-    if (bankName.trim().length > 50)             return Alert.alert("Validation", "Bank name must be under 50 characters.");
-    if (!accountNumber.trim())                   return Alert.alert("Validation", "Account number is required.");
+    if (!bankName.trim())                        return Alert.alert(t("Validation"), t("Bank name is required."));
+    if (bankName.trim().length > 50)             return Alert.alert(t("Validation"), t("Bank name must be under 50 characters."));
+    if (!accountNumber.trim())                   return Alert.alert(t("Validation"), t("Account number is required."));
     const accNum = accountNumber.trim();
-    if (accNum.length < 5 || accNum.length > 20) return Alert.alert("Validation", "Account number must be 5–20 characters.");
-    if (!accountHolderName.trim())               return Alert.alert("Validation", "Account holder name is required.");
+    if (accNum.length < 5 || accNum.length > 20) return Alert.alert(t("Validation"), t("Account number must be 5–20 characters."));
+    if (!accountHolderName.trim())               return Alert.alert(t("Validation"), t("Account holder name is required."));
     const holder = accountHolderName.trim();
-    if (holder.length < 2 || holder.length > 50) return Alert.alert("Validation", "Account holder name must be 2–50 characters.");
-    if (bankBranch.trim().length > 50)           return Alert.alert("Validation", "Branch name must be under 50 characters.");
+    if (holder.length < 2 || holder.length > 50) return Alert.alert(t("Validation"), t("Account holder name must be 2–50 characters."));
+    if (bankBranch.trim().length > 50)           return Alert.alert(t("Validation"), t("Branch name must be under 50 characters."));
 
     save(
       {
@@ -55,8 +57,8 @@ export default function BankDetailsScreen() {
         accountHolderName: accountHolderName.trim(),
       },
       {
-        onSuccess: () => { Alert.alert("Saved", "Payment details updated."); router.back(); },
-        onError:   (e) => Alert.alert("Error", e.message),
+        onSuccess: () => { Alert.alert(t("Saved"), t("Payment details updated.")); router.back(); },
+        onError:   (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
@@ -129,7 +131,7 @@ export default function BankDetailsScreen() {
         <View style={s.section}>
           <View style={s.sectionHeader}>
             <Ionicons name="business-outline" size={14} color={Colors.textMuted} />
-            <Text style={s.sectionLabel}>YOUR GROUNDS</Text>
+            <Text style={s.sectionLabel}>{t("YOUR GROUNDS")}</Text>
           </View>
           {groundsData!.grounds.map((g) => {
             const own = !!(g.paymentBankName && g.paymentAccountName && g.paymentAccountNumber);
@@ -140,7 +142,7 @@ export default function BankDetailsScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 15, fontWeight: "600", color: Colors.text }}>{g.name}</Text>
                   <Text style={{ fontSize: 12.5, color: own ? Colors.textMuted : Colors.textSecondary, marginTop: 2 }}>
-                    {own ? `${g.paymentAccountName}, ${g.paymentBankName} ••${g.paymentAccountNumber!.replace(/\s+/g, "").slice(-4)}` : "Uses the default account below"}
+                    {own ? `${g.paymentAccountName}, ${g.paymentBankName} ••${g.paymentAccountNumber!.replace(/\s+/g, "").slice(-4)}` : t("Uses the default account below")}
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
@@ -156,7 +158,7 @@ export default function BankDetailsScreen() {
           <Ionicons name="lock-closed-outline" size={20} color={Colors.primary} />
         </View>
         <Text style={s.infoText}>
-          Players who choose "Pay online" transfer straight to this account and upload the receipt for you to confirm. It is used for every ground that doesn't have its own payment details, and is only shown to players who are booking.
+          {t("Players who choose \"Pay online\" transfer straight to this account and upload the receipt for you to confirm. It is used for every ground that doesn't have its own payment details, and is only shown to players who are booking.")}
         </Text>
       </View>
 
@@ -164,25 +166,25 @@ export default function BankDetailsScreen() {
       <View style={s.section}>
         <View style={s.sectionHeader}>
           <Ionicons name="card-outline" size={14} color={Colors.textMuted} />
-          <Text style={s.sectionLabel}>BANK ACCOUNT DETAILS</Text>
+          <Text style={s.sectionLabel}>{t("BANK ACCOUNT DETAILS")}</Text>
         </View>
 
         <Field
-          label="Bank Name *"
+          label={t("Bank Name *")}
           value={bankName}
           onChangeText={setBankName}
-          placeholder="e.g. Sampath Bank, Commercial Bank"
+          placeholder={t("e.g. Sampath Bank, Commercial Bank")}
           icon="business-outline"
         />
         <Field
-          label="Branch"
+          label={t("Branch")}
           value={bankBranch}
           onChangeText={setBankBranch}
-          placeholder="e.g. Colombo 03"
+          placeholder={t("e.g. Colombo 03")}
           icon="location-outline"
         />
         <Field
-          label="Account Number *"
+          label={t("Account Number *")}
           value={accountNumber}
           onChangeText={setAccountNumber}
           placeholder="e.g. 1234567890"
@@ -190,10 +192,10 @@ export default function BankDetailsScreen() {
           icon="keypad-outline"
         />
         <Field
-          label="Account Holder Name *"
+          label={t("Account Holder Name *")}
           value={accountHolderName}
           onChangeText={setAccountHolderName}
-          placeholder="Full name as on account"
+          placeholder={t("Full name as on account")}
           icon="person-outline"
         />
       </View>
@@ -210,7 +212,7 @@ export default function BankDetailsScreen() {
           ) : (
             <>
               <Ionicons name="checkmark-outline" size={20} color={Colors.white} />
-              <Text style={s.saveBtnText}>Save Payment Details</Text>
+              <Text style={s.saveBtnText}>{t("Save Payment Details")}</Text>
             </>
           )}
         </LinearGradient>

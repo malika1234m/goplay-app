@@ -8,8 +8,10 @@ import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { formatLKR } from "@/lib/utils";
 import type { Ground } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 export default function GroundsList() {
+  const { t, tn } = useT();
   const Colors = useColors();
   const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useOwnerGrounds();
@@ -102,7 +104,7 @@ export default function GroundsList() {
           </View>
           <View style={s.metaItem}>
             <Ionicons name="grid-outline" size={13} color={Colors.textMuted} />
-            <Text style={s.metaValue}>{`${ground.courtCount} court${ground.courtCount !== 1 ? "s" : ""}`}</Text>
+            <Text style={s.metaValue}>{tn(ground.courtCount, "{n} court", "{n} courts")}</Text>
           </View>
           {ground.avgRating ? (
             <View style={s.metaItem}>
@@ -112,7 +114,7 @@ export default function GroundsList() {
           ) : null}
           <View style={s.metaItem}>
             <Ionicons name="chatbubble-outline" size={13} color={Colors.textMuted} />
-            <Text style={s.metaValue}>{`${ground.totalReviews} review${ground.totalReviews !== 1 ? "s" : ""}`}</Text>
+            <Text style={s.metaValue}>{tn(ground.totalReviews, "{n} review", "{n} reviews")}</Text>
           </View>
         </View>
 
@@ -140,15 +142,15 @@ export default function GroundsList() {
         ListEmptyComponent={
           <EmptyState
             icon="business-outline"
-            title="No grounds yet"
-            sub="Tap the button below to add your first facility."
+            title={t("No grounds yet")}
+            sub={t("Tap the button below to add your first facility.")}
           />
         }
       />
       <TouchableOpacity style={s.fab} onPress={() => router.push("/(owner)/grounds/new")} activeOpacity={0.85}>
         <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
         <Ionicons name="add" size={22} color="#fff" />
-        <Text style={{ color: "#fff", fontSize: 15, fontWeight: "700" }}>Add Ground</Text>
+        <Text style={{ color: "#fff", fontSize: 15, fontWeight: "700" }}>{t("Add Ground")}</Text>
       </TouchableOpacity>
     </View>
   );

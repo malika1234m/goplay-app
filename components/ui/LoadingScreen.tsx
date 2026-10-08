@@ -2,8 +2,10 @@ import { useEffect, useRef } from "react";
 import { View, Text, Image, Animated, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 export default function LoadingScreen() {
+  const { t } = useT();
   const dot1 = useRef(new Animated.Value(0.3)).current;
   const dot2 = useRef(new Animated.Value(0.3)).current;
   const dot3 = useRef(new Animated.Value(0.3)).current;
@@ -42,7 +44,7 @@ export default function LoadingScreen() {
       </Animated.View>
 
       <Text style={s.appName}>GoPlay</Text>
-      <Text style={s.tagline}>FACILITY MANAGEMENT</Text>
+      <Text style={s.tagline}>{t("FACILITY MANAGEMENT")}</Text>
 
       <View style={s.dotsRow}>
         {[dot1, dot2, dot3].map((dot, i) => (
@@ -50,7 +52,7 @@ export default function LoadingScreen() {
         ))}
       </View>
 
-      <Text style={s.loadingText}>Loading…</Text>
+      <Text style={s.loadingText}>{t("Loading…")}</Text>
     </LinearGradient>
   );
 }

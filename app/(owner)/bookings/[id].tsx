@@ -14,8 +14,10 @@ import Badge from "@/components/ui/Badge";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import TransferReview from "@/components/payments/TransferReview";
 import { formatDate, formatLKR } from "@/lib/utils";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 export default function BookingDetail() {
+  const { t } = useT();
   const Colors = useColors();
   const { id }       = useLocalSearchParams<{ id: string }>();
   const router       = useRouter();
@@ -92,17 +94,17 @@ export default function BookingDetail() {
     : booking.specialRequests;
 
   function confirm() {
-    Alert.alert("Confirm Booking", `Confirm booking for ${playerName}?`, [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("Confirm Booking"), `Confirm booking for ${playerName}?`, [
+      { text: t("Cancel"), style: "cancel" },
       {
-        text: "Confirm", style: "default",
+        text: t("Confirm"), style: "default",
         onPress: () =>
           updateStatus({ id: booking!.id, status: "CONFIRMED" }, {
             onSuccess: () => {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               setReceipt(true);
             },
-            onError: (e) => Alert.alert("Error", e.message),
+            onError: (e) => Alert.alert(t("Error"), e.message),
           }),
       },
     ]);
@@ -110,40 +112,40 @@ export default function BookingDetail() {
 
   function complete() {
     if (booking!.paymentMethod === "ON_ARRIVAL") {
-      Alert.alert("Mark Complete", "Was cash payment received?", [
-        { text: "Cancel", style: "cancel" },
+      Alert.alert(t("Mark Complete"), t("Was cash payment received?"), [
+        { text: t("Cancel"), style: "cancel" },
         {
-          text: "Cash Received", style: "default",
+          text: t("Cash Received"), style: "default",
           onPress: () =>
             updateStatus({ id: booking!.id, status: "COMPLETED", cashReceived: true }, {
               onSuccess: () => {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 router.back();
               },
-              onError: (e) => Alert.alert("Error", e.message),
+              onError: (e) => Alert.alert(t("Error"), e.message),
             }),
         },
         {
-          text: "Cash Not Received", style: "destructive",
+          text: t("Cash Not Received"), style: "destructive",
           onPress: () =>
             updateStatus({ id: booking!.id, status: "COMPLETED", cashReceived: false }, {
               onSuccess: () => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.back(); },
-              onError: (e) => Alert.alert("Error", e.message),
+              onError: (e) => Alert.alert(t("Error"), e.message),
             }),
         },
       ]);
     } else {
-      Alert.alert("Mark Complete", "Mark this booking as completed?", [
-        { text: "Cancel", style: "cancel" },
+      Alert.alert(t("Mark Complete"), t("Mark this booking as completed?"), [
+        { text: t("Cancel"), style: "cancel" },
         {
-          text: "Complete", style: "default",
+          text: t("Complete"), style: "default",
           onPress: () =>
             updateStatus({ id: booking!.id, status: "COMPLETED" }, {
               onSuccess: () => {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 router.back();
               },
-              onError: (e) => Alert.alert("Error", e.message),
+              onError: (e) => Alert.alert(t("Error"), e.message),
             }),
         },
       ]);
@@ -152,19 +154,19 @@ export default function BookingDetail() {
 
   function cancel() {
     Alert.alert(
-      "Cancel Booking",
-      "Are you sure? This will notify the player and apply a cancellation strike to your facility.",
+      t("Cancel Booking"),
+      t("Are you sure? This will notify the player and apply a cancellation strike to your facility."),
       [
-        { text: "Keep Booking", style: "cancel" },
+        { text: t("Keep Booking"), style: "cancel" },
         {
-          text: "Cancel Booking", style: "destructive",
+          text: t("Cancel Booking"), style: "destructive",
           onPress: () =>
             updateStatus({ id: booking!.id, status: "CANCELLED" }, {
               onSuccess: () => {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
                 router.back();
               },
-              onError: (e) => Alert.alert("Error", e.message),
+              onError: (e) => Alert.alert(t("Error"), e.message),
             }),
         },
       ]
@@ -173,19 +175,19 @@ export default function BookingDetail() {
 
   function noShow() {
     Alert.alert(
-      "Mark No-Show",
-      `${playerName} did not show up? This will penalise their account.`,
+      t("Mark No-Show"),
+      t("{name} didn't show up? This counts against their account.", { name: playerName }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("Cancel"), style: "cancel" },
         {
-          text: "Mark No-Show", style: "destructive",
+          text: t("Mark No-Show"), style: "destructive",
           onPress: () =>
             markNoShow(booking!.id, {
               onSuccess: () => {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
                 router.back();
               },
-              onError: (e) => Alert.alert("Error", e.message),
+              onError: (e) => Alert.alert(t("Error"), e.message),
             }),
         },
       ]
@@ -219,7 +221,7 @@ export default function BookingDetail() {
             {isWalkIn && (
               <View style={s.walkInBadge}>
                 <Ionicons name="walk-outline" size={12} color={Colors.primaryDark} />
-                <Text style={s.walkInText}>Walk-in</Text>
+                <Text style={s.walkInText}>{t("Walk-in")}</Text>
               </View>
             )}
             <TouchableOpacity
@@ -228,7 +230,7 @@ export default function BookingDetail() {
               activeOpacity={0.75}
             >
               <Ionicons name="receipt-outline" size={13} color={Colors.primary} />
-              <Text style={s.receiptBtnText}>Receipt</Text>
+              <Text style={s.receiptBtnText}>{t("Receipt")}</Text>
             </TouchableOpacity>
           </View>
           <Text style={s.headerAmount}>{formatLKR(booking.totalAmount)}</Text>
@@ -241,13 +243,13 @@ export default function BookingDetail() {
         <View style={s.section}>
           <View style={s.sectionHeader}>
             <Ionicons name="person-outline" size={14} color={Colors.textMuted} />
-            <Text style={s.sectionTitle}>Player</Text>
+            <Text style={s.sectionTitle}>{t("Player")}</Text>
           </View>
           <View style={s.sectionBody}>
-            <View style={s.row}><Text style={s.rowLabel}>Name</Text><Text style={s.rowValue} numberOfLines={2}>{playerName}</Text></View>
-            {!isWalkIn && <View style={s.row}><Text style={s.rowLabel}>Email</Text><Text style={s.rowValue} numberOfLines={2}>{booking.user.email}</Text></View>}
-            {booking.contactNumber && <View style={s.row}><Text style={s.rowLabel}>Phone</Text><Text style={s.rowValue} numberOfLines={2}>{booking.contactNumber}</Text></View>}
-            {!isWalkIn && booking.user.phone && <View style={s.row}><Text style={s.rowLabel}>Phone</Text><Text style={s.rowValue} numberOfLines={2}>{booking.user.phone}</Text></View>}
+            <View style={s.row}><Text style={s.rowLabel}>{t("Name")}</Text><Text style={s.rowValue} numberOfLines={2}>{playerName}</Text></View>
+            {!isWalkIn && <View style={s.row}><Text style={s.rowLabel}>{t("Email")}</Text><Text style={s.rowValue} numberOfLines={2}>{booking.user.email}</Text></View>}
+            {booking.contactNumber && <View style={s.row}><Text style={s.rowLabel}>{t("Phone")}</Text><Text style={s.rowValue} numberOfLines={2}>{booking.contactNumber}</Text></View>}
+            {!isWalkIn && booking.user.phone && <View style={s.row}><Text style={s.rowLabel}>{t("Phone")}</Text><Text style={s.rowValue} numberOfLines={2}>{booking.user.phone}</Text></View>}
           </View>
         </View>
 
@@ -255,14 +257,14 @@ export default function BookingDetail() {
         <View style={s.section}>
           <View style={s.sectionHeader}>
             <Ionicons name="calendar-outline" size={14} color={Colors.textMuted} />
-            <Text style={s.sectionTitle}>Booking</Text>
+            <Text style={s.sectionTitle}>{t("Booking")}</Text>
           </View>
           <View style={s.sectionBody}>
-            <View style={s.row}><Text style={s.rowLabel}>Date</Text><Text style={s.rowValue} numberOfLines={2}>{formatDate(booking.bookingDate)}</Text></View>
-            <View style={s.row}><Text style={s.rowLabel}>Time</Text><Text style={s.rowValue} numberOfLines={2}>{`${booking.startTime} – ${booking.endTime} (${booking.totalHours}h)`}</Text></View>
-            <View style={s.row}><Text style={s.rowLabel}>Facility</Text><Text style={s.rowValue} numberOfLines={2}>{booking.facility.name}</Text></View>
-            {booking.court && <View style={s.row}><Text style={s.rowLabel}>Court</Text><Text style={s.rowValue} numberOfLines={2}>{booking.court.name}</Text></View>}
-            {notes && <View style={s.row}><Text style={s.rowLabel}>Notes</Text><Text style={s.rowValue} numberOfLines={2}>{notes}</Text></View>}
+            <View style={s.row}><Text style={s.rowLabel}>{t("Date")}</Text><Text style={s.rowValue} numberOfLines={2}>{formatDate(booking.bookingDate)}</Text></View>
+            <View style={s.row}><Text style={s.rowLabel}>{t("Time")}</Text><Text style={s.rowValue} numberOfLines={2}>{`${booking.startTime} – ${booking.endTime} (${booking.totalHours}h)`}</Text></View>
+            <View style={s.row}><Text style={s.rowLabel}>{t("Facility")}</Text><Text style={s.rowValue} numberOfLines={2}>{booking.facility.name}</Text></View>
+            {booking.court && <View style={s.row}><Text style={s.rowLabel}>{t("Court")}</Text><Text style={s.rowValue} numberOfLines={2}>{booking.court.name}</Text></View>}
+            {notes && <View style={s.row}><Text style={s.rowLabel}>{t("Notes")}</Text><Text style={s.rowValue} numberOfLines={2}>{notes}</Text></View>}
           </View>
         </View>
 
@@ -270,16 +272,16 @@ export default function BookingDetail() {
         <View style={s.section}>
           <View style={s.sectionHeader}>
             <Ionicons name="card-outline" size={14} color={Colors.textMuted} />
-            <Text style={s.sectionTitle}>Payment</Text>
+            <Text style={s.sectionTitle}>{t("Payment")}</Text>
           </View>
           <View style={s.sectionBody}>
-            <View style={s.row}><Text style={s.rowLabel}>Amount</Text><Text style={[s.rowValue, s.rowBold]} numberOfLines={2}>{formatLKR(booking.totalAmount)}</Text></View>
-            <View style={s.row}><Text style={s.rowLabel}>Method</Text><Text style={s.rowValue} numberOfLines={2}>{booking.paymentMethod === "ONLINE" ? "Bank transfer" : "Cash on Arrival"}</Text></View>
+            <View style={s.row}><Text style={s.rowLabel}>{t("Amount")}</Text><Text style={[s.rowValue, s.rowBold]} numberOfLines={2}>{formatLKR(booking.totalAmount)}</Text></View>
+            <View style={s.row}><Text style={s.rowLabel}>{t("Method")}</Text><Text style={s.rowValue} numberOfLines={2}>{booking.paymentMethod === "ONLINE" ? t("Bank transfer") : t("Cash on Arrival")}</Text></View>
             {booking.paymentMethod === "ONLINE" && (
-              <View style={[s.row, { alignItems: "center" }]}><Text style={s.rowLabel}>Status</Text><Badge paymentStatus={booking.paymentStatus} /></View>
+              <View style={[s.row, { alignItems: "center" }]}><Text style={s.rowLabel}>{t("Status")}</Text><Badge paymentStatus={booking.paymentStatus} /></View>
             )}
             {booking.refundStatus === "NEEDED" && (
-              <View style={s.row}><Text style={s.rowLabel}>Refund due</Text><Text style={[s.rowValue, { color: Colors.error }]}>{formatLKR(booking.refundAmount ?? booking.totalAmount)}</Text></View>
+              <View style={s.row}><Text style={s.rowLabel}>{t("Refund due")}</Text><Text style={[s.rowValue, { color: Colors.error }]}>{formatLKR(booking.refundAmount ?? booking.totalAmount)}</Text></View>
             )}
           </View>
           {booking.paymentMethod === "ONLINE" && booking.status !== "CANCELLED" && (
@@ -311,22 +313,22 @@ export default function BookingDetail() {
           <View style={s.actions}>
             {canConfirm  && (
               <TouchableOpacity style={[s.actionBtn, { backgroundColor: Colors.primary }, busy && s.actionBtnBusy]} onPress={confirm} disabled={busy} activeOpacity={0.8}>
-                {busy ? <ActivityIndicator color="#fff" size="small" /> : <><Ionicons name="checkmark-circle-outline" size={18} color="#fff" /><Text style={s.actionBtnText}>Confirm Booking</Text></>}
+                {busy ? <ActivityIndicator color="#fff" size="small" /> : <><Ionicons name="checkmark-circle-outline" size={18} color="#fff" /><Text style={s.actionBtnText}>{t("Confirm Booking")}</Text></>}
               </TouchableOpacity>
             )}
             {canComplete && (
               <TouchableOpacity style={[s.actionBtn, { backgroundColor: "#0891b2" }, busy && s.actionBtnBusy]} onPress={complete} disabled={busy} activeOpacity={0.8}>
-                {busy ? <ActivityIndicator color="#fff" size="small" /> : <><Ionicons name="flag-outline" size={18} color="#fff" /><Text style={s.actionBtnText}>Mark Completed</Text></>}
+                {busy ? <ActivityIndicator color="#fff" size="small" /> : <><Ionicons name="flag-outline" size={18} color="#fff" /><Text style={s.actionBtnText}>{t("Mark Completed")}</Text></>}
               </TouchableOpacity>
             )}
             {canNoShow && (
               <TouchableOpacity style={[s.actionBtn, { borderWidth: 1.5, borderColor: "#d97706", backgroundColor: "transparent" }, busy && s.actionBtnBusy]} onPress={noShow} disabled={busy} activeOpacity={0.8}>
-                {busy ? <ActivityIndicator color="#d97706" size="small" /> : <><Ionicons name="person-remove-outline" size={18} color="#d97706" /><Text style={[s.actionBtnText, { color: "#d97706" }]}>Mark No-Show</Text></>}
+                {busy ? <ActivityIndicator color="#d97706" size="small" /> : <><Ionicons name="person-remove-outline" size={18} color="#d97706" /><Text style={[s.actionBtnText, { color: "#d97706" }]}>{t("Mark No-Show")}</Text></>}
               </TouchableOpacity>
             )}
             {canCancel && (
               <TouchableOpacity style={[s.actionBtn, { borderWidth: 1.5, borderColor: Colors.error, backgroundColor: "transparent" }, busy && s.actionBtnBusy]} onPress={cancel} disabled={busy} activeOpacity={0.8}>
-                {busy ? <ActivityIndicator color={Colors.error} size="small" /> : <><Ionicons name="close-circle-outline" size={18} color={Colors.error} /><Text style={[s.actionBtnText, { color: Colors.error }]}>Cancel Booking</Text></>}
+                {busy ? <ActivityIndicator color={Colors.error} size="small" /> : <><Ionicons name="close-circle-outline" size={18} color={Colors.error} /><Text style={[s.actionBtnText, { color: Colors.error }]}>{t("Cancel Booking")}</Text></>}
               </TouchableOpacity>
             )}
           </View>
@@ -341,23 +343,23 @@ export default function BookingDetail() {
               <View style={r.checkCircle}>
                 <Ionicons name="checkmark" size={32} color={Colors.white} />
               </View>
-              <Text style={r.headerTitle}>Booking Confirmed</Text>
+              <Text style={r.headerTitle}>{t("Booking Confirmed")}</Text>
               <Text style={r.headerAmount}>{formatLKR(booking.totalAmount)}</Text>
             </LinearGradient>
 
             <View style={r.body}>
-              <View style={r.row}><Text style={r.rowLabel}>Player</Text><Text style={r.rowValue}>{playerName}</Text></View>
-              <View style={r.row}><Text style={r.rowLabel}>Facility</Text><Text style={r.rowValue}>{booking.facility.name}</Text></View>
-              {booking.court && <View style={r.row}><Text style={r.rowLabel}>Court</Text><Text style={r.rowValue}>{booking.court.name}</Text></View>}
-              <View style={r.row}><Text style={r.rowLabel}>Date</Text><Text style={r.rowValue}>{formatDate(booking.bookingDate)}</Text></View>
-              <View style={r.row}><Text style={r.rowLabel}>Time</Text><Text style={r.rowValue}>{`${booking.startTime} – ${booking.endTime}`}</Text></View>
-              <View style={r.row}><Text style={r.rowLabel}>Payment</Text><Text style={r.rowValue}>{booking.paymentMethod === "ONLINE" ? "Bank transfer" : "Cash on Arrival"}</Text></View>
+              <View style={r.row}><Text style={r.rowLabel}>{t("Player")}</Text><Text style={r.rowValue}>{playerName}</Text></View>
+              <View style={r.row}><Text style={r.rowLabel}>{t("Facility")}</Text><Text style={r.rowValue}>{booking.facility.name}</Text></View>
+              {booking.court && <View style={r.row}><Text style={r.rowLabel}>{t("Court")}</Text><Text style={r.rowValue}>{booking.court.name}</Text></View>}
+              <View style={r.row}><Text style={r.rowLabel}>{t("Date")}</Text><Text style={r.rowValue}>{formatDate(booking.bookingDate)}</Text></View>
+              <View style={r.row}><Text style={r.rowLabel}>{t("Time")}</Text><Text style={r.rowValue}>{`${booking.startTime} – ${booking.endTime}`}</Text></View>
+              <View style={r.row}><Text style={r.rowLabel}>{t("Payment")}</Text><Text style={r.rowValue}>{booking.paymentMethod === "ONLINE" ? t("Bank transfer") : t("Cash on Arrival")}</Text></View>
               <View style={r.divider} />
-              <View style={r.row}><Text style={r.rowLabel}>Status</Text><Text style={[r.rowValue, { color: Colors.primary, fontWeight: "700" }]}>{booking.status}</Text></View>
+              <View style={r.row}><Text style={r.rowLabel}>{t("Status")}</Text><Text style={[r.rowValue, { color: Colors.primary, fontWeight: "700" }]}>{booking.status}</Text></View>
             </View>
 
             <TouchableOpacity style={r.closeBtn} onPress={() => { setReceipt(false); if (booking.status === "CONFIRMED") router.back(); }} activeOpacity={0.85}>
-              <Text style={r.closeBtnText}>Done</Text>
+              <Text style={r.closeBtnText}>{t("Done")}</Text>
             </TouchableOpacity>
           </View>
         </View>

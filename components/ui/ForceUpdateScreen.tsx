@@ -3,6 +3,7 @@ import { View, Text, Animated, StyleSheet, TouchableOpacity, Platform, Linking }
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 const PLAY_STORE_URL  = "https://play.google.com/store/apps/details?id=com.goplay.app";
 const APP_STORE_URL   = "https://apps.apple.com/app/goplay/id0000000000"; // update with real ID
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function ForceUpdateScreen({ currentVersion, minVersion }: Props) {
+  const { t } = useT();
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
@@ -38,21 +40,21 @@ export default function ForceUpdateScreen({ currentVersion, minVersion }: Props)
           <Ionicons name="arrow-up-circle" size={56} color="#16a34a" />
         </View>
 
-        <Text style={s.title}>Update Required</Text>
+        <Text style={s.title}>{t("Update Required")}</Text>
         <Text style={s.sub}>
-          A newer version of GoPlay is available. Please update to continue using the app.
+          {t("A newer version of GoPlay is available. Please update to continue using the app.")}
         </Text>
 
         <View style={s.versionCard}>
           <View style={s.versionRow}>
-            <Text style={s.versionLabel}>Your version</Text>
+            <Text style={s.versionLabel}>{t("Your version")}</Text>
             <View style={s.badge}>
               <Text style={s.badgeText}>{currentVersion}</Text>
             </View>
           </View>
           <View style={s.divider} />
           <View style={s.versionRow}>
-            <Text style={s.versionLabel}>Required version</Text>
+            <Text style={s.versionLabel}>{t("Required version")}</Text>
             <View style={[s.badge, s.badgeGreen]}>
               <Text style={[s.badgeText, { color: "#fff" }]}>{minVersion}</Text>
             </View>
@@ -60,8 +62,8 @@ export default function ForceUpdateScreen({ currentVersion, minVersion }: Props)
         </View>
 
         <View style={s.featureList}>
-          <Text style={s.featureTitle}>What's new in this update</Text>
-          {["Bug fixes and performance improvements", "New features and UI improvements", "Security patches"].map((f) => (
+          <Text style={s.featureTitle}>{t("What's new in this update")}</Text>
+          {[t("Bug fixes and performance improvements"), t("New features and UI improvements"), t("Security patches")].map((f) => (
             <View key={f} style={s.featureRow}>
               <Ionicons name="checkmark-circle" size={16} color="#16a34a" />
               <Text style={s.featureText}>{f}</Text>
@@ -77,7 +79,7 @@ export default function ForceUpdateScreen({ currentVersion, minVersion }: Props)
           >
             <Ionicons name={Platform.OS === "ios" ? "logo-apple" : "logo-google-playstore"} size={20} color="#fff" />
             <Text style={s.updateText}>
-              {Platform.OS === "ios" ? "Update on App Store" : "Update on Play Store"}
+              {Platform.OS === "ios" ? t("Update on App Store") : t("Update on Play Store")}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

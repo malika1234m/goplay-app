@@ -11,6 +11,8 @@ import Badge from "@/components/ui/Badge";
 import ReceiptsBanner from "@/components/payments/ReceiptsBanner";
 import { formatLKR, isoDate } from "@/lib/utils";
 import type { WorkerBooking } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { formatDay } from "@/lib/i18n/core";
 
 function getTimeOfDay(): string {
   const h = new Date().getHours();
@@ -20,6 +22,7 @@ function getTimeOfDay(): string {
 }
 
 export default function WorkerDashboard() {
+  const { t, locale } = useT();
   const Colors = useColors();
   const { user } = useAuth();
   const router   = useRouter();
@@ -103,7 +106,7 @@ export default function WorkerDashboard() {
   const pending       = todayBookings.filter(b => b.status === "PENDING").length;
 
   const now  = new Date();
-  const date = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const date = formatDay(now, locale, { weekday: "long", month: "long", day: "numeric" });
 
   function refetch() { refetchFacility(); refetchBookings(); }
 
@@ -126,17 +129,17 @@ export default function WorkerDashboard() {
           <View style={s.statPill}>
             <Ionicons name="calendar" size={14} color="rgba(255,255,255,0.8)" />
             <Text style={s.statPillVal}>{String(todayBookings.length)}</Text>
-            <Text style={s.statPillLabel}>Today</Text>
+            <Text style={s.statPillLabel}>{t("Today")}</Text>
           </View>
           <View style={s.statPill}>
             <Ionicons name="checkmark-circle" size={14} color="rgba(255,255,255,0.8)" />
             <Text style={s.statPillVal}>{String(confirmed)}</Text>
-            <Text style={s.statPillLabel}>Confirmed</Text>
+            <Text style={s.statPillLabel}>{t("Confirmed")}</Text>
           </View>
           <View style={s.statPill}>
             <Ionicons name="time" size={14} color="rgba(255,255,255,0.8)" />
             <Text style={s.statPillVal}>{String(pending)}</Text>
-            <Text style={s.statPillLabel}>Pending</Text>
+            <Text style={s.statPillLabel}>{t("Pending")}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -177,7 +180,7 @@ export default function WorkerDashboard() {
           <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={s.walkInBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
             <View style={s.walkInLeft}>
               <Ionicons name="add-circle-outline" size={22} color={Colors.white} />
-              <Text style={s.walkInText}>Create Walk-in Booking</Text>
+              <Text style={s.walkInText}>{t("Create Walk-in Booking")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.7)" />
           </LinearGradient>
@@ -186,9 +189,9 @@ export default function WorkerDashboard() {
         {/* Today's bookings */}
         <View style={s.section}>
           <View style={s.sectionRow}>
-            <Text style={s.sectionTitle}>Today's Schedule</Text>
+            <Text style={s.sectionTitle}>{t("Today's Schedule")}</Text>
             <TouchableOpacity style={s.seeAllBtn} onPress={() => router.push("/(worker)/schedule")}>
-              <Text style={s.seeAllText}>Schedule</Text>
+              <Text style={s.seeAllText}>{t("Schedule")}</Text>
               <Ionicons name="chevron-forward" size={14} color={Colors.info} />
             </TouchableOpacity>
           </View>
@@ -198,10 +201,10 @@ export default function WorkerDashboard() {
               <View style={s.emptyIconWrap}>
                 <Ionicons name="calendar-outline" size={28} color={Colors.info} />
               </View>
-              <Text style={s.emptyTitle}>All clear today</Text>
-              <Text style={s.emptyText}>No bookings scheduled</Text>
+              <Text style={s.emptyTitle}>{t("All clear today")}</Text>
+              <Text style={s.emptyText}>{t("No bookings scheduled")}</Text>
               <TouchableOpacity style={s.emptyAction} onPress={() => router.push("/(worker)/bookings")}>
-                <Text style={s.emptyActionText}>Create Walk-in</Text>
+                <Text style={s.emptyActionText}>{t("Create Walk-in")}</Text>
               </TouchableOpacity>
             </View>
           ) : (

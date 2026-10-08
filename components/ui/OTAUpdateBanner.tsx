@@ -7,10 +7,12 @@ import * as Updates from "expo-updates";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 const { width } = Dimensions.get("window");
 
 export default function OTAUpdateBanner() {
+  const { t } = useT();
   const insets = useSafeAreaInsets();
 
   const { isUpdateAvailable, isUpdatePending, isDownloading, downloadProgress } = Updates.useUpdates();
@@ -67,7 +69,7 @@ export default function OTAUpdateBanner() {
     ? "100%"
     : isDownloading
     ? `${pct}%`
-    : "Updating...";
+    : t("Updating...");
 
   return (
     <Modal visible={isVisible} transparent animationType="none" statusBarTranslucent>
@@ -111,7 +113,7 @@ export default function OTAUpdateBanner() {
             {/* Restart button — only when ready */}
             {isUpdatePending && (
               <TouchableOpacity style={s.restartBtn} onPress={handleRestart} activeOpacity={0.85}>
-                <Text style={s.restartText}>Restart Now</Text>
+                <Text style={s.restartText}>{t("Restart Now")}</Text>
               </TouchableOpacity>
             )}
           </LinearGradient>

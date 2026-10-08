@@ -10,6 +10,8 @@ import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/lib/theme";
 import { useUnreadCount } from "@/lib/queries/notifications";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>["name"];
 type Colors = ReturnType<typeof useColors>;
@@ -20,10 +22,10 @@ const MAIN_ROUTES = ["index", "bookings", "schedule", "earnings"];
 const MENU_ROUTES = ["grounds", "reviews", "notifications", "profile"];
 
 const MENU_ITEMS: { route: string; icon: IoniconsName; label: string }[] = [
-  { route: "grounds",       icon: "business",      label: "Grounds"  },
-  { route: "reviews",       icon: "star",          label: "Reviews"  },
-  { route: "notifications", icon: "notifications", label: "Alerts"   },
-  { route: "profile",       icon: "person",        label: "Profile"  },
+  { route: "grounds",       icon: "business",      label: tk("Grounds")  },
+  { route: "reviews",       icon: "star",          label: tk("Reviews")  },
+  { route: "notifications", icon: "notifications", label: tk("Alerts")   },
+  { route: "profile",       icon: "person",        label: tk("Profile")  },
 ];
 
 const { width } = Dimensions.get("window");
@@ -80,6 +82,7 @@ function PillIcon({ name, focused, label, badge }: {
 function MenuSheet({ visible, onClose, activeRoute, Colors }: {
   visible: boolean; onClose: () => void; activeRoute: string; Colors: Colors;
 }) {
+  const { t } = useT();
   const router     = useRouter();
   const insets     = useSafeAreaInsets();
   const slideY     = useRef(new Animated.Value(300)).current;
@@ -196,7 +199,7 @@ function MenuSheet({ visible, onClose, activeRoute, Colors }: {
         {/* Handle + header */}
         <View style={sheet.handle} />
         <View style={sheet.header}>
-          <Text style={sheet.title}>More</Text>
+          <Text style={sheet.title}>{t("More")}</Text>
           <TouchableOpacity onPress={onClose} style={sheet.closeBtn} hitSlop={12}>
             <Ionicons name="close" size={20} color={Colors.textMuted} />
           </TouchableOpacity>
@@ -223,7 +226,7 @@ function MenuSheet({ visible, onClose, activeRoute, Colors }: {
                   {hasBadge && <View style={sheet.notifDot} />}
                 </View>
                 <Text style={[sheet.cellLabel, active && sheet.cellLabelActive]}>
-                  {item.label}
+                  {t(item.label)}
                 </Text>
                 {active && <View style={sheet.activeDot} />}
               </TouchableOpacity>
@@ -237,6 +240,7 @@ function MenuSheet({ visible, onClose, activeRoute, Colors }: {
 
 // ── Menu pill (5th tab button) ───────────────────────────────────────────────
 function MenuPill({ active, Colors }: { active: boolean; Colors: Colors }) {
+  const { t } = useT();
   const bg         = useRef(new Animated.Value(active ? 1 : 0)).current;
   const notifCount = useUnreadCount();
 
@@ -270,7 +274,7 @@ function MenuPill({ active, Colors }: { active: boolean; Colors: Colors }) {
         <Ionicons name="menu" size={22} color={active ? Colors.primary : Colors.textMuted} />
         {notifCount > 0 && <View style={s.badge} />}
       </View>
-      <Text style={[s.itemLabel, { color: active ? Colors.primary : Colors.textMuted }]}>Menu</Text>
+      <Text style={[s.itemLabel, { color: active ? Colors.primary : Colors.textMuted }]}>{t("Menu")}</Text>
     </Animated.View>
   );
 }
@@ -376,19 +380,20 @@ function OwnerTabBar({ state, descriptors, navigation }: any) {
 
 // ── Layout ───────────────────────────────────────────────────────────────────
 export default function OwnerLayout() {
+  const { t } = useT();
   return (
     <Tabs
       tabBar={(props) => <OwnerTabBar {...(props as any)} />}
       screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen name="index"         options={{ tabBarIcon: ({ focused }) => <PillIcon name="grid"          focused={focused} label="Home"     /> }} />
-      <Tabs.Screen name="bookings"      options={{ tabBarIcon: ({ focused }) => <PillIcon name="calendar"      focused={focused} label="Bookings" /> }} />
-      <Tabs.Screen name="schedule"      options={{ tabBarIcon: ({ focused }) => <PillIcon name="time"          focused={focused} label="Schedule" /> }} />
-      <Tabs.Screen name="earnings"      options={{ tabBarIcon: ({ focused }) => <PillIcon name="cash"          focused={focused} label="Earnings" /> }} />
-      <Tabs.Screen name="grounds"       options={{ tabBarIcon: ({ focused }) => <PillIcon name="business"      focused={focused} label="Grounds"  /> }} />
-      <Tabs.Screen name="reviews"       options={{ tabBarIcon: ({ focused }) => <PillIcon name="star"          focused={focused} label="Reviews"  /> }} />
-      <Tabs.Screen name="notifications" options={{ tabBarIcon: ({ focused }) => <PillIcon name="notifications" focused={focused} label="Alerts"   /> }} />
-      <Tabs.Screen name="profile"       options={{ tabBarIcon: ({ focused }) => <PillIcon name="person"        focused={focused} label="Profile"  /> }} />
+      <Tabs.Screen name="index"         options={{ tabBarIcon: ({ focused }) => <PillIcon name="grid"          focused={focused} label={t("Home")}     /> }} />
+      <Tabs.Screen name="bookings"      options={{ tabBarIcon: ({ focused }) => <PillIcon name="calendar"      focused={focused} label={t("Bookings")} /> }} />
+      <Tabs.Screen name="schedule"      options={{ tabBarIcon: ({ focused }) => <PillIcon name="time"          focused={focused} label={t("Schedule")} /> }} />
+      <Tabs.Screen name="earnings"      options={{ tabBarIcon: ({ focused }) => <PillIcon name="cash"          focused={focused} label={t("Earnings")} /> }} />
+      <Tabs.Screen name="grounds"       options={{ tabBarIcon: ({ focused }) => <PillIcon name="business"      focused={focused} label={t("Grounds")}  /> }} />
+      <Tabs.Screen name="reviews"       options={{ tabBarIcon: ({ focused }) => <PillIcon name="star"          focused={focused} label={t("Reviews")}  /> }} />
+      <Tabs.Screen name="notifications" options={{ tabBarIcon: ({ focused }) => <PillIcon name="notifications" focused={focused} label={t("Alerts")}   /> }} />
+      <Tabs.Screen name="profile"       options={{ tabBarIcon: ({ focused }) => <PillIcon name="person"        focused={focused} label={t("Profile")}  /> }} />
     </Tabs>
   );
 }

@@ -11,8 +11,10 @@ import Badge from "@/components/ui/Badge";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import TransferReview from "@/components/payments/TransferReview";
 import { formatDate, formatLKR } from "@/lib/utils";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 export default function WorkerBookingDetail() {
+  const { t } = useT();
   const Colors = useColors();
   const { id }       = useLocalSearchParams<{ id: string }>();
   const router       = useRouter();
@@ -65,14 +67,14 @@ export default function WorkerBookingDetail() {
   const isWalkIn = booking.specialRequests?.startsWith("[Walk-in]") ?? false;
 
   function confirm() {
-    Alert.alert("Confirm Booking", `Confirm booking for ${booking!.playerName}?`, [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("Confirm Booking"), `Confirm booking for ${booking!.playerName}?`, [
+      { text: t("Cancel"), style: "cancel" },
       {
-        text: "Confirm", style: "default",
+        text: t("Confirm"), style: "default",
         onPress: () =>
           updateStatus({ id: booking!.id, status: "CONFIRMED" }, {
             onSuccess: () => { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); router.back(); },
-            onError:   (e) => Alert.alert("Error", e.message),
+            onError:   (e) => Alert.alert(t("Error"), e.message),
           }),
       },
     ]);
@@ -80,34 +82,34 @@ export default function WorkerBookingDetail() {
 
   function complete() {
     if (booking!.paymentMethod === "ON_ARRIVAL") {
-      Alert.alert("Mark Complete", "Was cash payment received?", [
-        { text: "Cancel", style: "cancel" },
+      Alert.alert(t("Mark Complete"), t("Was cash payment received?"), [
+        { text: t("Cancel"), style: "cancel" },
         {
-          text: "Cash Received", style: "default",
+          text: t("Cash Received"), style: "default",
           onPress: () =>
             updateStatus({ id: booking!.id, status: "COMPLETED", cashReceived: true }, {
               onSuccess: () => { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); router.back(); },
-              onError:   (e) => Alert.alert("Error", e.message),
+              onError:   (e) => Alert.alert(t("Error"), e.message),
             }),
         },
         {
-          text: "Not Received", style: "destructive",
+          text: t("Not Received"), style: "destructive",
           onPress: () =>
             updateStatus({ id: booking!.id, status: "COMPLETED", cashReceived: false }, {
               onSuccess: () => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.back(); },
-              onError:   (e) => Alert.alert("Error", e.message),
+              onError:   (e) => Alert.alert(t("Error"), e.message),
             }),
         },
       ]);
     } else {
-      Alert.alert("Mark Complete", "Mark this booking as completed?", [
-        { text: "Cancel", style: "cancel" },
+      Alert.alert(t("Mark Complete"), t("Mark this booking as completed?"), [
+        { text: t("Cancel"), style: "cancel" },
         {
-          text: "Complete", style: "default",
+          text: t("Complete"), style: "default",
           onPress: () =>
             updateStatus({ id: booking!.id, status: "COMPLETED" }, {
               onSuccess: () => { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); router.back(); },
-              onError:   (e) => Alert.alert("Error", e.message),
+              onError:   (e) => Alert.alert(t("Error"), e.message),
             }),
         },
       ]);
@@ -116,16 +118,16 @@ export default function WorkerBookingDetail() {
 
   function cancel() {
     Alert.alert(
-      "Cancel Booking",
-      "Cancel this booking? A strike will be recorded on your facility.",
+      t("Cancel Booking"),
+      t("Cancel this booking? A strike will be recorded on your facility."),
       [
-        { text: "Keep", style: "cancel" },
+        { text: t("Keep"), style: "cancel" },
         {
-          text: "Cancel Booking", style: "destructive",
+          text: t("Cancel Booking"), style: "destructive",
           onPress: () =>
             updateStatus({ id: booking!.id, status: "CANCELLED" }, {
               onSuccess: () => { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error); router.back(); },
-              onError:   (e) => Alert.alert("Error", e.message),
+              onError:   (e) => Alert.alert(t("Error"), e.message),
             }),
         },
       ]
@@ -134,16 +136,16 @@ export default function WorkerBookingDetail() {
 
   function noShow() {
     Alert.alert(
-      "Mark No-Show",
-      `${booking!.playerName} didn't show up? This will penalise their account.`,
+      t("Mark No-Show"),
+      t("{name} didn't show up? This counts against their account.", { name: booking!.playerName }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("Cancel"), style: "cancel" },
         {
-          text: "Mark No-Show", style: "destructive",
+          text: t("Mark No-Show"), style: "destructive",
           onPress: () =>
             updateStatus({ id: booking!.id, status: "NO_SHOW" }, {
               onSuccess: () => { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning); router.back(); },
-              onError:   (e) => Alert.alert("Error", e.message),
+              onError:   (e) => Alert.alert(t("Error"), e.message),
             }),
         },
       ]
@@ -221,7 +223,7 @@ export default function WorkerBookingDetail() {
             {isWalkIn && (
               <View style={s.walkInBadge}>
                 <Ionicons name="walk-outline" size={12} color={Colors.primaryDark} />
-                <Text style={s.walkInText}>Walk-in</Text>
+                <Text style={s.walkInText}>{t("Walk-in")}</Text>
               </View>
             )}
           </View>
@@ -232,33 +234,33 @@ export default function WorkerBookingDetail() {
         </View>
 
         {/* Player */}
-        <Section title="Player" icon="person-outline">
-          <Row label="Name"  value={booking.playerName} />
-          {!isWalkIn && <Row label="Email"  value={booking.playerEmail} />}
+        <Section title={t("Player")} icon="person-outline">
+          <Row label={t("Name")}  value={booking.playerName} />
+          {!isWalkIn && <Row label={t("Email")}  value={booking.playerEmail} />}
           {(booking.contactNumber ?? booking.playerPhone) && (
-            <Row label="Phone" value={(booking.contactNumber ?? booking.playerPhone)!} />
+            <Row label={t("Phone")} value={(booking.contactNumber ?? booking.playerPhone)!} />
           )}
         </Section>
 
         {/* Booking */}
-        <Section title="Booking" icon="calendar-outline">
-          <Row label="Date"  value={formatDate(booking.bookingDate)} />
-          <Row label="Time"  value={`${booking.startTime} – ${booking.endTime}`} />
-          {booking.courtName && <Row label="Court"  value={booking.courtName} />}
+        <Section title={t("Booking")} icon="calendar-outline">
+          <Row label={t("Date")}  value={formatDate(booking.bookingDate)} />
+          <Row label={t("Time")}  value={`${booking.startTime} – ${booking.endTime}`} />
+          {booking.courtName && <Row label={t("Court")}  value={booking.courtName} />}
           {!isWalkIn && booking.specialRequests && (
-            <Row label="Notes"  value={booking.specialRequests} />
+            <Row label={t("Notes")}  value={booking.specialRequests} />
           )}
           {isWalkIn && booking.specialRequests && (
-            <Row label="Notes"  value={booking.specialRequests.replace("[Walk-in]","").trim().split(" — ")[1]?.trim() ?? ""} />
+            <Row label={t("Notes")}  value={booking.specialRequests.replace("[Walk-in]","").trim().split(" — ")[1]?.trim() ?? ""} />
           )}
         </Section>
 
         {/* Payment */}
-        <Section title="Payment" icon="card-outline">
-          <Row label="Amount" value={formatLKR(booking.totalAmount)} bold />
-          <Row label="Method" value={booking.paymentMethod === "ONLINE" ? "Bank transfer" : "Cash on Arrival"} />
+        <Section title={t("Payment")} icon="card-outline">
+          <Row label={t("Amount")} value={formatLKR(booking.totalAmount)} bold />
+          <Row label={t("Method")} value={booking.paymentMethod === "ONLINE" ? t("Bank transfer") : t("Cash on Arrival")} />
           {booking.paymentMethod === "ONLINE" && (
-            <Row label="Status" value={booking.paymentStatus.replace("_", " ").toLowerCase()} />
+            <Row label={t("Status")} value={booking.paymentStatus.replace("_", " ").toLowerCase()} />
           )}
           {booking.paymentMethod === "ONLINE" && booking.status !== "CANCELLED" && (
             <View style={{ marginTop: 12 }}>
@@ -286,10 +288,10 @@ export default function WorkerBookingDetail() {
         )}
         {(canConfirm || canComplete || canNoShow || canCancel) && (
           <View style={s.actions}>
-            {canConfirm  && <ActionBtn label="Confirm Booking" color={Colors.primary} icon="checkmark-circle-outline" onPress={confirm}  />}
-            {canComplete && <ActionBtn label="Mark Completed"  color="#0891b2"        icon="flag-outline"             onPress={complete} />}
-            {canNoShow   && <ActionBtn label="Mark No-Show"    color="#d97706"        icon="person-remove-outline"    onPress={noShow}   outline />}
-            {canCancel   && <ActionBtn label="Cancel Booking"  color={Colors.error}   icon="close-circle-outline"     onPress={cancel}   outline />}
+            {canConfirm  && <ActionBtn label={t("Confirm Booking")} color={Colors.primary} icon="checkmark-circle-outline" onPress={confirm}  />}
+            {canComplete && <ActionBtn label={t("Mark Completed")}  color="#0891b2"        icon="flag-outline"             onPress={complete} />}
+            {canNoShow   && <ActionBtn label={t("Mark No-Show")}    color="#d97706"        icon="person-remove-outline"    onPress={noShow}   outline />}
+            {canCancel   && <ActionBtn label={t("Cancel Booking")}  color={Colors.error}   icon="close-circle-outline"     onPress={cancel}   outline />}
           </View>
         )}
       </ScrollView>

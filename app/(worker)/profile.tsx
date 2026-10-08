@@ -13,8 +13,11 @@ import { useKeyboardPadding } from "@/lib/keyboard";
 import { api } from "@/lib/api";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { formatDate } from "@/lib/utils";
+import { useT } from "@/lib/i18n/I18nProvider";
+import LanguageSwitch from "@/components/ui/LanguageSwitch";
 
 export default function WorkerProfile() {
+  const { t } = useT();
   const Colors = useColors();
   const keyboardPad = useKeyboardPadding();
   const { isDark, toggleTheme }                 = useTheme();
@@ -129,18 +132,18 @@ export default function WorkerProfile() {
     : "?";
 
   async function handleChangePassword() {
-    if (!currentPwd || !newPwd || !confirmPwd) return Alert.alert("Required", "All fields are required.");
-    if (newPwd.length < 8) return Alert.alert("Validation", "New password must be at least 8 characters.");
-    if (newPwd === currentPwd) return Alert.alert("Validation", "New password must be different from current password.");
-    if (newPwd !== confirmPwd) return Alert.alert("Validation", "New passwords do not match.");
+    if (!currentPwd || !newPwd || !confirmPwd) return Alert.alert(t("Required"), t("All fields are required."));
+    if (newPwd.length < 8) return Alert.alert(t("Validation"), t("New password must be at least 8 characters."));
+    if (newPwd === currentPwd) return Alert.alert(t("Validation"), t("New password must be different from current password."));
+    if (newPwd !== confirmPwd) return Alert.alert(t("Validation"), t("New passwords do not match."));
     setPwdLoading(true);
     try {
       await api.put("/api/ground-owner/force-change-password", { currentPassword: currentPwd, newPassword: newPwd, confirmPassword: confirmPwd });
       setPwdModal(false);
       setCurrentPwd(""); setNewPwd(""); setConfirmPwd("");
-      Alert.alert("Success", "Password changed successfully.");
+      Alert.alert(t("Success"), t("Password changed successfully."));
     } catch (err: unknown) {
-      Alert.alert("Error", err instanceof Error ? err.message : "Failed to change password.");
+      Alert.alert(t("Error"), err instanceof Error ? err.message : t("Failed to change password."));
     } finally {
       setPwdLoading(false);
     }
@@ -148,19 +151,19 @@ export default function WorkerProfile() {
 
   function handleSave() {
     const trimName = name.trim();
-    if (trimName.length < 2)  return Alert.alert("Validation", "Name must be at least 2 characters.");
-    if (trimName.length > 50) return Alert.alert("Validation", "Name must be under 50 characters.");
+    if (trimName.length < 2)  return Alert.alert(t("Validation"), t("Name must be at least 2 characters."));
+    if (trimName.length > 50) return Alert.alert(t("Validation"), t("Name must be under 50 characters."));
     const trimPhone = phone.trim();
     if (trimPhone) {
       const cleaned = trimPhone.replace(/[\s\-().]/g, "");
       if (!/^(?:\+94|0)7[0-9]{8}$/.test(cleaned))
-        return Alert.alert("Validation", "Enter a valid Sri Lankan mobile number (e.g. 077 123 4567).");
+        return Alert.alert(t("Validation"), t("Enter a valid Sri Lankan mobile number (e.g. 077 123 4567)."));
     }
     save(
       { name: trimName, phone: trimPhone || undefined },
       {
-        onSuccess: () => { setEditing(false); Alert.alert("Saved", "Profile updated."); },
-        onError:   (e) => Alert.alert("Error", e.message),
+        onSuccess: () => { setEditing(false); Alert.alert(t("Saved"), t("Profile updated.")); },
+        onError:   (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
@@ -231,7 +234,7 @@ export default function WorkerProfile() {
           <Text style={s.userName}>{profile.user.name}</Text>
           <View style={s.rolePill}>
             <Ionicons name="construct-outline" size={12} color={Colors.primaryMid} />
-            <Text style={s.roleText}>Ground Worker</Text>
+            <Text style={s.roleText}>{t("Ground Worker")}</Text>
           </View>
           {profile.workerSince && (
             <Text style={s.since}>Since {formatDate(profile.workerSince)}</Text>
@@ -242,7 +245,7 @@ export default function WorkerProfile() {
         <View style={s.statsRow}>
           <View style={[s.statBox, { borderTopColor: Colors.primary }]}>
             <Text style={[s.statValue, { color: Colors.primary }]}>{profile.stats.walkins}</Text>
-            <Text style={s.statLabel}>Walk-ins Created</Text>
+            <Text style={s.statLabel}>{t("Walk-ins Created")}</Text>
           </View>
         </View>
 
@@ -251,7 +254,7 @@ export default function WorkerProfile() {
           <View style={s.card}>
             <View style={s.cardHeader}>
               <Ionicons name="business-outline" size={14} color={Colors.textMuted} />
-              <Text style={s.cardLabel}>MY FACILITY</Text>
+              <Text style={s.cardLabel}>{t("MY FACILITY")}</Text>
             </View>
             <Text style={s.facilityName}>{facility.name}</Text>
             <View style={s.facilityLocRow}>
@@ -273,12 +276,12 @@ export default function WorkerProfile() {
           <View style={s.cardHeaderRow}>
             <View style={s.cardHeaderLeft}>
               <Ionicons name="person-outline" size={14} color={Colors.textMuted} />
-              <Text style={s.cardLabel}>PERSONAL INFO</Text>
+              <Text style={s.cardLabel}>{t("PERSONAL INFO")}</Text>
             </View>
             {!editing ? (
               <TouchableOpacity style={s.editBtn} onPress={() => setEditing(true)}>
                 <Ionicons name="pencil-outline" size={14} color={Colors.primary} />
-                <Text style={s.editLink}>Edit</Text>
+                <Text style={s.editLink}>{t("Edit")}</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -289,15 +292,15 @@ export default function WorkerProfile() {
                   setPhone(profile.user.phone ?? "");
                 }}
               >
-                <Text style={s.cancelLink}>Cancel</Text>
+                <Text style={s.cancelLink}>{t("Cancel")}</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {editing ? (
             <>
-              <Field label="NAME *"  value={name}  onChangeText={setName}  placeholder="Your full name"  icon="person-outline" />
-              <Field label="PHONE"   value={phone} onChangeText={setPhone} placeholder="077 123 4567"   icon="call-outline"   keyboardType="phone-pad" />
+              <Field label={t("NAME *")}  value={name}  onChangeText={setName}  placeholder={t("Your full name")}  icon="person-outline" />
+              <Field label={t("PHONE")}   value={phone} onChangeText={setPhone} placeholder="077 123 4567"   icon="call-outline"   keyboardType="phone-pad" />
               <TouchableOpacity
                 style={[s.saveBtn, saving && s.saveBtnDisabled]}
                 onPress={handleSave}
@@ -305,15 +308,15 @@ export default function WorkerProfile() {
               >
                 {saving
                   ? <ActivityIndicator color={Colors.white} />
-                  : <Text style={s.saveBtnText}>Save Changes</Text>
+                  : <Text style={s.saveBtnText}>{t("Save Changes")}</Text>
                 }
               </TouchableOpacity>
             </>
           ) : (
             <>
-              <InfoRow icon="person-outline" label="Name"  value={profile.user.name} />
-              <InfoRow icon="mail-outline"   label="Email" value={profile.user.email} />
-              <InfoRow icon="call-outline"   label="Phone" value={profile.user.phone ?? "—"} />
+              <InfoRow icon="person-outline" label={t("Name")}  value={profile.user.name} />
+              <InfoRow icon="mail-outline"   label={t("Email")} value={profile.user.email} />
+              <InfoRow icon="call-outline"   label={t("Phone")} value={profile.user.phone ?? "—"} />
             </>
           )}
         </View>
@@ -323,18 +326,28 @@ export default function WorkerProfile() {
           <View style={s.cardHeaderRow}>
             <View style={s.cardHeaderLeft}>
               <Ionicons name="settings-outline" size={14} color={Colors.textMuted} />
-              <Text style={s.cardLabel}>PREFERENCES</Text>
+              <Text style={s.cardLabel}>{t("PREFERENCES")}</Text>
             </View>
           </View>
           <View style={s.prefRow}>
             <View style={s.prefLeft}>
               <Ionicons name={isDark ? "moon" : "sunny-outline"} size={18} color={isDark ? "#818cf8" : "#d97706"} />
               <View>
-                <Text style={s.prefLabel}>Dark Mode</Text>
-                <Text style={s.prefSub}>{isDark ? "Enabled" : "System default"}</Text>
+                <Text style={s.prefLabel}>{t("Dark Mode")}</Text>
+                <Text style={s.prefSub}>{isDark ? t("Enabled") : t("System default")}</Text>
               </View>
             </View>
             <Switch value={isDark} onValueChange={toggleTheme} trackColor={{ false: Colors.border, true: Colors.primary }} thumbColor={Colors.white} />
+          </View>
+          <View style={[s.prefRow, { marginTop: 12 }]}>
+            <View style={s.prefLeft}>
+              <Ionicons name="language-outline" size={18} color={Colors.primary} />
+              <View>
+                <Text style={s.prefLabel}>{t("Language")}</Text>
+                <Text style={s.prefSub}>{t("Applies on this device")}</Text>
+              </View>
+            </View>
+            <LanguageSwitch />
           </View>
         </View>
 
@@ -343,15 +356,15 @@ export default function WorkerProfile() {
           <View style={s.cardHeaderRow}>
             <View style={s.cardHeaderLeft}>
               <Ionicons name="shield-outline" size={14} color={Colors.textMuted} />
-              <Text style={s.cardLabel}>SECURITY</Text>
+              <Text style={s.cardLabel}>{t("SECURITY")}</Text>
             </View>
           </View>
           <TouchableOpacity style={s.secRow} onPress={() => setPwdModal(true)} activeOpacity={0.7}>
             <View style={s.secLeft}>
               <Ionicons name="lock-closed-outline" size={18} color={Colors.textSecondary} />
               <View>
-                <Text style={s.secLabel}>Change Password</Text>
-                <Text style={s.secSub}>Update your account password</Text>
+                <Text style={s.secLabel}>{t("Change Password")}</Text>
+                <Text style={s.secSub}>{t("Update your account password")}</Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
@@ -361,7 +374,7 @@ export default function WorkerProfile() {
         {/* Sign out */}
         <TouchableOpacity style={s.logoutBtn} onPress={logout} activeOpacity={0.8}>
           <Ionicons name="log-out-outline" size={18} color={Colors.error} />
-          <Text style={s.logoutText}>Sign Out</Text>
+          <Text style={s.logoutText}>{t("Sign Out")}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -370,9 +383,9 @@ export default function WorkerProfile() {
         <View style={s.pwdOverlay}>
           <View style={[s.pwdSheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.pwdHandle} />
-            <Text style={s.pwdTitle}>Change Password</Text>
+            <Text style={s.pwdTitle}>{t("Change Password")}</Text>
 
-            {(["Current Password", "New Password", "Confirm New Password"] as const).map((label, i) => {
+            {[t("Current Password"), t("New Password"), t("Confirm New Password")].map((label, i) => {
               const val     = [currentPwd, newPwd, confirmPwd][i];
               const set     = [setCurrentPwd, setNewPwd, setConfirmPwd][i];
               const show    = [showCurrent, showNew, showConfirm][i];
@@ -402,10 +415,10 @@ export default function WorkerProfile() {
 
             <View style={s.pwdActions}>
               <TouchableOpacity style={s.pwdCancel} onPress={() => { setPwdModal(false); setCurrentPwd(""); setNewPwd(""); setConfirmPwd(""); }}>
-                <Text style={s.pwdCancelText}>Cancel</Text>
+                <Text style={s.pwdCancelText}>{t("Cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[s.pwdSave, pwdLoading && { opacity: 0.6 }]} onPress={handleChangePassword} disabled={pwdLoading}>
-                {pwdLoading ? <ActivityIndicator color={Colors.white} size="small" /> : <Text style={s.pwdSaveText}>Update</Text>}
+                {pwdLoading ? <ActivityIndicator color={Colors.white} size="small" /> : <Text style={s.pwdSaveText}>{t("Update")}</Text>}
               </TouchableOpacity>
             </View>
           </View>

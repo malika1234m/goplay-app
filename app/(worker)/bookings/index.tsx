@@ -16,14 +16,16 @@ import ReceiptsBanner from "@/components/payments/ReceiptsBanner";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { formatDate, formatLKR, isoDate } from "@/lib/utils";
 import type { BookingStatus } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk, formatDay } from "@/lib/i18n/core";
 
 type Filter = "ALL" | "PENDING" | "CONFIRMED" | "COMPLETED" | "HISTORY";
 const FILTERS: { key: Filter; label: string }[] = [
-  { key: "ALL",       label: "Active"    },
-  { key: "PENDING",   label: "Pending"   },
-  { key: "CONFIRMED", label: "Confirmed" },
-  { key: "COMPLETED", label: "Completed" },
-  { key: "HISTORY",   label: "History"   },
+  { key: "ALL",       label: tk("Active")    },
+  { key: "PENDING",   label: tk("Pending")   },
+  { key: "CONFIRMED", label: tk("Confirmed") },
+  { key: "COMPLETED", label: tk("Completed") },
+  { key: "HISTORY",   label: tk("History")   },
 ];
 
 function dateToTime(d: Date) {
@@ -35,6 +37,7 @@ function timeToDate(hhmm: string) {
 }
 
 export default function WorkerBookingsList() {
+  const { t, locale } = useT();
   const Colors = useColors();
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("ALL");
@@ -132,7 +135,7 @@ export default function WorkerBookingsList() {
     <View style={s.container}>
       <View style={s.filterWrap}>
         <FlatList data={FILTERS} horizontal showsHorizontalScrollIndicator={false} keyExtractor={(f) => f.key} contentContainerStyle={s.filterList} renderItem={({ item }) => (
-          <View style={[s.chip, filter === item.key && s.chipActive]}><Text style={[s.chipText, filter === item.key && s.chipTextActive]}>{item.label}</Text></View>
+          <View style={[s.chip, filter === item.key && s.chipActive]}><Text style={[s.chipText, filter === item.key && s.chipTextActive]}>{t(item.label)}</Text></View>
         )} />
       </View>
       <SkeletonList count={5} />
@@ -147,9 +150,9 @@ export default function WorkerBookingsList() {
   }
 
   function handleCreate() {
-    if (!playerName.trim())   return Alert.alert("Validation", "Player name is required.");
-    if (startTime >= endTime) return Alert.alert("Validation", "End time must be after start time.");
-    if (courts.length > 0 && !courtId) return Alert.alert("Validation", "Please select a court.");
+    if (!playerName.trim())   return Alert.alert(t("Validation"), t("Player name is required."));
+    if (startTime >= endTime) return Alert.alert(t("Validation"), t("End time must be after start time."));
+    if (courts.length > 0 && !courtId) return Alert.alert(t("Validation"), t("Please select a court."));
 
     createWalkIn(
       {
@@ -165,11 +168,11 @@ export default function WorkerBookingsList() {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           setShowModal(false);
-          Alert.alert("Created", "Walk-in booking created.");
+          Alert.alert(t("Created"), t("Walk-in booking created."));
         },
         onError: (e) => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          Alert.alert("Error", e.message);
+          Alert.alert(t("Error"), e.message);
         },
       }
     );
@@ -191,7 +194,7 @@ export default function WorkerBookingsList() {
               onPress={() => setFilter(item.key)}
               activeOpacity={0.7}
             >
-              <Text style={[s.chipText, filter === item.key && s.chipTextActive]}>{item.label}</Text>
+              <Text style={[s.chipText, filter === item.key && s.chipTextActive]}>{t(item.label)}</Text>
             </TouchableOpacity>
           )}
         />
@@ -206,7 +209,7 @@ export default function WorkerBookingsList() {
         <Ionicons name="search-outline" size={16} color={Colors.textMuted} style={s.searchIcon} />
         <TextInput
           style={s.searchInput}
-          placeholder="Search by player or court…"
+          placeholder={t("Search by player or court…")}
           placeholderTextColor={Colors.textMuted}
           value={search}
           onChangeText={setSearch}
@@ -226,7 +229,7 @@ export default function WorkerBookingsList() {
           <TouchableOpacity onPress={openModal} activeOpacity={0.88} style={s.walkInWrap}>
             <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={s.walkInBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
               <Ionicons name="add-circle-outline" size={20} color={Colors.white} />
-              <Text style={s.walkInBtnText}>Walk-in Booking</Text>
+              <Text style={s.walkInBtnText}>{t("Walk-in Booking")}</Text>
             </LinearGradient>
           </TouchableOpacity>
         }
@@ -254,12 +257,12 @@ export default function WorkerBookingsList() {
         )}
         ListEmptyComponent={
           search.trim() ? (
-            <EmptyState icon="search-outline" title="No results" sub={`No bookings match "${search}".`} />
+            <EmptyState icon="search-outline" title={t("No results")} sub={`No bookings match "${search}".`} />
           ) : (
             <EmptyState
               icon="calendar-outline"
-              title="No bookings"
-              sub={isHistory ? "No past bookings." : "Bookings will appear here."}
+              title={t("No bookings")}
+              sub={isHistory ? t("No past bookings.") : t("Bookings will appear here.")}
             />
           )
         }
@@ -271,18 +274,18 @@ export default function WorkerBookingsList() {
           <View style={s.sheet}>
             <View style={s.sheetHandle} />
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              <Text style={s.sheetTitle}>Walk-in Booking</Text>
+              <Text style={s.sheetTitle}>{t("Walk-in Booking")}</Text>
 
-              <Text style={s.label}>PLAYER NAME *</Text>
+              <Text style={s.label}>{t("PLAYER NAME *")}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="person-outline" size={16} color={Colors.textMuted} style={s.inputIcon} />
-                <TextInput style={s.input} value={playerName} onChangeText={setPlayerName} placeholder="Full name" placeholderTextColor={Colors.textMuted} autoFocus />
+                <TextInput style={s.input} value={playerName} onChangeText={setPlayerName} placeholder={t("Full name")} placeholderTextColor={Colors.textMuted} autoFocus />
               </View>
 
-              <Text style={s.label}>DATE *</Text>
+              <Text style={s.label}>{t("DATE *")}</Text>
               <TouchableOpacity style={s.pickerBtn} onPress={() => setShowDate(true)}>
                 <Ionicons name="calendar-outline" size={16} color={Colors.primary} />
-                <Text style={s.pickerBtnText}>{bookingDate.toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" })}</Text>
+                <Text style={s.pickerBtnText}>{formatDay(bookingDate, locale, { weekday:"short", month:"short", day:"numeric" })}</Text>
               </TouchableOpacity>
               {showDate && (
                 <DateTimePicker value={bookingDate} mode="date" minimumDate={new Date()} display={Platform.OS === "ios" ? "inline" : "default"}
@@ -291,20 +294,20 @@ export default function WorkerBookingsList() {
               )}
               {showDate && Platform.OS === "ios" && (
                 <TouchableOpacity onPress={() => setShowDate(false)} style={s.doneRow}>
-                  <Text style={s.doneText}>Done</Text>
+                  <Text style={s.doneText}>{t("Done")}</Text>
                 </TouchableOpacity>
               )}
 
               <View style={s.timeRow}>
                 <View style={s.halfField}>
-                  <Text style={s.label}>START *</Text>
+                  <Text style={s.label}>{t("START *")}</Text>
                   <TouchableOpacity style={s.pickerBtn} onPress={() => setShowStart(true)}>
                     <Ionicons name="time-outline" size={16} color={Colors.primary} />
                     <Text style={s.pickerBtnText}>{startTime}</Text>
                   </TouchableOpacity>
                 </View>
                 <View style={s.halfField}>
-                  <Text style={s.label}>END *</Text>
+                  <Text style={s.label}>{t("END *")}</Text>
                   <TouchableOpacity style={s.pickerBtn} onPress={() => setShowEnd(true)}>
                     <Ionicons name="time-outline" size={16} color={Colors.primary} />
                     <Text style={s.pickerBtnText}>{endTime}</Text>
@@ -320,7 +323,7 @@ export default function WorkerBookingsList() {
 
               {courts.length > 0 && (
                 <>
-                  <Text style={s.label}>COURT *</Text>
+                  <Text style={s.label}>{t("COURT *")}</Text>
                   <View style={s.courtRow}>
                     {courts.map((c) => (
                       <TouchableOpacity key={c.id} style={[s.courtChip, courtId === c.id && s.courtChipActive]} onPress={() => setCourtId(c.id)} activeOpacity={0.7}>
@@ -331,21 +334,21 @@ export default function WorkerBookingsList() {
                 </>
               )}
 
-              <Text style={s.label}>CONTACT NUMBER</Text>
+              <Text style={s.label}>{t("CONTACT NUMBER")}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="call-outline" size={16} color={Colors.textMuted} style={s.inputIcon} />
                 <TextInput style={s.input} value={contactNum} onChangeText={setContactNum} placeholder="077 123 4567" placeholderTextColor={Colors.textMuted} keyboardType="phone-pad" />
               </View>
 
-              <Text style={s.label}>NOTES</Text>
-              <TextInput style={[s.inputDirect, s.inputMultiline]} value={notes} onChangeText={setNotes} placeholder="Any special requests…" placeholderTextColor={Colors.textMuted} multiline numberOfLines={2} textAlignVertical="top" />
+              <Text style={s.label}>{t("NOTES")}</Text>
+              <TextInput style={[s.inputDirect, s.inputMultiline]} value={notes} onChangeText={setNotes} placeholder={t("Any special requests…")} placeholderTextColor={Colors.textMuted} multiline numberOfLines={2} textAlignVertical="top" />
 
               <View style={s.sheetActions}>
                 <TouchableOpacity style={s.cancelBtn} onPress={() => setShowModal(false)}>
-                  <Text style={s.cancelText}>Cancel</Text>
+                  <Text style={s.cancelText}>{t("Cancel")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[s.confirmBtn, creating && s.confirmBtnBusy]} onPress={handleCreate} disabled={creating}>
-                  {creating ? <ActivityIndicator color={Colors.white} size="small" /> : <Text style={s.confirmText}>Create Booking</Text>}
+                  {creating ? <ActivityIndicator color={Colors.white} size="small" /> : <Text style={s.confirmText}>{t("Create Booking")}</Text>}
                 </TouchableOpacity>
               </View>
             </ScrollView>

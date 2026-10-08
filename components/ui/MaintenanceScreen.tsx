@@ -3,6 +3,7 @@ import { View, Text, Animated, StyleSheet, TouchableOpacity } from "react-native
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 interface Props {
   message: string;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function MaintenanceScreen({ message, onRetry }: Props) {
+  const { t } = useT();
   const gearSpin = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -36,27 +38,27 @@ export default function MaintenanceScreen({ message, onRetry }: Props) {
           </View>
         </View>
 
-        <Text style={s.title}>Under Maintenance</Text>
+        <Text style={s.title}>{t("Under Maintenance")}</Text>
         <Text style={s.sub}>{message}</Text>
 
         <View style={s.infoCard}>
           <View style={s.infoRow}>
             <Ionicons name="time-outline" size={16} color="#16a34a" />
-            <Text style={s.infoText}>We'll be back shortly</Text>
+            <Text style={s.infoText}>{t("We'll be back shortly")}</Text>
           </View>
           <View style={s.infoRow}>
             <Ionicons name="shield-checkmark-outline" size={16} color="#16a34a" />
-            <Text style={s.infoText}>Your data is safe</Text>
+            <Text style={s.infoText}>{t("Your data is safe")}</Text>
           </View>
           <View style={s.infoRow}>
             <Ionicons name="notifications-outline" size={16} color="#16a34a" />
-            <Text style={s.infoText}>We'll notify you when ready</Text>
+            <Text style={s.infoText}>{t("We'll notify you when ready")}</Text>
           </View>
         </View>
 
         <TouchableOpacity style={s.retryBtn} onPress={onRetry} activeOpacity={0.85}>
           <Ionicons name="refresh-outline" size={18} color="#16a34a" />
-          <Text style={s.retryText}>Check Again</Text>
+          <Text style={s.retryText}>{t("Check Again")}</Text>
         </TouchableOpacity>
 
         <Text style={s.footer}>GoPlay · goplay.lk</Text>

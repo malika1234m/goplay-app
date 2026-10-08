@@ -6,6 +6,8 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/lib/theme";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -125,15 +127,16 @@ function WorkerTabBar({ state, descriptors, navigation }: any) {
 }
 
 export default function WorkerLayout() {
+  const { t } = useT();
   return (
     <Tabs
       tabBar={(props) => <WorkerTabBar {...(props as any)} />}
       screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen name="index"    options={{ tabBarIcon: ({ focused }) => <PillIcon name="grid"     focused={focused} label="Home"     /> }} />
-      <Tabs.Screen name="bookings" options={{ tabBarIcon: ({ focused }) => <PillIcon name="calendar" focused={focused} label="Bookings" /> }} />
-      <Tabs.Screen name="schedule" options={{ tabBarIcon: ({ focused }) => <PillIcon name="time"     focused={focused} label="Schedule" /> }} />
-      <Tabs.Screen name="profile"  options={{ tabBarIcon: ({ focused }) => <PillIcon name="person"   focused={focused} label="Profile"  /> }} />
+      <Tabs.Screen name="index"    options={{ tabBarIcon: ({ focused }) => <PillIcon name="grid"     focused={focused} label={t("Home")}     /> }} />
+      <Tabs.Screen name="bookings" options={{ tabBarIcon: ({ focused }) => <PillIcon name="calendar" focused={focused} label={t("Bookings")} /> }} />
+      <Tabs.Screen name="schedule" options={{ tabBarIcon: ({ focused }) => <PillIcon name="time"     focused={focused} label={t("Schedule")} /> }} />
+      <Tabs.Screen name="profile"  options={{ tabBarIcon: ({ focused }) => <PillIcon name="person"   focused={focused} label={t("Profile")}  /> }} />
     </Tabs>
   );
 }

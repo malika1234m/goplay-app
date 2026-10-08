@@ -12,8 +12,10 @@ import { useKeyboardPadding } from "@/lib/keyboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import EmptyState from "@/components/ui/EmptyState";
 import type { Court } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 export default function CourtsScreen() {
+  const { t } = useT();
   const Colors = useColors();
   const keyboardPad = useKeyboardPadding();
   const { id: facilityId }             = useLocalSearchParams<{ id: string }>();
@@ -76,12 +78,12 @@ export default function CourtsScreen() {
   });
 
   function handleAdd() {
-    if (!newName.trim()) return Alert.alert("Validation", "Court name is required.");
+    if (!newName.trim()) return Alert.alert(t("Validation"), t("Court name is required."));
     addCourt(
       { name: newName.trim(), description: newDesc.trim() || undefined },
       {
         onSuccess: () => { setShowModal(false); setNewName(""); setNewDesc(""); },
-        onError:   (e) => Alert.alert("Error", e.message),
+        onError:   (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
@@ -93,12 +95,12 @@ export default function CourtsScreen() {
   }
 
   function handleEditSave() {
-    if (!editCourt || !editName.trim()) return Alert.alert("Validation", "Court name is required.");
+    if (!editCourt || !editName.trim()) return Alert.alert(t("Validation"), t("Court name is required."));
     updateCourt(
       { courtId: editCourt.id, name: editName.trim(), description: editDesc.trim() || undefined },
       {
         onSuccess: () => setEditCourt(null),
-        onError:   (e) => Alert.alert("Error", e.message),
+        onError:   (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
@@ -106,20 +108,20 @@ export default function CourtsScreen() {
   function handleToggle(court: Court) {
     updateCourt(
       { courtId: court.id, isActive: !court.isActive },
-      { onError: (e) => Alert.alert("Error", e.message) }
+      { onError: (e) => Alert.alert(t("Error"), e.message) }
     );
   }
 
   function handleDelete(court: Court) {
     Alert.alert(
-      "Delete Court",
-      `Delete "${court.name}"? This cannot be undone.\n\nNote: courts with active bookings cannot be deleted — deactivate them instead.`,
+      t("Delete Court"),
+      t("Delete “{name}”? This can't be undone.\n\nCourts with active bookings can't be deleted — deactivate them instead.", { name: court.name }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("Cancel"), style: "cancel" },
         {
-          text: "Delete", style: "destructive",
+          text: t("Delete"), style: "destructive",
           onPress: () =>
-            deleteCourt(court.id, { onError: (e) => Alert.alert("Error", e.message) }),
+            deleteCourt(court.id, { onError: (e) => Alert.alert(t("Error"), e.message) }),
         },
       ]
     );
@@ -145,7 +147,7 @@ export default function CourtsScreen() {
                     <Text style={[s.courtName, !item.isActive && s.nameInactive]}>{item.name}</Text>
                     {!item.isActive && (
                       <View style={s.inactiveBadge}>
-                        <Text style={s.inactiveBadgeText}>Inactive</Text>
+                        <Text style={s.inactiveBadgeText}>{t("Inactive")}</Text>
                       </View>
                     )}
                   </View>
@@ -171,7 +173,7 @@ export default function CourtsScreen() {
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Ionicons name="create-outline" size={14} color={Colors.primary} />
-                  <Text style={s.editText}>Edit</Text>
+                  <Text style={s.editText}>{t("Edit")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={s.deleteBtn}
@@ -179,7 +181,7 @@ export default function CourtsScreen() {
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Ionicons name="trash-outline" size={14} color={Colors.error} />
-                  <Text style={s.deleteText}>Delete</Text>
+                  <Text style={s.deleteText}>{t("Delete")}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -194,12 +196,12 @@ export default function CourtsScreen() {
               end={{ x: 1, y: 0 }}
             >
               <Ionicons name="add-circle-outline" size={20} color={Colors.white} />
-              <Text style={s.addBtnText}>Add Court</Text>
+              <Text style={s.addBtnText}>{t("Add Court")}</Text>
             </LinearGradient>
           </TouchableOpacity>
         }
         ListEmptyComponent={
-          <EmptyState icon="tennisball-outline" title="No courts" sub="Add courts to allow court-specific bookings." />
+          <EmptyState icon="tennisball-outline" title={t("No courts")} sub={t("Add courts to allow court-specific bookings.")} />
         }
       />
 
@@ -208,30 +210,30 @@ export default function CourtsScreen() {
         <View style={s.overlay}>
           <View style={[s.sheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.sheetHandle} />
-            <Text style={s.sheetTitle}>Edit Court</Text>
+            <Text style={s.sheetTitle}>{t("Edit Court")}</Text>
 
-            <Text style={s.fieldLabel}>COURT NAME *</Text>
+            <Text style={s.fieldLabel}>{t("COURT NAME *")}</Text>
             <TextInput
               style={s.input}
               value={editName}
               onChangeText={setEditName}
-              placeholder="e.g. Court A"
+              placeholder={t("e.g. Court A")}
               placeholderTextColor={Colors.textMuted}
               autoFocus
             />
 
-            <Text style={s.fieldLabel}>DESCRIPTION (OPTIONAL)</Text>
+            <Text style={s.fieldLabel}>{t("DESCRIPTION (OPTIONAL)")}</Text>
             <TextInput
               style={s.input}
               value={editDesc}
               onChangeText={setEditDesc}
-              placeholder="e.g. Synthetic turf, indoor"
+              placeholder={t("e.g. Synthetic turf, indoor")}
               placeholderTextColor={Colors.textMuted}
             />
 
             <View style={s.sheetActions}>
               <TouchableOpacity style={s.cancelBtn} onPress={() => setEditCourt(null)}>
-                <Text style={s.cancelText}>Cancel</Text>
+                <Text style={s.cancelText}>{t("Cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.confirmBtn, saving && s.confirmBtnBusy]}
@@ -240,7 +242,7 @@ export default function CourtsScreen() {
               >
                 {saving
                   ? <ActivityIndicator color={Colors.white} size="small" />
-                  : <Text style={s.confirmText}>Save</Text>
+                  : <Text style={s.confirmText}>{t("Save")}</Text>
                 }
               </TouchableOpacity>
             </View>
@@ -253,30 +255,30 @@ export default function CourtsScreen() {
         <View style={s.overlay}>
           <View style={[s.sheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.sheetHandle} />
-            <Text style={s.sheetTitle}>New Court</Text>
+            <Text style={s.sheetTitle}>{t("New Court")}</Text>
 
-            <Text style={s.fieldLabel}>COURT NAME *</Text>
+            <Text style={s.fieldLabel}>{t("COURT NAME *")}</Text>
             <TextInput
               style={s.input}
               value={newName}
               onChangeText={setNewName}
-              placeholder="e.g. Court A"
+              placeholder={t("e.g. Court A")}
               placeholderTextColor={Colors.textMuted}
               autoFocus
             />
 
-            <Text style={s.fieldLabel}>DESCRIPTION (OPTIONAL)</Text>
+            <Text style={s.fieldLabel}>{t("DESCRIPTION (OPTIONAL)")}</Text>
             <TextInput
               style={s.input}
               value={newDesc}
               onChangeText={setNewDesc}
-              placeholder="e.g. Synthetic turf, indoor"
+              placeholder={t("e.g. Synthetic turf, indoor")}
               placeholderTextColor={Colors.textMuted}
             />
 
             <View style={s.sheetActions}>
               <TouchableOpacity style={s.cancelBtn} onPress={() => setShowModal(false)}>
-                <Text style={s.cancelText}>Cancel</Text>
+                <Text style={s.cancelText}>{t("Cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.confirmBtn, adding && s.confirmBtnBusy]}
@@ -285,7 +287,7 @@ export default function CourtsScreen() {
               >
                 {adding
                   ? <ActivityIndicator color={Colors.white} size="small" />
-                  : <Text style={s.confirmText}>Add Court</Text>
+                  : <Text style={s.confirmText}>{t("Add Court")}</Text>
                 }
               </TouchableOpacity>
             </View>

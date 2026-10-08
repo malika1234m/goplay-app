@@ -6,12 +6,14 @@ import { useGround } from "@/lib/queries/groundManagement";
 import { useColors } from "@/lib/theme";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { formatLKR } from "@/lib/utils";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 const IMG_W = Dimensions.get("window").width - 32;
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>["name"];
 
 export default function GroundHub() {
+  const { t } = useT();
   const Colors = useColors();
   const { id }     = useLocalSearchParams<{ id: string }>();
   const router     = useRouter();
@@ -28,12 +30,12 @@ export default function GroundHub() {
   };
 
   const ACTIONS: { route: string; icon: IoniconsName; title: string; sub: string }[] = [
-    { route: "edit",         icon: "create-outline",            title: "Edit Details",  sub: "Name, rate, amenities"  },
-    { route: "courts",       icon: "tennisball-outline",        title: "Courts",        sub: "Add & manage courts"    },
-    { route: "availability", icon: "time-outline",              title: "Availability",  sub: "Opening hours"          },
-    { route: "blocked",      icon: "ban-outline",               title: "Blocked Dates", sub: "Close for maintenance"  },
-    { route: "workers",      icon: "people-outline",            title: "Workers",       sub: "Manage facility staff"  },
-    { route: "payment",      icon: "card-outline",              title: "Payment Details", sub: "Where players pay online" },
+    { route: "edit",         icon: "create-outline",            title: t("Edit Details"),  sub: t("Name, rate, amenities")  },
+    { route: "courts",       icon: "tennisball-outline",        title: t("Courts"),        sub: t("Add & manage courts")    },
+    { route: "availability", icon: "time-outline",              title: t("Availability"),  sub: t("Opening hours")          },
+    { route: "blocked",      icon: "ban-outline",               title: t("Blocked Dates"), sub: t("Close for maintenance")  },
+    { route: "workers",      icon: "people-outline",            title: t("Workers"),       sub: t("Manage facility staff")  },
+    { route: "payment",      icon: "card-outline",              title: t("Payment Details"), sub: t("Where players pay online") },
   ];
 
   const s = StyleSheet.create({
@@ -110,7 +112,7 @@ export default function GroundHub() {
       {/* Images gallery */}
       {g.images.length > 0 && (
         <View style={s.galleryCard}>
-          <Text style={s.sectionLabel}>PHOTOS</Text>
+          <Text style={s.sectionLabel}>{t("PHOTOS")}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.galleryScroll}>
             {g.images.map((uri, i) => (
               <Image key={i} source={{ uri }} style={s.galleryImg} resizeMode="cover" />
@@ -123,18 +125,18 @@ export default function GroundHub() {
       <View style={s.statsRow}>
         <View style={s.statBox}>
           <Text style={s.statValue}>{formatLKR(g.hourlyRate)}</Text>
-          <Text style={s.statLabel}>Hourly Rate</Text>
+          <Text style={s.statLabel}>{t("Hourly Rate")}</Text>
         </View>
         <View style={s.statBox}>
-          <Text style={s.statValue}>{g.capacity ? `${g.capacity} players` : "—"}</Text>
-          <Text style={s.statLabel}>Capacity</Text>
+          <Text style={s.statValue}>{g.capacity ? t("{n} players", { n: g.capacity }) : "—"}</Text>
+          <Text style={s.statLabel}>{t("Capacity")}</Text>
         </View>
       </View>
 
       {/* Amenities */}
       {g.amenities.length > 0 && (
         <View style={s.amenitiesCard}>
-          <Text style={s.sectionLabel}>AMENITIES</Text>
+          <Text style={s.sectionLabel}>{t("AMENITIES")}</Text>
           <View style={s.tagRow}>
             {g.amenities.map((a) => (
               <View key={a} style={s.amenityTag}>
@@ -146,7 +148,7 @@ export default function GroundHub() {
       )}
 
       {/* Management actions */}
-      <Text style={s.sectionLabel}>MANAGE</Text>
+      <Text style={s.sectionLabel}>{t("MANAGE")}</Text>
       <View style={s.actionGrid}>
         {ACTIONS.map((action) => (
           <TouchableOpacity

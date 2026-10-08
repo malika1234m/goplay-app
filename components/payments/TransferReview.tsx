@@ -7,6 +7,7 @@ import { formatLKR } from "@/lib/utils";
 import { useReviewPayment } from "@/lib/queries/payments";
 import ReceiptViewer, { isPdfReceipt, openReceipt } from "./ReceiptViewer";
 import type { PaymentStatus } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 interface Props {
   kind:          "booking" | "spot";
@@ -21,6 +22,7 @@ interface Props {
 
 /** Bank transfer receipt with confirm / reject actions for owners and workers. */
 export default function TransferReview({ kind, id, playerName, amount, paymentStatus, receiptUrl, rejectReason, onReviewed }: Props) {
+  const { t } = useT();
   const Colors = useColors();
   const [viewing,   setViewing]   = useState<string | null>(null);
   const [rejecting, setRejecting] = useState(false);
@@ -55,17 +57,17 @@ export default function TransferReview({ kind, id, playerName, amount, paymentSt
         setReason("");
         onReviewed?.(action);
       },
-      onError: (e) => Alert.alert("Error", e.message),
+      onError: (e) => Alert.alert(t("Error"), e.message),
     });
   }
 
   function confirm() {
     Alert.alert(
-      "Confirm booking",
-      `Has ${formatLKR(amount)} from ${playerName} reached your bank account? Confirming books the slot and tells the player.`,
+      t("Confirm booking"),
+      t("Has {amount} from {name} reached your bank account? Confirming books the slot and tells the player.", { amount: formatLKR(amount), name: playerName }),
       [
-        { text: "Not yet", style: "cancel" },
-        { text: "Yes, confirm booking", onPress: () => submit("confirm") },
+        { text: t("Not yet"), style: "cancel" },
+        { text: t("Yes, confirm booking"), onPress: () => submit("confirm") },
       ],
     );
   }
@@ -73,8 +75,7 @@ export default function TransferReview({ kind, id, playerName, amount, paymentSt
   if (!receiptUrl) {
     return (
       <Text style={[s.note, { backgroundColor: Colors.warningLight, color: Colors.warning }]}>
-        Waiting for {playerName} to transfer {formatLKR(amount)} and upload the receipt.
-        The slot is released automatically if no receipt arrives in time.
+        {t("Waiting for {name} to transfer {amount} and upload the receipt. The slot is released automatically if no receipt arrives in time.", { name: playerName, amount: formatLKR(amount) })}
       </Text>
     );
   }
@@ -84,7 +85,7 @@ export default function TransferReview({ kind, id, playerName, amount, paymentSt
   return (
     <View style={s.wrap}>
       <View style={s.thumbRow}>
-        <TouchableOpacity style={s.thumb} onPress={() => openReceipt(receiptUrl, setViewing)} activeOpacity={0.8} accessibilityLabel="View receipt">
+        <TouchableOpacity style={s.thumb} onPress={() => openReceipt(receiptUrl, setViewing)} activeOpacity={0.8} accessibilityLabel={t("View receipt")}>
           {pdf ? (
             <><Ionicons name="document-text-outline" size={28} color={Colors.textMuted} /><Text style={s.pdfText}>PDF</Text></>
           ) : (
@@ -93,7 +94,7 @@ export default function TransferReview({ kind, id, playerName, amount, paymentSt
         </TouchableOpacity>
         <View style={s.meta}>
           <Text style={s.metaTitle}>
-            {paymentStatus === "RECEIPT_SUBMITTED" ? "Receipt to review" : paymentStatus === "PAID" ? "Payment confirmed" : paymentStatus === "REJECTED" ? "Receipt rejected" : "Receipt"}
+            {paymentStatus === "RECEIPT_SUBMITTED" ? t("Receipt to review") : paymentStatus === "PAID" ? t("Payment confirmed") : paymentStatus === "REJECTED" ? t("Receipt rejected") : t("Receipt")}
           </Text>
           <Text style={s.metaSub}>Tap the receipt to zoom. Check your bank app for {formatLKR(amount)} before confirming.</Text>
         </View>
@@ -101,7 +102,7 @@ export default function TransferReview({ kind, id, playerName, amount, paymentSt
 
       {paymentStatus === "REJECTED" && (
         <Text style={[s.note, { backgroundColor: Colors.errorLight, color: Colors.error }]}>
-          {rejectReason ? `You rejected this: ${rejectReason}` : "Rejected without a reason — the player may raise a complaint with GoPlay."}
+          {rejectReason ? t("You sent the receipt back: {reason}", { reason: rejectReason }) : t("Rejected without a reason — the player may raise a complaint with GoPlay.")}
         </Text>
       )}
 
@@ -109,10 +110,10 @@ export default function TransferReview({ kind, id, playerName, amount, paymentSt
         <View style={s.btnRow}>
           <TouchableOpacity style={[s.btn, { borderWidth: 1.5, borderColor: Colors.error }]} onPress={() => setRejecting(true)} disabled={isPending} activeOpacity={0.8}>
             <Ionicons name="close-circle-outline" size={18} color={Colors.error} />
-            <Text style={[s.btnText, { color: Colors.error }]}>Not received</Text>
+            <Text style={[s.btnText, { color: Colors.error }]}>{t("Not received")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[s.btn, { backgroundColor: Colors.primary }]} onPress={confirm} disabled={isPending} activeOpacity={0.8}>
-            {isPending ? <ActivityIndicator color="#fff" size="small" /> : <><Ionicons name="checkmark-circle-outline" size={18} color="#fff" /><Text style={[s.btnText, { color: "#fff" }]}>Confirm booking</Text></>}
+            {isPending ? <ActivityIndicator color="#fff" size="small" /> : <><Ionicons name="checkmark-circle-outline" size={18} color="#fff" /><Text style={[s.btnText, { color: "#fff" }]}>{t("Confirm booking")}</Text></>}
           </TouchableOpacity>
         </View>
       )}
@@ -123,7 +124,7 @@ export default function TransferReview({ kind, id, playerName, amount, paymentSt
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
           <View style={s.overlay}>
             <View style={s.sheet}>
-              <Text style={s.sheetTitle}>Money not in your account?</Text>
+              <Text style={s.sheetTitle}>{t("Money not in your account?")}</Text>
               <Text style={s.sheetSub}>
                 {playerName} will be asked to upload a new receipt. Tell them why — players can raise a complaint with GoPlay if you don&apos;t give a reason.
               </Text>
@@ -131,17 +132,17 @@ export default function TransferReview({ kind, id, playerName, amount, paymentSt
                 style={s.input}
                 value={reason}
                 onChangeText={setReason}
-                placeholder="e.g. No transfer received / amount is short / receipt unreadable"
+                placeholder={t("e.g. No transfer received / amount is short / receipt unreadable")}
                 placeholderTextColor={Colors.textMuted}
                 multiline
                 maxLength={500}
               />
               <View style={s.btnRow}>
                 <TouchableOpacity style={[s.btn, { backgroundColor: Colors.background }]} onPress={() => setRejecting(false)} activeOpacity={0.8}>
-                  <Text style={[s.btnText, { color: Colors.textSecondary }]}>Cancel</Text>
+                  <Text style={[s.btnText, { color: Colors.textSecondary }]}>{t("Cancel")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[s.btn, { backgroundColor: Colors.error }]} onPress={() => submit("reject")} disabled={isPending} activeOpacity={0.8}>
-                  {isPending ? <ActivityIndicator color="#fff" size="small" /> : <Text style={[s.btnText, { color: "#fff" }]}>Send back to player</Text>}
+                  {isPending ? <ActivityIndicator color="#fff" size="small" /> : <Text style={[s.btnText, { color: "#fff" }]}>{t("Send back to player")}</Text>}
                 </TouchableOpacity>
               </View>
             </View>

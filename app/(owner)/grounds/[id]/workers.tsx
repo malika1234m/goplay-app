@@ -13,8 +13,10 @@ import LoadingScreen from "@/components/ui/LoadingScreen";
 import EmptyState from "@/components/ui/EmptyState";
 import { formatDate } from "@/lib/utils";
 import type { Worker } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 export default function WorkersScreen() {
+  const { t } = useT();
   const Colors = useColors();
   const keyboardPad = useKeyboardPadding();
   const { id: facilityId } = useLocalSearchParams<{ id: string }>();
@@ -73,13 +75,13 @@ export default function WorkersScreen() {
 
   function handleAdd() {
     const trimEmail = email.trim().toLowerCase();
-    if (!trimEmail) return Alert.alert("Validation", "Email address is required.");
+    if (!trimEmail) return Alert.alert(t("Validation"), t("Email address is required."));
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimEmail)) {
-      return Alert.alert("Validation", "Enter a valid email address.");
+      return Alert.alert(t("Validation"), t("Enter a valid email address."));
     }
     const trimName = workerName.trim();
     if (trimName && (trimName.length < 2 || trimName.length > 50)) {
-      return Alert.alert("Validation", "Worker name must be 2–50 characters.");
+      return Alert.alert(t("Validation"), t("Worker name must be 2–50 characters."));
     }
 
     addWorker(
@@ -92,31 +94,31 @@ export default function WorkersScreen() {
 
           if (res.isNewAccount && res.tempPassword) {
             Alert.alert(
-              "Worker Account Created",
-              `A new account was created for ${res.worker.name}.\n\nTemporary password:\n\n${res.tempPassword}\n\nShare this with the worker. They will be asked to change it on first login.`,
-              [{ text: "Got it" }]
+              t("Worker Account Created"),
+              t("A new account was created for {name}.\n\nTemporary password:\n\n{password}\n\nShare this with the worker. They will be asked to change it on first login.", { name: res.worker.name, password: res.tempPassword }),
+              [{ text: t("Got it") }]
             );
           } else {
-            Alert.alert("Added", `${res.worker.name} has been added as a worker.`);
+            Alert.alert(t("Added"), `${res.worker.name} has been added as a worker.`);
           }
         },
-        onError: (e) => Alert.alert("Error", e.message),
+        onError: (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
 
   function handleRemove(worker: Worker) {
     Alert.alert(
-      "Remove Worker",
-      `Remove ${worker.name} from this facility?\n\nThey will lose access to the worker dashboard.`,
+      t("Remove Worker"),
+      t("Remove {name} from this facility?\n\nThey will lose access to the worker dashboard.", { name: worker.name }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("Cancel"), style: "cancel" },
         {
-          text: "Remove", style: "destructive",
+          text: t("Remove"), style: "destructive",
           onPress: () =>
             removeWorker(worker.id, {
-              onSuccess: () => Alert.alert("Removed", `${worker.name} has been removed.`),
-              onError:   (e) => Alert.alert("Error", e.message),
+              onSuccess: () => Alert.alert(t("Removed"), `${worker.name} has been removed.`),
+              onError:   (e) => Alert.alert(t("Error"), e.message),
             }),
         },
       ]
@@ -145,13 +147,13 @@ export default function WorkersScreen() {
                 end={{ x: 1, y: 0 }}
               >
                 <Ionicons name="person-add-outline" size={20} color={Colors.white} />
-                <Text style={s.addBtnText}>Add Worker</Text>
+                <Text style={s.addBtnText}>{t("Add Worker")}</Text>
               </LinearGradient>
             </TouchableOpacity>
             <View style={s.hintCard}>
               <Ionicons name="information-circle-outline" size={14} color={Colors.info} />
               <Text style={s.hint}>
-                Workers can view bookings, manage schedules, and create walk-in bookings for this facility.
+                {t("Workers can view bookings, manage schedules, and create walk-in bookings for this facility.")}
               </Text>
             </View>
           </>
@@ -183,7 +185,7 @@ export default function WorkersScreen() {
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Ionicons name="person-remove-outline" size={16} color={Colors.error} />
-                <Text style={s.removeText}>{removing ? "…" : "Remove"}</Text>
+                <Text style={s.removeText}>{removing ? "…" : t("Remove")}</Text>
               </TouchableOpacity>
             </View>
           );
@@ -191,8 +193,8 @@ export default function WorkersScreen() {
         ListEmptyComponent={
           <EmptyState
             icon="people-outline"
-            title="No workers yet"
-            sub="Add workers to let them manage bookings at this facility."
+            title={t("No workers yet")}
+            sub={t("Add workers to let them manage bookings at this facility.")}
           />
         }
       />
@@ -202,19 +204,19 @@ export default function WorkersScreen() {
         <View style={s.overlay}>
           <View style={[s.sheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.sheetHandle} />
-            <Text style={s.sheetTitle}>Add Worker</Text>
+            <Text style={s.sheetTitle}>{t("Add Worker")}</Text>
             <Text style={s.sheetSub}>
-              Enter their email address. If they don't have an account, one will be created automatically.
+              {t("Enter their email address. If they don't have an account, one will be created automatically.")}
             </Text>
 
-            <Text style={s.fieldLabel}>EMAIL ADDRESS *</Text>
+            <Text style={s.fieldLabel}>{t("EMAIL ADDRESS *")}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="mail-outline" size={16} color={Colors.textMuted} style={s.inputIcon} />
               <TextInput
                 style={s.input}
                 value={email}
                 onChangeText={setEmail}
-                placeholder="worker@example.com"
+                placeholder={t("worker@example.com")}
                 placeholderTextColor={Colors.textMuted}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -223,21 +225,21 @@ export default function WorkersScreen() {
               />
             </View>
 
-            <Text style={s.fieldLabel}>NAME (IF NEW ACCOUNT)</Text>
+            <Text style={s.fieldLabel}>{t("NAME (IF NEW ACCOUNT)")}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="person-outline" size={16} color={Colors.textMuted} style={s.inputIcon} />
               <TextInput
                 style={s.input}
                 value={workerName}
                 onChangeText={setWorkerName}
-                placeholder="Worker's full name"
+                placeholder={t("Worker's full name")}
                 placeholderTextColor={Colors.textMuted}
               />
             </View>
 
             <View style={s.sheetActions}>
               <TouchableOpacity style={s.cancelBtn} onPress={() => setShowModal(false)}>
-                <Text style={s.cancelText}>Cancel</Text>
+                <Text style={s.cancelText}>{t("Cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.confirmBtn, adding && s.confirmBtnBusy]}
@@ -246,7 +248,7 @@ export default function WorkersScreen() {
               >
                 {adding
                   ? <ActivityIndicator color={Colors.white} size="small" />
-                  : <Text style={s.confirmText}>Add Worker</Text>
+                  : <Text style={s.confirmText}>{t("Add Worker")}</Text>
                 }
               </TouchableOpacity>
             </View>

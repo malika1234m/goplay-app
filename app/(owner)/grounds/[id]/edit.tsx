@@ -12,18 +12,20 @@ import { useColors } from "@/lib/theme";
 import { useKeyboardPadding } from "@/lib/keyboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import type { FacilityStatus } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
 const STATUS_META: Record<FacilityStatus, { color: string; bg: string; icon: string; msg: string }> = {
-  PENDING:  { color: "#d97706", bg: "#fef3c7", icon: "time-outline",            msg: "Under review — details can still be edited while waiting for approval." },
-  ACTIVE:   { color: "#16a34a", bg: "#dcfce7", icon: "checkmark-circle-outline", msg: "Your ground is live and visible to players." },
-  INACTIVE: { color: "#64748b", bg: "#f1f5f9", icon: "pause-circle-outline",    msg: "Your ground is inactive and hidden from players." },
-  REJECTED: { color: "#dc2626", bg: "#fee2e2", icon: "close-circle-outline",    msg: "Ground was rejected. Update details and contact support." },
+  PENDING:  { color: "#d97706", bg: "#fef3c7", icon: "time-outline",            msg: tk("Under review — details can still be edited while waiting for approval.") },
+  ACTIVE:   { color: "#16a34a", bg: "#dcfce7", icon: "checkmark-circle-outline", msg: tk("Your ground is live and visible to players.") },
+  INACTIVE: { color: "#64748b", bg: "#f1f5f9", icon: "pause-circle-outline",    msg: tk("Your ground is inactive and hidden from players.") },
+  REJECTED: { color: "#dc2626", bg: "#fee2e2", icon: "close-circle-outline",    msg: tk("Ground was rejected. Update details and contact support.") },
 };
 
 const AMENITIES = [
-  "Parking", "Changing Rooms", "Showers", "Toilets", "Floodlights",
-  "Equipment Rental", "Cafeteria", "WiFi", "First Aid Kit", "Covered Area",
-  "Lockers", "Water Supply", "Security Guard", "CCTV",
+  tk("Parking"), tk("Changing Rooms"), tk("Showers"), tk("Toilets"), tk("Floodlights"),
+  tk("Equipment Rental"), tk("Cafeteria"), tk("WiFi"), tk("First Aid Kit"), tk("Covered Area"),
+  tk("Lockers"), tk("Water Supply"), tk("Security Guard"), tk("CCTV"),
 ];
 
 // TOP-LEVEL — must not be inside EditGround or it remounts on every render
@@ -80,6 +82,7 @@ function fieldStyles(Colors: ReturnType<typeof useColors>) {
 }
 
 export default function EditGround() {
+  const { t } = useT();
   const Colors = useColors();
   const keyboardPad = useKeyboardPadding();
   const { id }   = useLocalSearchParams<{ id: string }>();
@@ -160,7 +163,7 @@ export default function EditGround() {
     if (result.canceled || !result.assets.length) return;
     uploadImgs(result.assets, {
       onSuccess: (res) => setImages((prev) => [...prev, ...res.urls]),
-      onError:   (e)   => Alert.alert("Upload Failed", e.message),
+      onError:   (e)   => Alert.alert(t("Upload Failed"), e.message),
     });
   }
 
@@ -178,11 +181,11 @@ export default function EditGround() {
 
   function handleSave() {
     const rate = parseFloat(hourlyRate);
-    if (!name.trim())        return Alert.alert("Validation", "Ground name is required.");
-    if (!address.trim())     return Alert.alert("Validation", "Address is required.");
-    if (!city.trim())        return Alert.alert("Validation", "City is required.");
-    if (isNaN(rate) || rate < 1) return Alert.alert("Validation", "Enter a valid hourly rate.");
-    if (categoryIds.length === 0) return Alert.alert("Validation", "Select at least one sport category.");
+    if (!name.trim())        return Alert.alert(t("Validation"), t("Ground name is required."));
+    if (!address.trim())     return Alert.alert(t("Validation"), t("Address is required."));
+    if (!city.trim())        return Alert.alert(t("Validation"), t("City is required."));
+    if (isNaN(rate) || rate < 1) return Alert.alert(t("Validation"), t("Enter a valid hourly rate."));
+    if (categoryIds.length === 0) return Alert.alert(t("Validation"), t("Select at least one sport category."));
 
     save(
       {
@@ -197,8 +200,8 @@ export default function EditGround() {
         images,
       },
       {
-        onSuccess: () => { Alert.alert("Saved", "Ground updated."); router.back(); },
-        onError:   (e) => Alert.alert("Error", e.message),
+        onSuccess: () => { Alert.alert(t("Saved"), t("Ground updated.")); router.back(); },
+        onError:   (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
@@ -223,27 +226,27 @@ export default function EditGround() {
       <View style={s.section}>
         <View style={s.sectionHeader}>
           <Ionicons name="business-outline" size={14} color={Colors.textMuted} />
-          <Text style={s.sectionLabel}>FACILITY DETAILS</Text>
+          <Text style={s.sectionLabel}>{t("FACILITY DETAILS")}</Text>
         </View>
-        <Field label="Ground Name *"     value={name}        onChangeText={setName}        placeholder="Green Cricket Ground"   icon="text-outline"          colors={Colors} />
-        <Field label="Address *"          value={address}     onChangeText={setAddress}     placeholder="123 Main St, Colombo"   icon="location-outline"      colors={Colors} />
-        <Field label="City *"             value={city}        onChangeText={setCity}        placeholder="Colombo"                icon="map-outline"           colors={Colors} />
+        <Field label={t("Ground Name *")}     value={name}        onChangeText={setName}        placeholder={t("Green Cricket Ground")}   icon="text-outline"          colors={Colors} />
+        <Field label={t("Address *")}          value={address}     onChangeText={setAddress}     placeholder={t("123 Main St, Colombo")}   icon="location-outline"      colors={Colors} />
+        <Field label={t("City *")}             value={city}        onChangeText={setCity}        placeholder={t("Colombo")}                icon="map-outline"           colors={Colors} />
         <View style={s.row}>
           <View style={s.halfLeft}>
-            <Field label="Hourly Rate (Rs.) *" value={hourlyRate} onChangeText={setHourlyRate} placeholder="1500" keyboardType="numeric" icon="cash-outline"    colors={Colors} />
+            <Field label={t("Hourly Rate (Rs.) *")} value={hourlyRate} onChangeText={setHourlyRate} placeholder="1500" keyboardType="numeric" icon="cash-outline"    colors={Colors} />
           </View>
           <View style={s.halfRight}>
-            <Field label="Capacity"            value={capacity}  onChangeText={setCapacity}  placeholder="20"   keyboardType="numeric" icon="people-outline"   colors={Colors} />
+            <Field label={t("Capacity")}            value={capacity}  onChangeText={setCapacity}  placeholder="20"   keyboardType="numeric" icon="people-outline"   colors={Colors} />
           </View>
         </View>
-        <Field label="Description" value={description} onChangeText={setDescription} placeholder="Describe your facility…" multiline icon="document-text-outline" colors={Colors} />
+        <Field label={t("Description")} value={description} onChangeText={setDescription} placeholder={t("Describe your facility…")} multiline icon="document-text-outline" colors={Colors} />
       </View>
 
       {/* Categories */}
       <View style={s.section}>
         <View style={s.sectionHeader}>
           <Ionicons name="football-outline" size={14} color={Colors.textMuted} />
-          <Text style={s.sectionLabel}>SPORT CATEGORIES *</Text>
+          <Text style={s.sectionLabel}>{t("SPORT CATEGORIES *")}</Text>
         </View>
         <View style={s.chipWrap}>
           {(catData?.categories ?? []).map((c) => {
@@ -261,14 +264,14 @@ export default function EditGround() {
       <View style={s.section}>
         <View style={s.sectionHeader}>
           <Ionicons name="checkmark-circle-outline" size={14} color={Colors.textMuted} />
-          <Text style={s.sectionLabel}>AMENITIES</Text>
+          <Text style={s.sectionLabel}>{t("AMENITIES")}</Text>
         </View>
         <View style={s.chipWrap}>
           {AMENITIES.map((a) => {
             const active = amenities.includes(a);
             return (
               <TouchableOpacity key={a} style={[s.chip, active && s.chipActive]} onPress={() => toggleAmenity(a)} activeOpacity={0.7}>
-                <Text style={[s.chipText, active && s.chipTextActive]}>{a}</Text>
+                <Text style={[s.chipText, active && s.chipTextActive]}>{t(a)}</Text>
               </TouchableOpacity>
             );
           })}
@@ -279,7 +282,7 @@ export default function EditGround() {
       <View style={s.section}>
         <View style={s.sectionHeader}>
           <Ionicons name="images-outline" size={14} color={Colors.textMuted} />
-          <Text style={s.sectionLabel}>PHOTOS (max 8)</Text>
+          <Text style={s.sectionLabel}>{t("PHOTOS (max 8)")}</Text>
         </View>
         <View style={s.imgGrid}>
           {images.map((uri) => (
@@ -296,7 +299,7 @@ export default function EditGround() {
                 ? <ActivityIndicator color={Colors.primary} />
                 : <>
                     <Ionicons name="add-outline" size={28} color={Colors.primary} />
-                    <Text style={s.imgAddText}>Add</Text>
+                    <Text style={s.imgAddText}>{t("Add")}</Text>
                   </>
               }
             </TouchableOpacity>
@@ -317,7 +320,7 @@ export default function EditGround() {
           ) : (
             <>
               <Ionicons name="checkmark-outline" size={20} color={Colors.white} />
-              <Text style={s.saveBtnText}>Save Changes</Text>
+              <Text style={s.saveBtnText}>{t("Save Changes")}</Text>
             </>
           )}
         </LinearGradient>

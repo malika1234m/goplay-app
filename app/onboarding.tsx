@@ -9,6 +9,8 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
 export const ONBOARDING_KEY = "goplay_onboarding_seen";
 
@@ -34,14 +36,14 @@ const SLIDES: Slide[] = [
     num: "01",
     icon: "football-outline",
     title: [
-      { text: "Your Facility,\n" },
-      { text: "Your Rules", accent: true },
+      { text: tk("Your Facility,\n") },
+      { text: tk("Your Rules"), accent: true },
     ],
-    subtitle: "Designed for ground owners and workers who run their business from the field — not the office.",
+    subtitle: tk("Designed for ground owners and workers who run their business from the field — not the office."),
     chips: [
-      { icon: "phone-portrait-outline",   label: "Mobile-first"  },
-      { icon: "shield-checkmark-outline", label: "Role-based"    },
-      { icon: "flash-outline",            label: "Real-time"     },
+      { icon: "phone-portrait-outline",   label: tk("Mobile-first")  },
+      { icon: "shield-checkmark-outline", label: tk("Role-based")    },
+      { icon: "flash-outline",            label: tk("Real-time")     },
     ],
     orbs: [
       { top: -40,  left: -50,  size: 220, color: "rgba(22,163,74,0.10)" },
@@ -54,14 +56,14 @@ const SLIDES: Slide[] = [
     num: "02",
     icon: "calendar-outline",
     title: [
-      { text: "Every Booking\n" },
-      { text: "Under Control", accent: true },
+      { text: tk("Every Booking\n") },
+      { text: tk("Under Control"), accent: true },
     ],
-    subtitle: "Confirm, complete, or cancel bookings in one tap. Add walk-ins instantly and never miss a beat.",
+    subtitle: tk("Confirm, complete, or cancel bookings in one tap. Add walk-ins instantly and never miss a beat."),
     chips: [
-      { icon: "checkmark-circle-outline", label: "Instant confirm" },
-      { icon: "bar-chart-outline",        label: "Revenue stats"   },
-      { icon: "add-circle-outline",       label: "Walk-ins"        },
+      { icon: "checkmark-circle-outline", label: tk("Instant confirm") },
+      { icon: "bar-chart-outline",        label: tk("Revenue stats")   },
+      { icon: "add-circle-outline",       label: tk("Walk-ins")        },
     ],
     orbs: [
       { top: -60,   right: -40, size: 240, color: "rgba(22,163,74,0.09)" },
@@ -74,14 +76,14 @@ const SLIDES: Slide[] = [
     num: "03",
     icon: "rocket-outline",
     title: [
-      { text: "Ready to\n" },
-      { text: "Get Started?", accent: true },
+      { text: tk("Ready to\n") },
+      { text: tk("Get Started?"), accent: true },
     ],
-    subtitle: "Sign in to your account or apply to list your sports facility and start receiving bookings today.",
+    subtitle: tk("Sign in to your account or apply to list your sports facility and start receiving bookings today."),
     chips: [
-      { icon: "business-outline", label: "Ground owners"   },
-      { icon: "people-outline",   label: "Workers"         },
-      { icon: "star-outline",     label: "Easy setup"      },
+      { icon: "business-outline", label: tk("Ground owners")   },
+      { icon: "people-outline",   label: tk("Workers")         },
+      { icon: "star-outline",     label: tk("Easy setup")      },
     ],
     orbs: [
       { bottom: 200, left: -80,  size: 260, color: "rgba(22,163,74,0.09)" },
@@ -94,6 +96,7 @@ const SLIDES: Slide[] = [
 // ─── Slide component — defined at file level to prevent remount ───────────────
 
 function SlideItem({ slide }: { slide: Slide }) {
+  const { t } = useT();
   return (
     <View style={sl.slide}>
       {/* Decorative background orbs */}
@@ -136,13 +139,13 @@ function SlideItem({ slide }: { slide: Slide }) {
       <Text style={sl.title}>
         {slide.title.map((part, i) =>
           part.accent
-            ? <Text key={i} style={sl.titleAccent}>{part.text}</Text>
-            : <Text key={i}>{part.text}</Text>
+            ? <Text key={i} style={sl.titleAccent}>{t(part.text)}</Text>
+            : <Text key={i}>{t(part.text)}</Text>
         )}
       </Text>
 
       {/* Subtitle */}
-      <Text style={sl.subtitle}>{slide.subtitle}</Text>
+      <Text style={sl.subtitle}>{t(slide.subtitle)}</Text>
 
       {/* Divider */}
       <View style={sl.divider} />
@@ -152,7 +155,7 @@ function SlideItem({ slide }: { slide: Slide }) {
         {slide.chips.map((c) => (
           <View key={c.label} style={sl.chip}>
             <Ionicons name={c.icon} size={13} color="#22c55e" />
-            <Text style={sl.chipText}>{c.label}</Text>
+            <Text style={sl.chipText}>{t(c.label)}</Text>
           </View>
         ))}
       </View>
@@ -274,6 +277,7 @@ const s = StyleSheet.create({
 });
 
 export default function OnboardingScreen() {
+  const { t } = useT();
   const router  = useRouter();
   const flatRef = useRef<FlatList>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -342,7 +346,7 @@ export default function OnboardingScreen() {
         <View style={s.btnRow}>
           {!isLast && (
             <TouchableOpacity style={s.skipBtn} onPress={finish} activeOpacity={0.7}>
-              <Text style={s.skipText}>Skip</Text>
+              <Text style={s.skipText}>{t("Skip")}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -356,7 +360,7 @@ export default function OnboardingScreen() {
               end={{ x: 1, y: 0 }}
               style={s.nextGrad}
             >
-              <Text style={s.nextText}>{isLast ? "Get Started" : "Next"}</Text>
+              <Text style={s.nextText}>{isLast ? t("Get Started") : t("Next")}</Text>
               <Ionicons
                 name={isLast ? "arrow-forward-circle" : "chevron-forward"}
                 size={isLast ? 20 : 17}

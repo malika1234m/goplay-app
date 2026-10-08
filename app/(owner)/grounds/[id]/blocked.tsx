@@ -14,6 +14,7 @@ import LoadingScreen from "@/components/ui/LoadingScreen";
 import EmptyState from "@/components/ui/EmptyState";
 import { formatDate, formatDateShort, isoDate } from "@/lib/utils";
 import type { BlockedDate } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 function timeToDate(hhmm: string): Date {
   const [h, m] = hhmm.split(":").map(Number);
@@ -24,6 +25,7 @@ function dateToTime(d: Date): string {
 }
 
 export default function BlockedDatesScreen() {
+  const { t } = useT();
   const Colors = useColors();
   const keyboardPad = useKeyboardPadding();
   const { id: facilityId } = useLocalSearchParams<{ id: string }>();
@@ -92,7 +94,7 @@ export default function BlockedDatesScreen() {
 
   function handleAdd() {
     if (partial && startTime >= endTime) {
-      return Alert.alert("Invalid Time", "End time must be after start time.");
+      return Alert.alert(t("Invalid Time"), t("End time must be after start time."));
     }
     addBlock(
       {
@@ -107,17 +109,17 @@ export default function BlockedDatesScreen() {
           setShowModal(false);
           setReason(""); setPartial(false); setStartTime("08:00"); setEndTime("18:00");
         },
-        onError: (e) => Alert.alert("Error", e.message),
+        onError: (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
 
   function handleDelete(b: BlockedDate) {
-    Alert.alert("Remove Block", `Remove block for ${formatDate(b.date)}?`, [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("Remove Block"), `Remove block for ${formatDate(b.date)}?`, [
+      { text: t("Cancel"), style: "cancel" },
       {
-        text: "Remove", style: "destructive",
-        onPress: () => deleteBlock(b.id, { onError: (e) => Alert.alert("Error", e.message) }),
+        text: t("Remove"), style: "destructive",
+        onPress: () => deleteBlock(b.id, { onError: (e) => Alert.alert(t("Error"), e.message) }),
       },
     ]);
   }
@@ -141,7 +143,7 @@ export default function BlockedDatesScreen() {
               end={{ x: 1, y: 0 }}
             >
               <Ionicons name="ban-outline" size={20} color={Colors.white} />
-              <Text style={s.addBtnText}>Block a Date</Text>
+              <Text style={s.addBtnText}>{t("Block a Date")}</Text>
             </LinearGradient>
           </TouchableOpacity>
         }
@@ -157,7 +159,7 @@ export default function BlockedDatesScreen() {
                 <Text style={s.timeText}>
                   {item.startTime && item.endTime
                     ? `${item.startTime} – ${item.endTime}`
-                    : "Full day"}
+                    : t("Full day")}
                 </Text>
               </View>
               {item.reason && (
@@ -179,8 +181,8 @@ export default function BlockedDatesScreen() {
         ListEmptyComponent={
           <EmptyState
             icon="shield-checkmark-outline"
-            title="No blocked dates"
-            sub="Block dates when your facility is closed for maintenance or events."
+            title={t("No blocked dates")}
+            sub={t("Block dates when your facility is closed for maintenance or events.")}
           />
         }
       />
@@ -190,10 +192,10 @@ export default function BlockedDatesScreen() {
         <View style={s.overlay}>
           <View style={[s.sheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.sheetHandle} />
-            <Text style={s.sheetTitle}>Block a Date</Text>
+            <Text style={s.sheetTitle}>{t("Block a Date")}</Text>
 
             {/* Date picker */}
-            <Text style={s.fieldLabel}>DATE</Text>
+            <Text style={s.fieldLabel}>{t("DATE")}</Text>
             <TouchableOpacity style={s.dateBtn} onPress={() => setShowDate(true)}>
               <Ionicons name="calendar-outline" size={16} color={Colors.primary} />
               <Text style={s.dateBtnText}>{formatDateShort(isoDate(blockDate))}</Text>
@@ -210,13 +212,13 @@ export default function BlockedDatesScreen() {
             )}
             {showDate && Platform.OS === "ios" && (
               <TouchableOpacity onPress={() => setShowDate(false)} style={s.doneRow}>
-                <Text style={s.doneText}>Done</Text>
+                <Text style={s.doneText}>{t("Done")}</Text>
               </TouchableOpacity>
             )}
 
             {/* Partial block toggle */}
             <View style={s.partialRow}>
-              <Text style={s.fieldLabel}>PARTIAL BLOCK (TIME RANGE ONLY)</Text>
+              <Text style={s.fieldLabel}>{t("PARTIAL BLOCK (TIME RANGE ONLY)")}</Text>
               <Switch
                 value={partial}
                 onValueChange={setPartial}
@@ -228,13 +230,13 @@ export default function BlockedDatesScreen() {
             {partial && (
               <View style={s.timesRow}>
                 <View style={s.halfField}>
-                  <Text style={s.fieldLabel}>FROM</Text>
+                  <Text style={s.fieldLabel}>{t("FROM")}</Text>
                   <TouchableOpacity style={s.timeBtn} onPress={() => setShowStart(true)}>
                     <Text style={s.timeBtnText}>{startTime}</Text>
                   </TouchableOpacity>
                 </View>
                 <View style={s.halfField}>
-                  <Text style={s.fieldLabel}>TO</Text>
+                  <Text style={s.fieldLabel}>{t("TO")}</Text>
                   <TouchableOpacity style={s.timeBtn} onPress={() => setShowEnd(true)}>
                     <Text style={s.timeBtnText}>{endTime}</Text>
                   </TouchableOpacity>
@@ -254,19 +256,19 @@ export default function BlockedDatesScreen() {
             )}
 
             {/* Reason */}
-            <Text style={[s.fieldLabel, { marginTop: 12 }]}>REASON (OPTIONAL)</Text>
+            <Text style={[s.fieldLabel, { marginTop: 12 }]}>{t("REASON (OPTIONAL)")}</Text>
             <TextInput
               style={s.input}
               value={reason}
               onChangeText={setReason}
-              placeholder="e.g. Maintenance, Private event…"
+              placeholder={t("e.g. Maintenance, Private event…")}
               placeholderTextColor={Colors.textMuted}
               maxLength={200}
             />
 
             <View style={s.sheetActions}>
               <TouchableOpacity style={s.cancelBtn} onPress={() => setShowModal(false)}>
-                <Text style={s.cancelText}>Cancel</Text>
+                <Text style={s.cancelText}>{t("Cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.confirmBtn, adding && s.confirmBtnBusy]}
@@ -275,7 +277,7 @@ export default function BlockedDatesScreen() {
               >
                 {adding
                   ? <ActivityIndicator color={Colors.white} size="small" />
-                  : <Text style={s.confirmText}>Block Date</Text>
+                  : <Text style={s.confirmText}>{t("Block Date")}</Text>
                 }
               </TouchableOpacity>
             </View>

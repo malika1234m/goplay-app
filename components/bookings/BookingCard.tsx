@@ -3,6 +3,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useColors, useTheme } from "@/lib/theme";
 import { formatDate, formatLKR } from "@/lib/utils";
 import type { Booking } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
 interface Props {
   booking:  Booking;
@@ -10,11 +12,11 @@ interface Props {
 }
 
 const STATUS_META: Record<string, { color: string; icon: string; label: string }> = {
-  PENDING:   { color: "#f59e0b", icon: "time-outline",             label: "Awaiting Confirmation" },
-  CONFIRMED: { color: "#16a34a", icon: "checkmark-circle-outline", label: "Confirmed"              },
-  COMPLETED: { color: "#0891b2", icon: "trophy-outline",           label: "Completed"              },
-  CANCELLED: { color: "#ef4444", icon: "close-circle-outline",     label: "Cancelled"              },
-  NO_SHOW:   { color: "#f97316", icon: "ban-outline",              label: "No Show"                },
+  PENDING:   { color: "#f59e0b", icon: "time-outline",             label: tk("Awaiting Confirmation") },
+  CONFIRMED: { color: "#16a34a", icon: "checkmark-circle-outline", label: tk("Confirmed")              },
+  COMPLETED: { color: "#0891b2", icon: "trophy-outline",           label: tk("Completed")              },
+  CANCELLED: { color: "#ef4444", icon: "close-circle-outline",     label: tk("Cancelled")              },
+  NO_SHOW:   { color: "#f97316", icon: "ban-outline",              label: tk("No Show")                },
 };
 
 const PAY_LABEL: Record<string, string> = {
@@ -23,6 +25,7 @@ const PAY_LABEL: Record<string, string> = {
 };
 
 export default function BookingCard({ booking, onPress }: Props) {
+  const { t, tn } = useT();
   const Colors  = useColors();
   const { isDark } = useTheme();
   const meta    = STATUS_META[booking.status] ?? { color: Colors.primary, icon: "ellipse-outline", label: "" };
@@ -96,7 +99,7 @@ export default function BookingCard({ booking, onPress }: Props) {
     courtText:  { fontSize: 11, fontWeight: "600", color: Colors.textSecondary },
   });
 
-  const hours = booking.totalHours === 1 ? "1 hr" : `${booking.totalHours} hrs`;
+  const hours = tn(booking.totalHours, "{n} hour", "{n} hours");
 
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.72}>
@@ -105,7 +108,7 @@ export default function BookingCard({ booking, onPress }: Props) {
       <View style={s.header}>
         <View style={s.statusRow}>
           <View style={s.statusDot} />
-          <Text style={s.statusText}>{meta.label}</Text>
+          <Text style={s.statusText}>{t(meta.label)}</Text>
         </View>
         <View style={s.payPill}>
           <Ionicons
@@ -117,7 +120,7 @@ export default function BookingCard({ booking, onPress }: Props) {
             {PAY_LABEL[booking.paymentMethod] ?? booking.paymentMethod}
             {booking.paymentMethod === "ONLINE" && booking.paymentStatus === "RECEIPT_SUBMITTED" ? " · receipt to review"
               : booking.paymentMethod === "ONLINE" && booking.paymentStatus === "PENDING" ? " · awaiting receipt"
-              : booking.paymentMethod === "ONLINE" && booking.paymentStatus === "REJECTED" ? " · rejected" : ""}
+              : booking.paymentMethod === "ONLINE" && booking.paymentStatus === "REJECTED" ? t(" · rejected") : ""}
           </Text>
         </View>
       </View>
@@ -130,7 +133,7 @@ export default function BookingCard({ booking, onPress }: Props) {
             <Text style={s.facility} numberOfLines={1}>{booking.facility.name}</Text>
             {isWalkIn && (
               <View style={s.walkInPill}>
-                <Text style={s.walkInText}>Walk-in</Text>
+                <Text style={s.walkInText}>{t("Walk-in")}</Text>
               </View>
             )}
           </View>

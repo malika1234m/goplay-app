@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PaymentOptionsPicker, { type PayOpt } from "@/components/payments/PaymentOptionsPicker";
 import { useKeyboardPadding } from "@/lib/keyboard";
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, Image, StyleSheet,
@@ -11,14 +12,17 @@ import { useRouter } from "expo-router";
 import { useCategories, useUploadGroundImages } from "@/lib/queries/groundManagement";
 import { useCreateGround } from "@/lib/queries/owner";
 import { useColors } from "@/lib/theme";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
 const AMENITIES = [
-  "Parking", "Changing Rooms", "Showers", "Toilets", "Floodlights",
-  "Equipment Rental", "Cafeteria", "WiFi", "First Aid Kit", "Covered Area",
-  "Lockers", "Water Supply", "Security Guard", "CCTV",
+  tk("Parking"), tk("Changing Rooms"), tk("Showers"), tk("Toilets"), tk("Floodlights"),
+  tk("Equipment Rental"), tk("Cafeteria"), tk("WiFi"), tk("First Aid Kit"), tk("Covered Area"),
+  tk("Lockers"), tk("Water Supply"), tk("Security Guard"), tk("CCTV"),
 ];
 
 export default function NewGround() {
+  const { t } = useT();
   const keyboardPad = useKeyboardPadding();
   const Colors = useColors();
   const router  = useRouter();
@@ -38,6 +42,7 @@ export default function NewGround() {
   const [amenities,   setAmenities]   = useState<string[]>([]);
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [images,      setImages]      = useState<string[]>([]);
+  const [payOpt,      setPayOpt]      = useState<PayOpt | null>(null);
 
   function toggleCategory(id: string) {
     setCategoryIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
@@ -58,7 +63,7 @@ export default function NewGround() {
     if (result.canceled || !result.assets.length) return;
     uploadImgs(result.assets, {
       onSuccess: (res) => setImages((prev) => [...prev, ...res.urls]),
-      onError:   (e)   => Alert.alert("Upload Failed", e.message),
+      onError:   (e)   => Alert.alert(t("Upload Failed"), e.message),
     });
   }
 
@@ -73,32 +78,33 @@ export default function NewGround() {
     const rate        = Number(hourlyRate);
     const cap         = capacity.trim() ? Number(capacity.trim()) : undefined;
 
-    if (trimName.length < 3)          return Alert.alert("Validation", "Ground name must be at least 3 characters.");
-    if (trimName.length > 100)        return Alert.alert("Validation", "Ground name must be under 100 characters.");
-    if (trimAddress.length < 5)       return Alert.alert("Validation", "Address must be at least 5 characters.");
-    if (trimCity.length < 2)          return Alert.alert("Validation", "City must be at least 2 characters.");
-    if (!rate || rate < 1)            return Alert.alert("Validation", "Enter a valid hourly rate (at least Rs. 1).");
-    if (rate > 100000)                return Alert.alert("Validation", "Hourly rate cannot exceed Rs. 100,000.");
-    if (categoryIds.length === 0)     return Alert.alert("Validation", "Select at least one sport category.");
-    if (cap !== undefined && cap < 1)   return Alert.alert("Validation", "Capacity must be at least 1.");
-    if (cap !== undefined && cap > 500) return Alert.alert("Validation", "Capacity cannot exceed 500 players.");
+    if (trimName.length < 3)          return Alert.alert(t("Validation"), t("Ground name must be at least 3 characters."));
+    if (trimName.length > 100)        return Alert.alert(t("Validation"), t("Ground name must be under 100 characters."));
+    if (trimAddress.length < 5)       return Alert.alert(t("Validation"), t("Address must be at least 5 characters."));
+    if (trimCity.length < 2)          return Alert.alert(t("Validation"), t("City must be at least 2 characters."));
+    if (!rate || rate < 1)            return Alert.alert(t("Validation"), t("Enter a valid hourly rate (at least Rs. 1)."));
+    if (rate > 100000)                return Alert.alert(t("Validation"), t("Hourly rate cannot exceed Rs. 100,000."));
+    if (categoryIds.length === 0)     return Alert.alert(t("Validation"), t("Select at least one sport category."));
+    if (!payOpt)                      return Alert.alert(t("Validation"), t("Choose how players pay for this ground."));
+    if (cap !== undefined && cap < 1)   return Alert.alert(t("Validation"), t("Capacity must be at least 1."));
+    if (cap !== undefined && cap > 500) return Alert.alert(t("Validation"), t("Capacity cannot exceed 500 players."));
 
     create(
       {
         name: trimName, description: description.trim() || undefined,
         address: trimAddress, city: trimCity,
         hourlyRate: rate, capacity: cap,
-        amenities, categoryIds, images,
+        amenities, categoryIds, images, paymentOptions: payOpt,
       },
       {
         onSuccess: () => {
           Alert.alert(
-            "Submitted!",
-            "Your ground has been submitted for admin review. You'll be notified once it's approved.",
-            [{ text: "OK", onPress: () => router.back() }]
+            t("Submitted!"),
+            t("Your ground has been submitted for admin review. You'll be notified once it's approved."),
+            [{ text: t("OK"), onPress: () => router.back() }]
           );
         },
-        onError: (e) => Alert.alert("Error", e.message),
+        onError: (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
@@ -152,7 +158,7 @@ export default function NewGround() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="arrow-back" size={22} color={Colors.primary} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Add New Ground</Text>
+        <Text style={s.headerTitle}>{t("Add New Ground")}</Text>
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.scroll, keyboardPad > 0 && { paddingBottom: keyboardPad }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -161,55 +167,59 @@ export default function NewGround() {
         <View style={s.section}>
           <View style={s.sectionLabel}>
             <Ionicons name="information-circle-outline" size={15} color={Colors.textMuted} />
-            <Text style={s.sectionTitle}>Basic Info</Text>
+            <Text style={s.sectionTitle}>{t("Basic Info")}</Text>
           </View>
 
           <View style={s.field}>
-            <Text style={s.fieldLabel}>Ground Name *</Text>
+            <Text style={s.fieldLabel}>{t("Ground Name *")}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="business-outline" size={16} color={Colors.textMuted} style={s.inputIcon} />
-              <TextInput style={s.input} value={name} onChangeText={setName} placeholder="e.g. Colombo Sports Arena" placeholderTextColor={Colors.textMuted} returnKeyType="next" />
+              <TextInput style={s.input} value={name} onChangeText={setName} placeholder={t("e.g. Colombo Sports Arena")} placeholderTextColor={Colors.textMuted} returnKeyType="next" />
             </View>
           </View>
 
           <View style={s.field}>
-            <Text style={s.fieldLabel}>Description</Text>
+            <Text style={s.fieldLabel}>{t("Description")}</Text>
             <View style={[s.inputWrap, s.inputMulti]}>
-              <TextInput style={[s.input, s.inputMultiText]} value={description} onChangeText={setDescription} placeholder="Describe your facility…" placeholderTextColor={Colors.textMuted} multiline numberOfLines={4} />
+              <TextInput style={[s.input, s.inputMultiText]} value={description} onChangeText={setDescription} placeholder={t("Describe your facility…")} placeholderTextColor={Colors.textMuted} multiline numberOfLines={4} />
             </View>
           </View>
 
           <View style={s.field}>
-            <Text style={s.fieldLabel}>Address *</Text>
+            <Text style={s.fieldLabel}>{t("Address *")}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="location-outline" size={16} color={Colors.textMuted} style={s.inputIcon} />
-              <TextInput style={s.input} value={address} onChangeText={setAddress} placeholder="Street address" placeholderTextColor={Colors.textMuted} returnKeyType="next" />
+              <TextInput style={s.input} value={address} onChangeText={setAddress} placeholder={t("Street address")} placeholderTextColor={Colors.textMuted} returnKeyType="next" />
             </View>
           </View>
 
           <View style={s.field}>
-            <Text style={s.fieldLabel}>City *</Text>
+            <Text style={s.fieldLabel}>{t("City *")}</Text>
             <View style={s.inputWrap}>
               <Ionicons name="map-outline" size={16} color={Colors.textMuted} style={s.inputIcon} />
-              <TextInput style={s.input} value={city} onChangeText={setCity} placeholder="e.g. Colombo" placeholderTextColor={Colors.textMuted} returnKeyType="next" />
+              <TextInput style={s.input} value={city} onChangeText={setCity} placeholder={t("e.g. Colombo")} placeholderTextColor={Colors.textMuted} returnKeyType="next" />
             </View>
           </View>
 
           <View style={s.row2}>
             <View style={[s.field, s.half]}>
-              <Text style={s.fieldLabel}>Hourly Rate (Rs.) *</Text>
+              <Text style={s.fieldLabel}>{t("Hourly Rate (Rs.) *")}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="cash-outline" size={16} color={Colors.textMuted} style={s.inputIcon} />
                 <TextInput style={s.input} value={hourlyRate} onChangeText={setHourlyRate} placeholder="1500" placeholderTextColor={Colors.textMuted} keyboardType="numeric" returnKeyType="next" />
               </View>
             </View>
             <View style={[s.field, s.half]}>
-              <Text style={s.fieldLabel}>Capacity</Text>
+              <Text style={s.fieldLabel}>{t("Capacity")}</Text>
               <View style={s.inputWrap}>
                 <Ionicons name="people-outline" size={16} color={Colors.textMuted} style={s.inputIcon} />
                 <TextInput style={s.input} value={capacity} onChangeText={setCapacity} placeholder="22" placeholderTextColor={Colors.textMuted} keyboardType="numeric" returnKeyType="done" />
               </View>
             </View>
+          </View>
+          <View style={[s.field, { marginTop: 6 }]}>
+            <Text style={s.fieldLabel}>How do players pay? *</Text>
+            <PaymentOptionsPicker value={payOpt} onChange={setPayOpt} />
           </View>
         </View>
 
@@ -217,7 +227,7 @@ export default function NewGround() {
         <View style={s.section}>
           <View style={s.sectionLabel}>
             <Ionicons name="football-outline" size={15} color={Colors.textMuted} />
-            <Text style={s.sectionTitle}>Sport Categories *</Text>
+            <Text style={s.sectionTitle}>{t("Sport Categories *")}</Text>
           </View>
           <View style={s.chips}>
             {categories.map((c) => (
@@ -234,12 +244,12 @@ export default function NewGround() {
         <View style={s.section}>
           <View style={s.sectionLabel}>
             <Ionicons name="sparkles-outline" size={15} color={Colors.textMuted} />
-            <Text style={s.sectionTitle}>Amenities</Text>
+            <Text style={s.sectionTitle}>{t("Amenities")}</Text>
           </View>
           <View style={s.chips}>
             {AMENITIES.map((a) => (
               <TouchableOpacity key={a} style={[s.chip, amenities.includes(a) && s.chipActive]} onPress={() => toggleAmenity(a)} activeOpacity={0.7}>
-                <Text style={[s.chipText, amenities.includes(a) && s.chipTextActive]}>{a}</Text>
+                <Text style={[s.chipText, amenities.includes(a) && s.chipTextActive]}>{t(a)}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -249,7 +259,7 @@ export default function NewGround() {
         <View style={s.section}>
           <View style={s.sectionLabel}>
             <Ionicons name="images-outline" size={15} color={Colors.textMuted} />
-            <Text style={s.sectionTitle}>Photos (optional, max 8)</Text>
+            <Text style={s.sectionTitle}>{t("Photos (optional, max 8)")}</Text>
           </View>
           <View style={s.imgGrid}>
             {images.map((uri) => (
@@ -266,7 +276,7 @@ export default function NewGround() {
                   ? <ActivityIndicator color={Colors.primary} />
                   : <>
                       <Ionicons name="add-outline" size={28} color={Colors.primary} />
-                      <Text style={s.imgAddText}>Add</Text>
+                      <Text style={s.imgAddText}>{t("Add")}</Text>
                     </>
                 }
               </TouchableOpacity>
@@ -278,7 +288,7 @@ export default function NewGround() {
         <View style={s.submitSection}>
           <View style={s.infoBox}>
             <Ionicons name="information-circle-outline" size={16} color={Colors.primary} />
-            <Text style={s.infoText}>Your ground will be reviewed by the GoPlay team before going live. This usually takes 1–3 business days.</Text>
+            <Text style={s.infoText}>{t("Your ground will be reviewed by the GoPlay team before going live. This usually takes 1–3 business days.")}</Text>
           </View>
           <TouchableOpacity style={[s.submitBtn, (saving || uploading) && { opacity: 0.65 }]} onPress={handleSubmit} disabled={saving || uploading} activeOpacity={0.88}>
             <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={s.submitGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
@@ -286,7 +296,7 @@ export default function NewGround() {
                 ? <ActivityIndicator color={Colors.white} />
                 : <>
                     <Ionicons name="checkmark-circle-outline" size={20} color={Colors.white} />
-                    <Text style={s.submitBtnText}>Submit for Review</Text>
+                    <Text style={s.submitBtnText}>{t("Submit for Review")}</Text>
                   </>
               }
             </LinearGradient>

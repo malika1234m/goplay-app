@@ -13,6 +13,8 @@ import * as SecureStore from "expo-secure-store";
 import { useColors } from "@/lib/theme";
 import { BASE_URL } from "@/lib/api";
 import { useAuth, PENDING_APP_KEY } from "@/lib/auth";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
 function FieldInput({ label, value, onChange, placeholder, keyboardType, icon, secure, showToggle, onToggle, multiline, colors }: {
   label: string; value: string; onChange: (v: string) => void;
@@ -77,17 +79,18 @@ function fieldStyles(Colors: ReturnType<typeof useColors>) {
 }
 
 const AMENITIES = [
-  "Parking", "Changing Rooms", "Showers", "Floodlights",
-  "Cafeteria", "WiFi", "Toilets", "First Aid",
-  "Drinking Water", "Equipment Rental", "Seating Area",
-  "Security / CCTV", "Air Conditioning", "Coaching Available", "Scoreboard",
+  tk("Parking"), tk("Changing Rooms"), tk("Showers"), tk("Floodlights"),
+  tk("Cafeteria"), tk("WiFi"), tk("Toilets"), tk("First Aid"),
+  tk("Drinking Water"), tk("Equipment Rental"), tk("Seating Area"),
+  tk("Security / CCTV"), tk("Air Conditioning"), tk("Coaching Available"), tk("Scoreboard"),
 ];
 
-const STEP_LABELS = ["Account", "Personal", "Facility", "Review"];
+const STEP_LABELS = [tk("Account"), tk("Personal"), tk("Facility"), tk("Review")];
 
 interface Category { id: string; name: string; icon: string | null }
 
 export default function ApplyScreen() {
+  const { t } = useT();
   const keyboardPad = useKeyboardPadding();
   const Colors = useColors();
   const router  = useRouter();
@@ -202,24 +205,24 @@ export default function ApplyScreen() {
 
   function validateStep(): boolean {
     if (step === 0) {
-      if (!name.trim() || name.trim().length < 2) return err("Name must be at least 2 characters.");
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return err("Enter a valid email address.");
+      if (!name.trim() || name.trim().length < 2) return err(t("Name must be at least 2 characters."));
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return err(t("Enter a valid email address."));
       const cleaned = phone.replace(/[\s\-().+]/g, "");
-      if (!/^(?:94|0)7[0-9]{8}$/.test(cleaned)) return err("Enter a valid Sri Lankan mobile number (e.g. 077 123 4567).");
-      if (password.length < 8) return err("Password must be at least 8 characters.");
-      if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) return err("Password must contain at least one letter and one number.");
-      if (password !== confirmPassword) return err("Passwords do not match.");
+      if (!/^(?:94|0)7[0-9]{8}$/.test(cleaned)) return err(t("Enter a valid Sri Lankan mobile number (e.g. 077 123 4567)."));
+      if (password.length < 8) return err(t("Password must be at least 8 characters."));
+      if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) return err(t("Password must contain at least one letter and one number."));
+      if (password !== confirmPassword) return err(t("Passwords do not match."));
     }
     if (step === 1) {
-      if (!address.trim() || address.trim().length < 5) return err("Please enter a valid address (at least 5 characters).");
-      if (!city.trim() || city.trim().length < 2) return err("Please enter a valid city name.");
+      if (!address.trim() || address.trim().length < 5) return err(t("Please enter a valid address (at least 5 characters)."));
+      if (!city.trim() || city.trim().length < 2) return err(t("Please enter a valid city name."));
     }
     if (step === 2) {
-      if (!facilityName.trim()) return err("Facility name is required.");
-      if (categoryIds.length === 0) return err("Please select at least one sport.");
-      if (!facilityAddress.trim()) return err("Facility address is required.");
-      if (!facilityCity.trim()) return err("Facility city is required.");
-      if (!proposedHourlyRate || Number(proposedHourlyRate) < 1) return err("Please enter a valid hourly rate.");
+      if (!facilityName.trim()) return err(t("Facility name is required."));
+      if (categoryIds.length === 0) return err(t("Please select at least one sport."));
+      if (!facilityAddress.trim()) return err(t("Facility address is required."));
+      if (!facilityCity.trim()) return err(t("Facility city is required."));
+      if (!proposedHourlyRate || Number(proposedHourlyRate) < 1) return err(t("Please enter a valid hourly rate."));
     }
     setError("");
     return true;
@@ -240,7 +243,7 @@ export default function ApplyScreen() {
   }
 
   async function handleSubmit() {
-    if (!agreedToTerms) { setError("You must agree to the Terms & Conditions to proceed."); return; }
+    if (!agreedToTerms) { setError(t("You must agree to the Terms & Conditions to proceed.")); return; }
     if (!validateStep()) return;
     setLoading(true);
     setError("");
@@ -260,7 +263,7 @@ export default function ApplyScreen() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? "Submission failed. Please try again."); return; }
+      if (!res.ok) { setError(data.error ?? t("Submission failed. Please try again.")); return; }
 
       await SecureStore.setItemAsync(PENDING_APP_KEY, email.trim().toLowerCase());
       // no-op: AuthContext reads PENDING_APP_KEY on next mount via clearPendingApp
@@ -268,7 +271,7 @@ export default function ApplyScreen() {
       Animated.spring(successAnim, { toValue: 1, useNativeDriver: true, tension: 60, friction: 8 }).start();
       setSubmitted(true);
     } catch {
-      setError("Network error — check your internet connection.");
+      setError(t("Network error — check your internet connection."));
     } finally {
       setLoading(false);
     }
@@ -294,12 +297,12 @@ export default function ApplyScreen() {
           <View style={s.successCircle}>
             <Ionicons name="checkmark-circle" size={52} color="#bbf7d0" />
           </View>
-          <Text style={s.successTitle}>Application Submitted!</Text>
+          <Text style={s.successTitle}>{t("Application Submitted!")}</Text>
           <Text style={s.successSub}>
-            Your provider application is now under review by our team.
+            {t("Your provider application is now under review by our team.")}
           </Text>
           <Text style={s.successNote}>
-            You'll receive an email notification once it's reviewed.
+            {t("You'll receive an email notification once it's reviewed.")}
           </Text>
           <TouchableOpacity
             style={s.statusBtn}
@@ -307,10 +310,10 @@ export default function ApplyScreen() {
             activeOpacity={0.85}
           >
             <Ionicons name="timer-outline" size={20} color={Colors.primary} />
-            <Text style={s.statusBtnText}>Check Application Status</Text>
+            <Text style={s.statusBtnText}>{t("Check Application Status")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={s.loginLink} onPress={() => router.replace("/(auth)/login")}>
-            <Text style={s.loginLinkText}>Back to Sign In</Text>
+            <Text style={s.loginLinkText}>{t("Back to Sign In")}</Text>
           </TouchableOpacity>
         </Animated.View>
       </LinearGradient>
@@ -358,7 +361,7 @@ export default function ApplyScreen() {
             <TouchableOpacity style={s.backBtn} onPress={back}>
               <Ionicons name="chevron-back" size={20} color="#fff" />
             </TouchableOpacity>
-            <Text style={s.headerTitle}>Become a Provider</Text>
+            <Text style={s.headerTitle}>{t("Become a Provider")}</Text>
           </View>
 
           {/* Step bar */}
@@ -375,37 +378,37 @@ export default function ApplyScreen() {
             {/* ── Step 0: Account Info ──────────────────────────────────────── */}
             {step === 0 && (
               <>
-                <Text style={s.sectionTitle}>Create Your Account</Text>
-                <Text style={s.sectionSub}>Start by setting up your login credentials.</Text>
-                {!!error && <View style={s.errorBox}><Ionicons name="alert-circle-outline" size={16} color={Colors.error} /><Text style={s.errorText}>{error}</Text></View>}
-                <FieldInput label="FULL NAME *" value={name} onChange={setName} placeholder="Your full name" icon="person-outline"  colors={Colors}/>
-                <FieldInput label="EMAIL ADDRESS *" value={email} onChange={setEmail} placeholder="you@example.com" keyboardType="email-address" icon="mail-outline"  colors={Colors}/>
-                <FieldInput label="MOBILE NUMBER *" value={phone} onChange={setPhone} placeholder="077 123 4567" keyboardType="phone-pad" icon="call-outline"  colors={Colors}/>
-                <FieldInput label="PASSWORD *" value={password} onChange={setPassword} placeholder="Min 8 chars, include a number" icon="lock-closed-outline" secure showToggle={showPass} onToggle={() => setShowPass((v) => !v)}  colors={Colors}/>
-                <FieldInput label="CONFIRM PASSWORD *" value={confirmPassword} onChange={setConfirmPassword} placeholder="Re-enter your password" icon="lock-closed-outline" secure showToggle={showConfirm} onToggle={() => setShowConfirm((v) => !v)}  colors={Colors}/>
+                <Text style={s.sectionTitle}>{t("Create Your Account")}</Text>
+                <Text style={s.sectionSub}>{t("Start by setting up your login credentials.")}</Text>
+                {!!error && <View style={s.errorBox}><Ionicons name="alert-circle-outline" size={16} color={Colors.error} /><Text style={s.errorText}>{t(error)}</Text></View>}
+                <FieldInput label={t("FULL NAME *")} value={name} onChange={setName} placeholder={t("Your full name")} icon="person-outline"  colors={Colors}/>
+                <FieldInput label={t("EMAIL ADDRESS *")} value={email} onChange={setEmail} placeholder={t("you@example.com")} keyboardType="email-address" icon="mail-outline"  colors={Colors}/>
+                <FieldInput label={t("MOBILE NUMBER *")} value={phone} onChange={setPhone} placeholder="077 123 4567" keyboardType="phone-pad" icon="call-outline"  colors={Colors}/>
+                <FieldInput label={t("PASSWORD *")} value={password} onChange={setPassword} placeholder={t("Min 8 chars, include a number")} icon="lock-closed-outline" secure showToggle={showPass} onToggle={() => setShowPass((v) => !v)}  colors={Colors}/>
+                <FieldInput label={t("CONFIRM PASSWORD *")} value={confirmPassword} onChange={setConfirmPassword} placeholder={t("Re-enter your password")} icon="lock-closed-outline" secure showToggle={showConfirm} onToggle={() => setShowConfirm((v) => !v)}  colors={Colors}/>
               </>
             )}
 
             {/* ── Step 1: Personal Info ─────────────────────────────────────── */}
             {step === 1 && (
               <>
-                <Text style={s.sectionTitle}>Your Details</Text>
-                <Text style={s.sectionSub}>Tell us where you're based. This stays private.</Text>
-                {!!error && <View style={s.errorBox}><Ionicons name="alert-circle-outline" size={16} color={Colors.error} /><Text style={s.errorText}>{error}</Text></View>}
-                <FieldInput label="HOME / BUSINESS ADDRESS *" value={address} onChange={setAddress} placeholder="Street address" icon="home-outline"  colors={Colors}/>
-                <FieldInput label="CITY *" value={city} onChange={setCity} placeholder="e.g. Colombo" icon="location-outline"  colors={Colors}/>
+                <Text style={s.sectionTitle}>{t("Your Details")}</Text>
+                <Text style={s.sectionSub}>{t("Tell us where you're based. This stays private.")}</Text>
+                {!!error && <View style={s.errorBox}><Ionicons name="alert-circle-outline" size={16} color={Colors.error} /><Text style={s.errorText}>{t(error)}</Text></View>}
+                <FieldInput label={t("HOME / BUSINESS ADDRESS *")} value={address} onChange={setAddress} placeholder={t("Street address")} icon="home-outline"  colors={Colors}/>
+                <FieldInput label={t("CITY *")} value={city} onChange={setCity} placeholder={t("e.g. Colombo")} icon="location-outline"  colors={Colors}/>
               </>
             )}
 
             {/* ── Step 2: Facility Details ──────────────────────────────────── */}
             {step === 2 && (
               <>
-                <Text style={s.sectionTitle}>Your Facility</Text>
-                <Text style={s.sectionSub}>Tell us about the sports ground you want to list.</Text>
-                {!!error && <View style={s.errorBox}><Ionicons name="alert-circle-outline" size={16} color={Colors.error} /><Text style={s.errorText}>{error}</Text></View>}
-                <FieldInput label="FACILITY NAME *" value={facilityName} onChange={setFacilityName} placeholder="e.g. Colombo Cricket Academy" icon="business-outline"  colors={Colors}/>
-                <FieldInput label="FACILITY ADDRESS *" value={facilityAddress} onChange={setFacilityAddress} placeholder="Street address of the ground" icon="location-outline"  colors={Colors}/>
-                <FieldInput label="FACILITY CITY *" value={facilityCity} onChange={setFacilityCity} placeholder="e.g. Colombo" icon="map-outline"  colors={Colors}/>
+                <Text style={s.sectionTitle}>{t("Your Facility")}</Text>
+                <Text style={s.sectionSub}>{t("Tell us about the sports ground you want to list.")}</Text>
+                {!!error && <View style={s.errorBox}><Ionicons name="alert-circle-outline" size={16} color={Colors.error} /><Text style={s.errorText}>{t(error)}</Text></View>}
+                <FieldInput label={t("FACILITY NAME *")} value={facilityName} onChange={setFacilityName} placeholder={t("e.g. Colombo Cricket Academy")} icon="business-outline"  colors={Colors}/>
+                <FieldInput label={t("FACILITY ADDRESS *")} value={facilityAddress} onChange={setFacilityAddress} placeholder={t("Street address of the ground")} icon="location-outline"  colors={Colors}/>
+                <FieldInput label={t("FACILITY CITY *")} value={facilityCity} onChange={setFacilityCity} placeholder={t("e.g. Colombo")} icon="map-outline"  colors={Colors}/>
 
                 <View style={s.field}>
                   <Text style={s.fieldLabel}>
@@ -433,15 +436,15 @@ export default function ApplyScreen() {
 
                 <View style={{ flexDirection: "row", gap: 12 }}>
                   <View style={{ flex: 1 }}>
-                    <FieldInput label="HOURLY RATE (RS.) *" value={proposedHourlyRate} onChange={setProposedHourlyRate} placeholder="2500" keyboardType="numeric" icon="cash-outline"  colors={Colors}/>
+                    <FieldInput label={t("HOURLY RATE (RS.) *")} value={proposedHourlyRate} onChange={setProposedHourlyRate} placeholder="2500" keyboardType="numeric" icon="cash-outline"  colors={Colors}/>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <FieldInput label="CAPACITY" value={capacity} onChange={setCapacity} placeholder="22" keyboardType="numeric" icon="people-outline"  colors={Colors}/>
+                    <FieldInput label={t("CAPACITY")} value={capacity} onChange={setCapacity} placeholder="22" keyboardType="numeric" icon="people-outline"  colors={Colors}/>
                   </View>
                 </View>
 
                 <View style={s.field}>
-                  <Text style={s.fieldLabel}>AMENITIES</Text>
+                  <Text style={s.fieldLabel}>{t("AMENITIES")}</Text>
                   <View style={s.tagsWrap}>
                     {AMENITIES.map((a) => {
                       const on = amenities.includes(a);
@@ -452,69 +455,69 @@ export default function ApplyScreen() {
                           onPress={() => toggleAmenity(a)}
                           activeOpacity={0.8}
                         >
-                          <Text style={[s.tagText, { color: on ? Colors.primary : Colors.text }]}>{a}</Text>
+                          <Text style={[s.tagText, { color: on ? Colors.primary : Colors.text }]}>{t(a)}</Text>
                         </TouchableOpacity>
                       );
                     })}
                   </View>
                 </View>
 
-                <FieldInput label="DESCRIPTION" value={facilityDescription} onChange={setFacilityDescription} placeholder="Describe your facility, rules, and what makes it special…" multiline  colors={Colors}/>
+                <FieldInput label={t("DESCRIPTION")} value={facilityDescription} onChange={setFacilityDescription} placeholder={t("Describe your facility, rules, and what makes it special…")} multiline  colors={Colors}/>
               </>
             )}
 
             {/* ── Step 3: Review ────────────────────────────────────────────── */}
             {step === 3 && (
               <>
-                <Text style={s.sectionTitle}>Review & Submit</Text>
-                <Text style={s.sectionSub}>Please review your details before submitting.</Text>
-                {!!error && <View style={s.errorBox}><Ionicons name="alert-circle-outline" size={16} color={Colors.error} /><Text style={s.errorText}>{error}</Text></View>}
+                <Text style={s.sectionTitle}>{t("Review & Submit")}</Text>
+                <Text style={s.sectionSub}>{t("Please review your details before submitting.")}</Text>
+                {!!error && <View style={s.errorBox}><Ionicons name="alert-circle-outline" size={16} color={Colors.error} /><Text style={s.errorText}>{t(error)}</Text></View>}
 
                 <View style={s.reviewSection}>
-                  <Text style={s.reviewLabel}>ACCOUNT</Text>
-                  <View style={s.reviewRow}><Text style={s.reviewKey}>Name</Text><Text style={s.reviewVal}>{name.trim()}</Text></View>
-                  <View style={s.reviewRow}><Text style={s.reviewKey}>Email</Text><Text style={s.reviewVal}>{email.trim()}</Text></View>
-                  <View style={s.reviewRow}><Text style={s.reviewKey}>Phone</Text><Text style={s.reviewVal}>{phone.trim()}</Text></View>
+                  <Text style={s.reviewLabel}>{t("ACCOUNT")}</Text>
+                  <View style={s.reviewRow}><Text style={s.reviewKey}>{t("Name")}</Text><Text style={s.reviewVal}>{name.trim()}</Text></View>
+                  <View style={s.reviewRow}><Text style={s.reviewKey}>{t("Email")}</Text><Text style={s.reviewVal}>{email.trim()}</Text></View>
+                  <View style={s.reviewRow}><Text style={s.reviewKey}>{t("Phone")}</Text><Text style={s.reviewVal}>{phone.trim()}</Text></View>
                 </View>
 
                 <View style={s.reviewSection}>
-                  <Text style={s.reviewLabel}>PERSONAL</Text>
-                  <View style={s.reviewRow}><Text style={s.reviewKey}>Address</Text><Text style={s.reviewVal}>{address.trim()}</Text></View>
-                  <View style={s.reviewRow}><Text style={s.reviewKey}>City</Text><Text style={s.reviewVal}>{city.trim()}</Text></View>
+                  <Text style={s.reviewLabel}>{t("PERSONAL")}</Text>
+                  <View style={s.reviewRow}><Text style={s.reviewKey}>{t("Address")}</Text><Text style={s.reviewVal}>{address.trim()}</Text></View>
+                  <View style={s.reviewRow}><Text style={s.reviewKey}>{t("City")}</Text><Text style={s.reviewVal}>{city.trim()}</Text></View>
                 </View>
 
                 <View style={s.reviewSection}>
-                  <Text style={s.reviewLabel}>FACILITY</Text>
-                  <View style={s.reviewRow}><Text style={s.reviewKey}>Name</Text><Text style={s.reviewVal}>{facilityName.trim()}</Text></View>
-                  <View style={s.reviewRow}><Text style={s.reviewKey}>Sports</Text>
+                  <Text style={s.reviewLabel}>{t("FACILITY")}</Text>
+                  <View style={s.reviewRow}><Text style={s.reviewKey}>{t("Name")}</Text><Text style={s.reviewVal}>{facilityName.trim()}</Text></View>
+                  <View style={s.reviewRow}><Text style={s.reviewKey}>{t("Sports")}</Text>
                     <Text style={s.reviewVal}>
                       {categoryIds.map((id) => categories.find((c) => c.id === id)?.name ?? id).join(", ") || "—"}
                     </Text>
                   </View>
-                  <View style={s.reviewRow}><Text style={s.reviewKey}>Location</Text><Text style={s.reviewVal}>{facilityAddress.trim()}, {facilityCity.trim()}</Text></View>
-                  <View style={s.reviewRow}><Text style={s.reviewKey}>Hourly Rate</Text><Text style={s.reviewVal}>Rs. {Number(proposedHourlyRate).toLocaleString()}</Text></View>
-                  {capacity && <View style={s.reviewRow}><Text style={s.reviewKey}>Capacity</Text><Text style={s.reviewVal}>{capacity} players</Text></View>}
-                  {amenities.length > 0 && <View style={s.reviewRow}><Text style={s.reviewKey}>Amenities</Text><Text style={s.reviewVal}>{amenities.join(", ")}</Text></View>}
+                  <View style={s.reviewRow}><Text style={s.reviewKey}>{t("Location")}</Text><Text style={s.reviewVal}>{facilityAddress.trim()}, {facilityCity.trim()}</Text></View>
+                  <View style={s.reviewRow}><Text style={s.reviewKey}>{t("Hourly Rate")}</Text><Text style={s.reviewVal}>Rs. {Number(proposedHourlyRate).toLocaleString()}</Text></View>
+                  {capacity && <View style={s.reviewRow}><Text style={s.reviewKey}>{t("Capacity")}</Text><Text style={s.reviewVal}>{capacity} players</Text></View>}
+                  {amenities.length > 0 && <View style={s.reviewRow}><Text style={s.reviewKey}>{t("Amenities")}</Text><Text style={s.reviewVal}>{amenities.join(", ")}</Text></View>}
                 </View>
 
                 <View style={s.disclaimer}>
                   <Text style={s.disclText}>
-                    After submission, our team will review your application within 1–3 business days. Once approved, you'll receive an email and can log in to the GoPlay app. Your facility listing will also need a separate review before going live.
+                    {t("After submission, our team will review your application within 1–3 business days. Once approved, you'll receive an email and can log in to the GoPlay app. Your facility listing will also need a separate review before going live.")}
                   </Text>
                 </View>
 
                 <View style={s.termsBox}>
-                  <Text style={s.termsTitle}>Terms & Conditions</Text>
+                  <Text style={s.termsTitle}>{t("Terms & Conditions")}</Text>
                   {[
-                    "GoPlay charges a platform commission on each booking made through the app. This is automatically deducted from customer payments at the time of booking.",
-                    "As a Ground Owner, you are responsible for maintaining your facility in good condition and honoring all confirmed bookings.",
-                    "You may manage your listings, set availability, add courts, and track earnings through the GoPlay Owner Dashboard.",
-                    "GoPlay may suspend or remove listings that violate platform guidelines or receive repeated complaints from users.",
-                    "All facility information you provide must be accurate. Misleading listings may result in account suspension.",
+                    t("GoPlay charges a platform commission on bookings made through GoPlay. Players pay you directly at the ground or by bank transfer."),
+                    t("As a Ground Owner, you are responsible for maintaining your facility in good condition and honoring all confirmed bookings."),
+                    t("You may manage your listings, set availability, add courts, and track earnings through the GoPlay Owner Dashboard."),
+                    t("GoPlay may suspend or remove listings that violate platform guidelines or receive repeated complaints from users."),
+                    t("All facility information you provide must be accurate. Misleading listings may result in account suspension."),
                   ].map((item, i) => (
                     <View key={i} style={s.termsBullet}>
                       <Text style={s.termsDot}>•</Text>
-                      <Text style={s.termsItem}>{item}</Text>
+                      <Text style={s.termsItem}>{t(item)}</Text>
                     </View>
                   ))}
                   <TouchableOpacity
@@ -526,7 +529,7 @@ export default function ApplyScreen() {
                       {agreedToTerms && <Ionicons name="checkmark" size={14} color="#fff" />}
                     </View>
                     <Text style={s.checkLabel}>
-                      I have read and agree to the Terms & Conditions above, including the platform commission policy.
+                      {t("I have read and agree to the Terms & Conditions above, including the platform commission policy.")}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -541,14 +544,14 @@ export default function ApplyScreen() {
             {step > 0 && (
               <TouchableOpacity style={s.backNavBtn} onPress={back}>
                 <Ionicons name="chevron-back" size={16} color="rgba(255,255,255,0.75)" />
-                <Text style={s.backNavText}>Back</Text>
+                <Text style={s.backNavText}>{t("Back")}</Text>
               </TouchableOpacity>
             )}
 
             {step < 3 ? (
               <TouchableOpacity style={[s.nextBtn, step === 0 && { flex: 1 }]} onPress={next} activeOpacity={0.88}>
                 <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={s.nextGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                  <Text style={s.nextText}>Continue</Text>
+                  <Text style={s.nextText}>{t("Continue")}</Text>
                   <Ionicons name="chevron-forward" size={17} color={Colors.white} />
                 </LinearGradient>
               </TouchableOpacity>
@@ -564,7 +567,7 @@ export default function ApplyScreen() {
                     ? <ActivityIndicator color={Colors.white} />
                     : <>
                         <Ionicons name="send-outline" size={17} color={Colors.white} />
-                        <Text style={s.nextText}>Submit Application</Text>
+                        <Text style={s.nextText}>{t("Submit Application")}</Text>
                       </>
                   }
                 </LinearGradient>

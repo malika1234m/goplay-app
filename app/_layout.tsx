@@ -8,6 +8,7 @@ import * as Application from "expo-application";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
+import { I18nProvider, useT } from "@/lib/i18n/I18nProvider";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import MaintenanceScreen from "@/components/ui/MaintenanceScreen";
@@ -34,6 +35,7 @@ interface AppConfig {
 
 function AuthGuard() {
   const { user, isLoading, pendingApp } = useAuth();
+  const { ready: langReady } = useT();
   const segments = useSegments();
   const router   = useRouter();
 
@@ -106,7 +108,7 @@ function AuthGuard() {
   }, [user, isLoading, segments, onboardingChecked, hasSeenOnboarding, pendingApp, configReady]);
 
   // Show loading while auth + config resolve
-  if (isLoading || !configReady || !onboardingChecked) {
+  if (isLoading || !configReady || !onboardingChecked || !langReady) {
     return <LoadingScreen />;
   }
 
@@ -149,13 +151,15 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-        <ErrorBoundary>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <AuthGuard />
-            </AuthProvider>
-          </QueryClientProvider>
-        </ErrorBoundary>
+        <I18nProvider>
+          <ErrorBoundary>
+            <QueryClientProvider client={queryClient}>
+              <AuthProvider>
+                <AuthGuard />
+              </AuthProvider>
+            </QueryClientProvider>
+          </ErrorBoundary>
+        </I18nProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

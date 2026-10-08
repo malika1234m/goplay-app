@@ -12,8 +12,11 @@ import { useKeyboardPadding } from "@/lib/keyboard";
 import { useOwnerProfile, useUpdateOwnerProfile } from "@/lib/queries/owner";
 import { api } from "@/lib/api";
 import LoadingScreen from "@/components/ui/LoadingScreen";
+import { useT } from "@/lib/i18n/I18nProvider";
+import LanguageSwitch from "@/components/ui/LanguageSwitch";
 
 export default function OwnerProfile() {
+  const { t } = useT();
   const Colors                       = useColors();
   const keyboardPad = useKeyboardPadding();
   const { logout }                   = useAuth();
@@ -120,38 +123,38 @@ export default function OwnerProfile() {
 
   function handleSave() {
     const trimName = name.trim();
-    if (trimName.length < 2)   return Alert.alert("Validation", "Name must be at least 2 characters.");
-    if (trimName.length > 50)  return Alert.alert("Validation", "Name must be under 50 characters.");
+    if (trimName.length < 2)   return Alert.alert(t("Validation"), t("Name must be at least 2 characters."));
+    if (trimName.length > 50)  return Alert.alert(t("Validation"), t("Name must be under 50 characters."));
     const trimPhone = phone.trim();
     if (trimPhone) {
       const cleaned = trimPhone.replace(/[\s\-().]/g, "");
       if (!/^(?:\+94|0)7[0-9]{8}$/.test(cleaned))
-        return Alert.alert("Validation", "Enter a valid Sri Lankan mobile number (e.g. 077 123 4567).");
+        return Alert.alert(t("Validation"), t("Enter a valid Sri Lankan mobile number (e.g. 077 123 4567)."));
     }
-    if (businessName.trim().length > 100) return Alert.alert("Validation", "Business name must be under 100 characters.");
-    if (city.trim().length > 50)          return Alert.alert("Validation", "City must be under 50 characters.");
+    if (businessName.trim().length > 100) return Alert.alert(t("Validation"), t("Business name must be under 100 characters."));
+    if (city.trim().length > 50)          return Alert.alert(t("Validation"), t("City must be under 50 characters."));
     save(
       { name: name.trim(), phone: phone.trim() || undefined, businessName: businessName.trim() || undefined, city: city.trim() || undefined },
       {
-        onSuccess: () => { setEditing(false); Alert.alert("Saved", "Profile updated."); },
-        onError:   (e) => Alert.alert("Error", e.message),
+        onSuccess: () => { setEditing(false); Alert.alert(t("Saved"), t("Profile updated.")); },
+        onError:   (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
 
   async function handleChangePassword() {
-    if (!currentPwd || !newPwd || !confirmPwd) return Alert.alert("Required", "All fields are required.");
-    if (newPwd.length < 8) return Alert.alert("Validation", "New password must be at least 8 characters.");
-    if (newPwd === currentPwd) return Alert.alert("Validation", "New password must be different from current password.");
-    if (newPwd !== confirmPwd) return Alert.alert("Validation", "New passwords do not match.");
+    if (!currentPwd || !newPwd || !confirmPwd) return Alert.alert(t("Required"), t("All fields are required."));
+    if (newPwd.length < 8) return Alert.alert(t("Validation"), t("New password must be at least 8 characters."));
+    if (newPwd === currentPwd) return Alert.alert(t("Validation"), t("New password must be different from current password."));
+    if (newPwd !== confirmPwd) return Alert.alert(t("Validation"), t("New passwords do not match."));
     setPwdLoading(true);
     try {
       await api.put("/api/ground-owner/force-change-password", { currentPassword: currentPwd, newPassword: newPwd, confirmPassword: confirmPwd });
       setPwdModal(false);
       setCurrentPwd(""); setNewPwd(""); setConfirmPwd("");
-      Alert.alert("Success", "Password changed successfully.");
+      Alert.alert(t("Success"), t("Password changed successfully."));
     } catch (err: unknown) {
-      Alert.alert("Error", err instanceof Error ? err.message : "Failed to change password.");
+      Alert.alert(t("Error"), err instanceof Error ? err.message : t("Failed to change password."));
     } finally {
       setPwdLoading(false);
     }
@@ -219,7 +222,7 @@ export default function OwnerProfile() {
           <Text style={s.userName}>{profile.user.name}</Text>
           <View style={s.rolePill}>
             <Ionicons name="shield-checkmark-outline" size={12} color="#bbf7d0" />
-            <Text style={s.roleText}>Ground Owner</Text>
+            <Text style={s.roleText}>{t("Ground Owner")}</Text>
           </View>
         </LinearGradient>
 
@@ -227,15 +230,15 @@ export default function OwnerProfile() {
         <View style={s.statsRow}>
           <View style={[s.statBox, { borderTopColor: Colors.primary }]}>
             <Text style={[s.statValue, { color: Colors.primary }]}>{profile.stats.activeGrounds}</Text>
-            <Text style={s.statLabel}>Active Grounds</Text>
+            <Text style={s.statLabel}>{t("Active Grounds")}</Text>
           </View>
           <View style={[s.statBox, { borderTopColor: Colors.info }]}>
             <Text style={[s.statValue, { color: Colors.info }]}>{profile.stats.totalBookings}</Text>
-            <Text style={s.statLabel}>Total Bookings</Text>
+            <Text style={s.statLabel}>{t("Total Bookings")}</Text>
           </View>
           <View style={[s.statBox, { borderTopColor: "#f59e0b" }]}>
             <Text style={[s.statValue, { color: "#f59e0b" }]}>{profile.stats.totalReviews}</Text>
-            <Text style={s.statLabel}>Reviews</Text>
+            <Text style={s.statLabel}>{t("Reviews")}</Text>
           </View>
         </View>
 
@@ -244,40 +247,40 @@ export default function OwnerProfile() {
           <View style={s.cardHeaderRow}>
             <View style={s.cardHeaderLeft}>
               <Ionicons name="person-outline" size={14} color={Colors.textMuted} />
-              <Text style={s.cardLabel}>PERSONAL INFO</Text>
+              <Text style={s.cardLabel}>{t("PERSONAL INFO")}</Text>
             </View>
             {!editing ? (
               <TouchableOpacity style={s.editBtn} onPress={() => setEditing(true)}>
                 <Ionicons name="pencil-outline" size={14} color={Colors.primary} />
-                <Text style={s.editLink}>Edit</Text>
+                <Text style={s.editLink}>{t("Edit")}</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity onPress={cancelEdit}>
-                <Text style={s.cancelLink}>Cancel</Text>
+                <Text style={s.cancelLink}>{t("Cancel")}</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {editing ? (
             <>
-              <Field label="NAME *"         value={name}         onChange={setName}         placeholder="Your full name"    icon="person-outline"   />
-              <Field label="PHONE"          value={phone}        onChange={setPhone}        placeholder="077 123 4567"      icon="call-outline"     keyboardType="phone-pad" />
-              <Field label="BUSINESS NAME"  value={businessName} onChange={setBusinessName} placeholder="GoPlay Sports Hub" icon="business-outline" />
-              <Field label="CITY"           value={city}         onChange={setCity}         placeholder="Colombo"           icon="location-outline" />
+              <Field label={t("NAME *")}         value={name}         onChange={setName}         placeholder={t("Your full name")}    icon="person-outline"   />
+              <Field label={t("PHONE")}          value={phone}        onChange={setPhone}        placeholder="077 123 4567"      icon="call-outline"     keyboardType="phone-pad" />
+              <Field label={t("BUSINESS NAME")}  value={businessName} onChange={setBusinessName} placeholder={t("GoPlay Sports Hub")} icon="business-outline" />
+              <Field label={t("CITY")}           value={city}         onChange={setCity}         placeholder={t("Colombo")}           icon="location-outline" />
               <TouchableOpacity style={[s.saveBtn, saving && s.saveBtnDisabled]} onPress={handleSave} disabled={saving}>
-                {saving ? <ActivityIndicator color={Colors.white} /> : <Text style={s.saveBtnText}>Save Changes</Text>}
+                {saving ? <ActivityIndicator color={Colors.white} /> : <Text style={s.saveBtnText}>{t("Save Changes")}</Text>}
               </TouchableOpacity>
             </>
           ) : (
             <>
-              <InfoRow icon="person-outline"   label="Name"          value={profile.user.name} />
-              <InfoRow icon="mail-outline"     label="Email"         value={profile.user.email} />
-              <InfoRow icon="call-outline"     label="Phone"         value={profile.user.phone ?? "—"} />
+              <InfoRow icon="person-outline"   label={t("Name")}          value={profile.user.name} />
+              <InfoRow icon="mail-outline"     label={t("Email")}         value={profile.user.email} />
+              <InfoRow icon="call-outline"     label={t("Phone")}         value={profile.user.phone ?? "—"} />
               {profile.user.groundOwnerProfile?.businessName && (
-                <InfoRow icon="business-outline"  label="Business Name" value={profile.user.groundOwnerProfile.businessName} />
+                <InfoRow icon="business-outline"  label={t("Business Name")} value={profile.user.groundOwnerProfile.businessName} />
               )}
               {profile.user.groundOwnerProfile?.city && (
-                <InfoRow icon="location-outline"  label="City"          value={profile.user.groundOwnerProfile.city} />
+                <InfoRow icon="location-outline"  label={t("City")}          value={profile.user.groundOwnerProfile.city} />
               )}
             </>
           )}
@@ -288,18 +291,28 @@ export default function OwnerProfile() {
           <View style={s.cardHeaderRow}>
             <View style={s.cardHeaderLeft}>
               <Ionicons name="settings-outline" size={14} color={Colors.textMuted} />
-              <Text style={s.cardLabel}>PREFERENCES</Text>
+              <Text style={s.cardLabel}>{t("PREFERENCES")}</Text>
             </View>
           </View>
           <View style={s.prefRow}>
             <View style={s.prefLeft}>
               <Ionicons name={isDark ? "moon" : "sunny-outline"} size={18} color={isDark ? "#818cf8" : "#d97706"} />
               <View>
-                <Text style={s.prefLabel}>Dark Mode</Text>
-                <Text style={s.prefSub}>{isDark ? "Enabled" : "System default"}</Text>
+                <Text style={s.prefLabel}>{t("Dark Mode")}</Text>
+                <Text style={s.prefSub}>{isDark ? t("Enabled") : t("System default")}</Text>
               </View>
             </View>
             <Switch value={isDark} onValueChange={toggleTheme} trackColor={{ false: Colors.border, true: Colors.primary }} thumbColor={Colors.white} />
+          </View>
+          <View style={[s.prefRow, { marginTop: 12 }]}>
+            <View style={s.prefLeft}>
+              <Ionicons name="language-outline" size={18} color={Colors.primary} />
+              <View>
+                <Text style={s.prefLabel}>{t("Language")}</Text>
+                <Text style={s.prefSub}>{t("Applies on this device")}</Text>
+              </View>
+            </View>
+            <LanguageSwitch />
           </View>
         </View>
 
@@ -308,15 +321,15 @@ export default function OwnerProfile() {
           <View style={s.cardHeaderRow}>
             <View style={s.cardHeaderLeft}>
               <Ionicons name="shield-outline" size={14} color={Colors.textMuted} />
-              <Text style={s.cardLabel}>SECURITY</Text>
+              <Text style={s.cardLabel}>{t("SECURITY")}</Text>
             </View>
           </View>
           <TouchableOpacity style={s.secRow} onPress={() => setPwdModal(true)} activeOpacity={0.7}>
             <View style={s.secLeft}>
               <Ionicons name="lock-closed-outline" size={18} color={Colors.textSecondary} />
               <View>
-                <Text style={s.secLabel}>Change Password</Text>
-                <Text style={s.secSub}>Update your account password</Text>
+                <Text style={s.secLabel}>{t("Change Password")}</Text>
+                <Text style={s.secSub}>{t("Update your account password")}</Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
@@ -326,7 +339,7 @@ export default function OwnerProfile() {
         {/* Sign out */}
         <TouchableOpacity style={s.logoutBtn} onPress={logout} activeOpacity={0.8}>
           <Ionicons name="log-out-outline" size={18} color={Colors.error} />
-          <Text style={s.logoutText}>Sign Out</Text>
+          <Text style={s.logoutText}>{t("Sign Out")}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -335,9 +348,9 @@ export default function OwnerProfile() {
         <View style={s.pwdOverlay}>
           <View style={[s.pwdSheet, keyboardPad > 0 && { paddingBottom: keyboardPad }]}>
             <View style={s.pwdHandle} />
-            <Text style={s.pwdTitle}>Change Password</Text>
+            <Text style={s.pwdTitle}>{t("Change Password")}</Text>
 
-            {(["Current Password", "New Password", "Confirm New Password"] as const).map((label, i) => {
+            {[t("Current Password"), t("New Password"), t("Confirm New Password")].map((label, i) => {
               const val     = [currentPwd, newPwd, confirmPwd][i];
               const set     = [setCurrentPwd, setNewPwd, setConfirmPwd][i];
               const show    = [showCurrent, showNew, showConfirm][i];
@@ -367,10 +380,10 @@ export default function OwnerProfile() {
 
             <View style={s.pwdActions}>
               <TouchableOpacity style={s.pwdCancel} onPress={() => { setPwdModal(false); setCurrentPwd(""); setNewPwd(""); setConfirmPwd(""); }}>
-                <Text style={s.pwdCancelText}>Cancel</Text>
+                <Text style={s.pwdCancelText}>{t("Cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[s.pwdSave, pwdLoading && { opacity: 0.6 }]} onPress={handleChangePassword} disabled={pwdLoading}>
-                {pwdLoading ? <ActivityIndicator color={Colors.white} size="small" /> : <Text style={s.pwdSaveText}>Update</Text>}
+                {pwdLoading ? <ActivityIndicator color={Colors.white} size="small" /> : <Text style={s.pwdSaveText}>{t("Update")}</Text>}
               </TouchableOpacity>
             </View>
           </View>

@@ -11,8 +11,10 @@ import { useAvailability, useSaveAvailability } from "@/lib/queries/groundManage
 import { useColors } from "@/lib/theme";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import type { AvailabilityDay } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAY_NAMES = [tk("Sunday"), tk("Monday"), tk("Tuesday"), tk("Wednesday"), tk("Thursday"), tk("Friday"), tk("Saturday")];
 
 const DEFAULT_SCHEDULE: AvailabilityDay[] = Array.from({ length: 7 }, (_, i) => ({
   dayOfWeek: i,
@@ -33,6 +35,7 @@ function dateToTime(d: Date): string {
 }
 
 export default function AvailabilityScreen() {
+  const { t } = useT();
   const Colors = useColors();
   const { id: facilityId }         = useLocalSearchParams<{ id: string }>();
   const { data, isLoading }        = useAvailability(facilityId);
@@ -101,8 +104,8 @@ export default function AvailabilityScreen() {
     save(
       { facilityId, schedule },
       {
-        onSuccess: () => Alert.alert("Saved", "Availability updated."),
-        onError:   (e) => Alert.alert("Error", e.message),
+        onSuccess: () => Alert.alert(t("Saved"), t("Availability updated.")),
+        onError:   (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
@@ -125,7 +128,7 @@ export default function AvailabilityScreen() {
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         <View style={s.hintCard}>
           <Ionicons name="information-circle-outline" size={16} color={Colors.info} />
-          <Text style={s.hintText}>Set your opening hours for each day of the week.</Text>
+          <Text style={s.hintText}>{t("Set your opening hours for each day of the week.")}</Text>
         </View>
 
         {schedule.map((day) => (
@@ -135,7 +138,7 @@ export default function AvailabilityScreen() {
               <View style={s.dayLeft}>
                 <View style={[s.dayDot, { backgroundColor: day.isOpen ? Colors.primary : Colors.border }]} />
                 <Text style={[s.dayName, !day.isOpen && s.dayNameClosed]}>
-                  {DAY_NAMES[day.dayOfWeek]}
+                  {t(DAY_NAMES[day.dayOfWeek])}
                 </Text>
               </View>
               <Switch
@@ -150,7 +153,7 @@ export default function AvailabilityScreen() {
             {day.isOpen ? (
               <View style={s.times}>
                 <TimeButton
-                  label="Opens"
+                  label={t("Opens")}
                   time={day.openTime}
                   onPress={() => setPicker({ dayIndex: day.dayOfWeek, field: "openTime" })}
                 />
@@ -158,14 +161,14 @@ export default function AvailabilityScreen() {
                   <Text style={s.dash}>–</Text>
                 </View>
                 <TimeButton
-                  label="Closes"
+                  label={t("Closes")}
                   time={day.closeTime}
                   onPress={() => setPicker({ dayIndex: day.dayOfWeek, field: "closeTime" })}
                 />
               </View>
             ) : (
               <View style={s.closedPill}>
-                <Text style={s.closed}>Closed</Text>
+                <Text style={s.closed}>{t("Closed")}</Text>
               </View>
             )}
           </View>
@@ -183,7 +186,7 @@ export default function AvailabilityScreen() {
             ) : (
               <>
                 <Ionicons name="checkmark-outline" size={20} color={Colors.white} />
-                <Text style={s.saveBtnText}>Save Availability</Text>
+                <Text style={s.saveBtnText}>{t("Save Availability")}</Text>
               </>
             )}
           </LinearGradient>
@@ -206,7 +209,7 @@ export default function AvailabilityScreen() {
       )}
       {picker && Platform.OS === "ios" && (
         <TouchableOpacity style={s.pickerDismiss} onPress={() => setPicker(null)}>
-          <Text style={s.pickerDone}>Done</Text>
+          <Text style={s.pickerDone}>{t("Done")}</Text>
         </TouchableOpacity>
       )}
     </View>

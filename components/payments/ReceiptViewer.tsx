@@ -1,6 +1,7 @@
 import { Modal, View, Image, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Linking, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 export const isPdfReceipt = (url: string) => /\.pdf($|\?)/i.test(url) || url.includes("/raw/upload/");
 
@@ -12,6 +13,7 @@ export function openReceipt(url: string, showImage: (url: string) => void) {
 
 /** Full-screen receipt image (pinch to zoom on iOS). */
 export default function ReceiptViewer({ url, onClose }: { url: string | null; onClose: () => void }) {
+  const { t } = useT();
   const insets = useSafeAreaInsets();
   const { width, height } = Dimensions.get("window");
   return (
@@ -27,13 +29,13 @@ export default function ReceiptViewer({ url, onClose }: { url: string | null; on
         >
           {url && <Image source={{ uri: url }} style={{ width, height: height * 0.85 }} resizeMode="contain" />}
         </ScrollView>
-        <TouchableOpacity style={[s.close, { top: insets.top + 12 }]} onPress={onClose} accessibilityLabel="Close receipt">
+        <TouchableOpacity style={[s.close, { top: insets.top + 12 }]} onPress={onClose} accessibilityLabel={t("Close receipt")}>
           <Ionicons name="close" size={26} color="#fff" />
         </TouchableOpacity>
         {url && (
           <TouchableOpacity style={[s.open, { bottom: insets.bottom + 20 }]} onPress={() => Linking.openURL(url)}>
             <Ionicons name="open-outline" size={16} color="#fff" />
-            <Text style={s.openText}>Open in browser</Text>
+            <Text style={s.openText}>{t("Open in browser")}</Text>
           </TouchableOpacity>
         )}
       </View>

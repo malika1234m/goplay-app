@@ -10,8 +10,11 @@ import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/lib/auth";
 import { useColors } from "@/lib/theme";
+import { useT } from "@/lib/i18n/I18nProvider";
+import LanguageSwitch from "@/components/ui/LanguageSwitch";
 
 export default function LoginScreen() {
+  const { t } = useT();
   const keyboardPad = useKeyboardPadding();
   const Colors = useColors();
   const router  = useRouter();
@@ -28,6 +31,7 @@ export default function LoginScreen() {
     flex: { flex: 1 },
     bg:   { flex: 1 },
 
+    langCorner:   { position: "absolute", top: 52, right: 20, zIndex: 2 },
     brandSection: { alignItems: "center", paddingTop: 64, paddingBottom: 28 },
     logoWrap:     { width: 80, height: 80, borderRadius: 40, overflow: "hidden", marginBottom: 10 },
     logo:         { width: 80, height: 80 },
@@ -81,12 +85,12 @@ export default function LoginScreen() {
 
   async function handleLogin() {
     const trimEmail = email.trim().toLowerCase();
-    if (!trimEmail || !password) { setError("Enter your email and password."); return; }
+    if (!trimEmail || !password) { setError(t("Enter your email and password.")); return; }
     setLoading(true); setError("");
     try {
       await login(trimEmail, password);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Login failed. Try again.");
+      setError(err instanceof Error ? err.message : t("Login failed. Try again."));
     } finally {
       setLoading(false);
     }
@@ -98,6 +102,8 @@ export default function LoginScreen() {
 
       <LinearGradient colors={[Colors.navy, Colors.navyDark, "#0a1628"]} style={s.bg}>
 
+        <View style={s.langCorner}><LanguageSwitch onDark /></View>
+
         {/* Top branding */}
         <View style={s.brandSection}>
           <View style={s.logoWrap}>
@@ -106,7 +112,7 @@ export default function LoginScreen() {
           <Text style={s.appName}>GoPlay</Text>
           <View style={s.taglineRow}>
             <View style={s.taglineDot} />
-            <Text style={s.tagline}>Facility Management</Text>
+            <Text style={s.tagline}>{t("Facility Management")}</Text>
             <View style={s.taglineDot} />
           </View>
         </View>
@@ -120,13 +126,13 @@ export default function LoginScreen() {
           <View style={s.card}>
             <View style={s.cardAccent} />
             <View style={s.cardInner}>
-              <Text style={s.cardTitle}>Welcome back</Text>
-              <Text style={s.cardSub}>Sign in to your facility account</Text>
+              <Text style={s.cardTitle}>{t("Welcome back")}</Text>
+              <Text style={s.cardSub}>{t("Sign in to your facility account")}</Text>
 
               {!!error && (
                 <View style={s.errorBox}>
                   <Ionicons name="alert-circle-outline" size={16} color={Colors.error} />
-                  <Text style={s.errorText}>{error}</Text>
+                  <Text style={s.errorText}>{t(error)}</Text>
                 </View>
               )}
 
@@ -135,7 +141,7 @@ export default function LoginScreen() {
                   <Ionicons name="mail-outline" size={18} color={focused === "email" ? Colors.primary : Colors.textMuted} style={s.inputIcon} />
                   <TextInput
                     style={s.input}
-                    placeholder="Email address"
+                    placeholder={t("Email address")}
                     placeholderTextColor={Colors.textMuted}
                     value={email}
                     onChangeText={setEmail}
@@ -153,7 +159,7 @@ export default function LoginScreen() {
                   <Ionicons name="lock-closed-outline" size={18} color={focused === "password" ? Colors.primary : Colors.textMuted} style={s.inputIcon} />
                   <TextInput
                     style={[s.input, { marginRight: 8 }]}
-                    placeholder="Password"
+                    placeholder={t("Password")}
                     placeholderTextColor={Colors.textMuted}
                     value={password}
                     onChangeText={setPassword}
@@ -173,7 +179,7 @@ export default function LoginScreen() {
               </View>
 
               <TouchableOpacity style={s.forgotRow} onPress={() => router.push("/(auth)/forgot-password")} activeOpacity={0.7}>
-                <Text style={s.forgotText}>Forgot password?</Text>
+                <Text style={s.forgotText}>{t("Forgot password?")}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={handleLogin} disabled={loading} activeOpacity={0.88}>
@@ -185,21 +191,21 @@ export default function LoginScreen() {
                   {loading
                     ? <ActivityIndicator color={Colors.white} />
                     : <>
-                        <Text style={s.btnText}>Sign In</Text>
+                        <Text style={s.btnText}>{t("Sign In")}</Text>
                         <Ionicons name="arrow-forward" size={18} color={Colors.white} style={s.btnIcon} />
                       </>
                   }
                 </LinearGradient>
               </TouchableOpacity>
 
-              <Text style={s.note}>For facility owners and workers only</Text>
+              <Text style={s.note}>{t("For facility owners and workers only")}</Text>
             </View>
           </View>
 
           {/* New to GoPlay */}
           <View style={s.divider}>
             <View style={s.dividerLine} />
-            <Text style={s.dividerText}>New to GoPlay?</Text>
+            <Text style={s.dividerText}>{t("New to GoPlay?")}</Text>
             <View style={s.dividerLine} />
           </View>
 
@@ -208,10 +214,10 @@ export default function LoginScreen() {
               <View style={s.applyIconBox}>
                 <Ionicons name="business-outline" size={19} color={Colors.primary} />
               </View>
-              <Text style={s.applyTitle}>Become a Ground Owner</Text>
+              <Text style={s.applyTitle}>{t("Become a Ground Owner")}</Text>
             </View>
             <Text style={s.applySub}>
-              List your sports facility on GoPlay and start receiving bookings. Apply in minutes — our team reviews within 1–3 business days.
+              {t("List your sports facility on GoPlay and start receiving bookings. Apply in minutes — our team reviews within 1–3 business days.")}
             </Text>
             <TouchableOpacity onPress={() => router.push("/(auth)/apply")} activeOpacity={0.88}>
               <LinearGradient
@@ -220,14 +226,14 @@ export default function LoginScreen() {
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               >
                 <Ionicons name="add-circle-outline" size={18} color={Colors.white} />
-                <Text style={s.applyBtnText}>Apply Now</Text>
+                <Text style={s.applyBtnText}>{t("Apply Now")}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
 
           <View style={s.bottomHint}>
             <Ionicons name="globe-outline" size={13} color="rgba(255,255,255,0.4)" />
-            <Text style={s.bottomHintText}>Players book at goplay.lk</Text>
+            <Text style={s.bottomHintText}>{t("Players book at goplay.lk")}</Text>
           </View>
         </ScrollView>
       </LinearGradient>

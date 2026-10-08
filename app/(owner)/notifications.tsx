@@ -7,19 +7,22 @@ import {
 } from "@/lib/queries/notifications";
 import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonList } from "@/components/ui/Skeleton";
+import { useT } from "@/lib/i18n/I18nProvider";
+import type { T } from "@/lib/i18n/core";
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, t: T): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1)  return "Just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 1)  return t("just now");
+  if (m < 60) return t("{n} min ago", { n: m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
+  if (h < 24) return t("{n} h ago", { n: h });
   const d = Math.floor(h / 24);
-  return `${d}d ago`;
+  return t("{n} d ago", { n: d });
 }
 
 export default function NotificationsScreen() {
+  const { t } = useT();
   const Colors = useColors();
   const { data, isLoading, refetch, isRefetching } = useNotifications();
   const { mutate: markRead }  = useMarkNotificationRead();
@@ -59,9 +62,9 @@ export default function NotificationsScreen() {
   });
 
   function handleClear() {
-    Alert.alert("Clear Read", "Remove all read notifications?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Clear", style: "destructive", onPress: () => clearRead() },
+    Alert.alert(t("Clear Read"), t("Remove all read notifications?"), [
+      { text: t("Cancel"), style: "cancel" },
+      { text: t("Clear"), style: "destructive", onPress: () => clearRead() },
     ]);
   }
 
@@ -69,14 +72,14 @@ export default function NotificationsScreen() {
     <SafeAreaView style={s.safe} edges={["top"]}>
       <View style={s.header}>
         <View>
-          <Text style={s.title}>Notifications</Text>
+          <Text style={s.title}>{t("Notifications")}</Text>
           {unreadCount > 0 && <Text style={s.sub}>{unreadCount} unread</Text>}
         </View>
         <View style={s.headerActions}>
           {unreadCount > 0 && (
             <TouchableOpacity style={s.actionBtn} onPress={() => markAll()} activeOpacity={0.75}>
               <Ionicons name="checkmark-done-outline" size={16} color={Colors.primary} />
-              <Text style={s.actionText}>Mark all read</Text>
+              <Text style={s.actionText}>{t("Mark all read")}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={s.actionBtn} onPress={handleClear} activeOpacity={0.75}>
@@ -110,7 +113,7 @@ export default function NotificationsScreen() {
                     <Text style={[s.itemTitle, !item.isRead && s.itemTitleUnread]} numberOfLines={1}>
                       {item.title}
                     </Text>
-                    <Text style={s.itemTime}>{timeAgo(item.createdAt)}</Text>
+                    <Text style={s.itemTime}>{timeAgo(item.createdAt, t)}</Text>
                   </View>
                   <Text style={s.itemMsg} numberOfLines={2}>{item.message}</Text>
                 </View>
@@ -119,7 +122,7 @@ export default function NotificationsScreen() {
             );
           }}
           ListEmptyComponent={
-            <EmptyState icon="notifications-outline" title="No notifications" sub="You're all caught up!" />
+            <EmptyState icon="notifications-outline" title={t("No notifications")} sub={t("You're all caught up!")} />
           }
         />
       )}

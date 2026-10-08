@@ -3,9 +3,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
 import { useColors } from "@/lib/theme";
 import { useInbox } from "@/lib/queries/payments";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 /** Nudge into the Needs action inbox (receipts, cash requests, refunds). */
 export default function ReceiptsBanner({ href }: { href: Href }) {
+  const { t, tn } = useT();
   const Colors = useColors();
   const router = useRouter();
   const { data } = useInbox();
@@ -24,8 +26,8 @@ export default function ReceiptsBanner({ href }: { href: Href }) {
     <TouchableOpacity style={s.banner} onPress={() => router.push(href)} activeOpacity={0.85}>
       <View style={s.icon}><Ionicons name="receipt-outline" size={18} color={Colors.warning} /></View>
       <View style={{ flex: 1 }}>
-        <Text style={s.title}>{count} thing{count > 1 ? "s" : ""} need{count > 1 ? "" : "s"} you</Text>
-        <Text style={s.sub}>{receipts > 0 ? `${receipts} receipt${receipts > 1 ? "s" : ""} to check · ` : ""}Open Needs action</Text>
+        <Text style={s.title}>{tn(count, "{n} thing needs you", "{n} things need you")}</Text>
+        <Text style={s.sub}>{receipts > 0 ? `${tn(receipts, "{n} receipt to check", "{n} receipts to check")} · ` : ""}{t("Open Needs action")}</Text>
       </View>
       <Ionicons name="chevron-forward" size={18} color={Colors.warning} />
     </TouchableOpacity>

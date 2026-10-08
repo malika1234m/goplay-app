@@ -17,6 +17,8 @@ import ReceiptsBanner from "@/components/payments/ReceiptsBanner";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { formatLKR } from "@/lib/utils";
 import type { TodayBooking } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { formatDay } from "@/lib/i18n/core";
 
 function useCountUp(target: number, duration = 1200) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -34,6 +36,7 @@ function useCountUp(target: number, duration = 1200) {
 }
 
 export default function OwnerDashboard() {
+  const { t, locale } = useT();
   const Colors = useColors();
   const { user } = useAuth();
   const router   = useRouter();
@@ -65,7 +68,7 @@ export default function OwnerDashboard() {
   const animBookings = useCountUp(stats?.totalBookings ?? 0);
 
   const now  = new Date();
-  const date = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const date = formatDay(now, locale, { weekday: "long", month: "long", day: "numeric" });
 
   const progress = goal > 0 ? Math.min((stats?.monthlyRevenue ?? 0) / goal, 1) : 0;
   const progressAnim = useRef(new Animated.Value(0)).current;
@@ -76,7 +79,7 @@ export default function OwnerDashboard() {
   function saveGoal() {
     const val = parseInt(goalInput.replace(/[^0-9]/g, ""), 10);
     if (!val || val < 1000) {
-      Alert.alert("Invalid", "Enter a goal of at least LKR 1,000");
+      Alert.alert(t("Invalid"), t("Enter a goal of at least LKR 1,000"));
       return;
     }
     setGoal(val);
@@ -166,7 +169,7 @@ export default function OwnerDashboard() {
         {/* Revenue card */}
         <View style={s.revenueCard}>
           <View style={s.revenueLeft}>
-            <Text style={s.revenueLabel}>Monthly Revenue</Text>
+            <Text style={s.revenueLabel}>{t("Monthly Revenue")}</Text>
             <Text style={s.revenueValue}>
               {isLoading ? "—" : `LKR ${animRevenue.toLocaleString()}`}
             </Text>
@@ -180,11 +183,11 @@ export default function OwnerDashboard() {
           <View style={s.revenueRight}>
             <View style={s.revenueStatMini}>
               <Text style={s.revMiniVal}>{isLoading ? "—" : String(animBookings)}</Text>
-              <Text style={s.revMiniLabel}>Bookings</Text>
+              <Text style={s.revMiniLabel}>{t("Bookings")}</Text>
             </View>
             <View style={[s.revenueStatMini, s.revMiniBorder]}>
               <Text style={s.revMiniVal}>{isLoading ? "—" : stats?.avgRating ? String(stats.avgRating) : "—"}</Text>
-              <Text style={s.revMiniLabel}>Avg Rating</Text>
+              <Text style={s.revMiniLabel}>{t("Avg Rating")}</Text>
             </View>
           </View>
         </View>
@@ -194,7 +197,7 @@ export default function OwnerDashboard() {
           <TouchableOpacity style={s.goalRow} onPress={() => { setGoalInput(String(goal || "")); setEditGoal(true); }} activeOpacity={0.8}>
             <View style={s.goalInfo}>
               <Text style={s.goalLabel}>
-                {goal > 0 ? `Goal: LKR ${goal.toLocaleString()}` : "Set a monthly revenue goal"}
+                {goal > 0 ? t("Goal: Rs. {amount}", { amount: goal.toLocaleString() }) : t("Set a monthly revenue goal")}
               </Text>
               {goal > 0 && (
                 <Text style={s.goalPct}>{Math.round(progress * 100)}%</Text>
@@ -218,7 +221,7 @@ export default function OwnerDashboard() {
               autoFocus
             />
             <TouchableOpacity style={s.goalSaveBtn} onPress={saveGoal}>
-              <Text style={s.goalSaveTxt}>Set</Text>
+              <Text style={s.goalSaveTxt}>{t("Set")}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.goalCancelBtn} onPress={() => setEditGoal(false)}>
               <Ionicons name="close" size={16} color="rgba(255,255,255,0.7)" />
@@ -240,28 +243,28 @@ export default function OwnerDashboard() {
         <View style={s.quickRow}>
           <TouchableOpacity style={s.quickBtn} onPress={() => router.push("/(owner)/bookings")} activeOpacity={0.75}>
             <View style={s.quickIconWrap}><Ionicons name="calendar-outline" size={20} color={Colors.primary} /></View>
-            <Text style={s.quickLabel}>Bookings</Text>
+            <Text style={s.quickLabel}>{t("Bookings")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={s.quickBtn} onPress={() => router.push("/(owner)/grounds")} activeOpacity={0.75}>
             <View style={s.quickIconWrap}><Ionicons name="business-outline" size={20} color={Colors.primary} /></View>
-            <Text style={s.quickLabel}>Grounds</Text>
+            <Text style={s.quickLabel}>{t("Grounds")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={s.quickBtn} onPress={() => router.push("/(owner)/earnings")} activeOpacity={0.75}>
             <View style={s.quickIconWrap}><Ionicons name="cash-outline" size={20} color={Colors.primary} /></View>
-            <Text style={s.quickLabel}>Earnings</Text>
+            <Text style={s.quickLabel}>{t("Earnings")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={s.quickBtn} onPress={() => router.push("/(owner)/reviews")} activeOpacity={0.75}>
             <View style={s.quickIconWrap}><Ionicons name="star-outline" size={20} color={Colors.primary} /></View>
-            <Text style={s.quickLabel}>Reviews</Text>
+            <Text style={s.quickLabel}>{t("Reviews")}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Today's bookings */}
         <View style={s.section}>
           <View style={s.sectionRow}>
-            <Text style={s.sectionTitle}>Today's Schedule</Text>
+            <Text style={s.sectionTitle}>{t("Today's Schedule")}</Text>
             <TouchableOpacity style={s.seeAllBtn} onPress={() => router.push("/(owner)/bookings")}>
-              <Text style={s.seeAllText}>View all</Text>
+              <Text style={s.seeAllText}>{t("View all")}</Text>
               <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
             </TouchableOpacity>
           </View>
@@ -273,10 +276,10 @@ export default function OwnerDashboard() {
               <View style={s.emptyIconWrap}>
                 <Ionicons name="calendar-outline" size={28} color={Colors.primary} />
               </View>
-              <Text style={s.emptyTitle}>All clear today</Text>
-              <Text style={s.emptyText}>No bookings scheduled for today</Text>
+              <Text style={s.emptyTitle}>{t("All clear today")}</Text>
+              <Text style={s.emptyText}>{t("No bookings scheduled for today")}</Text>
               <TouchableOpacity style={s.emptyAction} onPress={() => router.push("/(owner)/grounds")}>
-                <Text style={s.emptyActionText}>Manage Grounds</Text>
+                <Text style={s.emptyActionText}>{t("Manage Grounds")}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -308,7 +311,7 @@ export default function OwnerDashboard() {
                       <Text style={s.todayAmount}>{formatLKR(b.totalAmount)}</Text>
                       <View style={s.paymentPill}>
                         <Ionicons name={b.paymentMethod === "ONLINE" ? "card-outline" : "cash-outline"} size={11} color={Colors.textMuted} />
-                        <Text style={s.paymentText}>{b.paymentMethod === "ONLINE" ? "Online" : "Cash"}</Text>
+                        <Text style={s.paymentText}>{b.paymentMethod === "ONLINE" ? t("Online") : t("Cash")}</Text>
                       </View>
                     </View>
                   </View>

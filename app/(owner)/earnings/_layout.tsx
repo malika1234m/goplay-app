@@ -1,7 +1,9 @@
 import { Stack } from "expo-router";
 import { useColors } from "@/lib/theme";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 export default function EarningsStack() {
+  const { t } = useT();
   const Colors = useColors();
 
   return (
@@ -14,8 +16,8 @@ export default function EarningsStack() {
         headerBackTitle:     "Back",
       }}
     >
-      <Stack.Screen name="index"        options={{ title: "Earnings"     }} />
-      <Stack.Screen name="bank-details" options={{ title: "Payment accounts" }} />
+      <Stack.Screen name="index"        options={{ title: t("Earnings")     }} />
+      <Stack.Screen name="bank-details" options={{ title: t("Payment accounts") }} />
     </Stack>
   );
 }

@@ -10,8 +10,10 @@ import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useColors } from "@/lib/theme";
 import { BASE_URL } from "@/lib/api";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 export default function ForgotPasswordScreen() {
+  const { t } = useT();
   const keyboardPad = useKeyboardPadding();
   const Colors = useColors();
   const router  = useRouter();
@@ -62,7 +64,7 @@ export default function ForgotPasswordScreen() {
 
   async function handleSubmit() {
     const trimEmail = email.trim().toLowerCase();
-    if (!trimEmail) { setError("Enter your email address."); return; }
+    if (!trimEmail) { setError(t("Enter your email address.")); return; }
     setLoading(true); setError("");
     try {
       const res = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
@@ -72,11 +74,11 @@ export default function ForgotPasswordScreen() {
       });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        throw new Error(json.error ?? "Something went wrong.");
+        throw new Error(json.error ?? t("Something went wrong."));
       }
       setSent(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to send reset email.");
+      setError(err instanceof Error ? err.message : t("Failed to send reset email."));
     } finally {
       setLoading(false);
     }
@@ -92,7 +94,7 @@ export default function ForgotPasswordScreen() {
             <View style={s.iconCircle}>
               <Ionicons name="lock-open-outline" size={32} color={Colors.white} />
             </View>
-            <Text style={s.brandTitle}>Reset Password</Text>
+            <Text style={s.brandTitle}>{t("Reset Password")}</Text>
             <Text style={s.brandSub}>Enter your account email and{"\n"}we'll send you a reset link</Text>
           </View>
 
@@ -102,9 +104,9 @@ export default function ForgotPasswordScreen() {
                 <View style={s.successIcon}>
                   <Ionicons name="mail-open-outline" size={32} color={Colors.primary} />
                 </View>
-                <Text style={s.successTitle}>Check your email</Text>
+                <Text style={s.successTitle}>{t("Check your email")}</Text>
                 <Text style={s.successSub}>
-                  If an account exists for this address, a password reset link has been sent. It expires in 1 hour.
+                  {t("If an account exists for this address, a password reset link has been sent. It expires in 1 hour.")}
                 </Text>
                 <View style={s.successEmail}>
                   <Text style={s.successEmailText}>{email.trim().toLowerCase()}</Text>
@@ -117,28 +119,28 @@ export default function ForgotPasswordScreen() {
                     end={{ x: 1, y: 0 }}
                   >
                     <Ionicons name="arrow-back" size={18} color={Colors.white} />
-                    <Text style={s.btnText}>Back to Sign In</Text>
+                    <Text style={s.btnText}>{t("Back to Sign In")}</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </>
             ) : (
               <>
-                <Text style={s.cardTitle}>Forgot your password?</Text>
-                <Text style={s.cardSub}>Enter the email address associated with your GoPlay account.</Text>
+                <Text style={s.cardTitle}>{t("Forgot your password?")}</Text>
+                <Text style={s.cardSub}>{t("Enter the email address associated with your GoPlay account.")}</Text>
 
                 {!!error && (
                   <View style={s.errorBox}>
                     <Ionicons name="alert-circle-outline" size={16} color={Colors.error} />
-                    <Text style={s.errorText}>{error}</Text>
+                    <Text style={s.errorText}>{t(error)}</Text>
                   </View>
                 )}
 
-                <Text style={s.fieldLabel}>Email Address</Text>
+                <Text style={s.fieldLabel}>{t("Email Address")}</Text>
                 <View style={[s.inputWrap, focused && s.inputWrapFocused]}>
                   <Ionicons name="mail-outline" size={18} color={focused ? Colors.primary : Colors.textMuted} style={s.inputIcon} />
                   <TextInput
                     style={s.input}
-                    placeholder="you@example.com"
+                    placeholder={t("you@example.com")}
                     placeholderTextColor={Colors.textMuted}
                     value={email}
                     onChangeText={setEmail}
@@ -163,7 +165,7 @@ export default function ForgotPasswordScreen() {
                     {loading
                       ? <ActivityIndicator color={Colors.white} />
                       : <>
-                          <Text style={s.btnText}>Send Reset Link</Text>
+                          <Text style={s.btnText}>{t("Send Reset Link")}</Text>
                           <Ionicons name="arrow-forward" size={18} color={Colors.white} />
                         </>
                     }
@@ -171,7 +173,7 @@ export default function ForgotPasswordScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity style={s.backRow} onPress={() => router.back()} activeOpacity={0.7}>
-                  <Text style={s.backText}>← Back to Sign In</Text>
+                  <Text style={s.backText}>{t("← Back to Sign In")}</Text>
                 </TouchableOpacity>
               </>
             )}

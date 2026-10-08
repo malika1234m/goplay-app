@@ -11,9 +11,11 @@ import Badge from "@/components/ui/Badge";
 import EmptyState from "@/components/ui/EmptyState";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { formatLKR, isoDate, addDays } from "@/lib/utils";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
-const DAY_LABELS   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DAY_LABELS   = [tk("Sun"),tk("Mon"),tk("Tue"),tk("Wed"),tk("Thu"),tk("Fri"),tk("Sat")];
+const MONTH_LABELS = [tk("Jan"),tk("Feb"),tk("Mar"),tk("Apr"),tk("May"),tk("Jun"),tk("Jul"),tk("Aug"),tk("Sep"),tk("Oct"),tk("Nov"),tk("Dec")];
 
 function buildWeek() {
   const today = new Date();
@@ -21,6 +23,7 @@ function buildWeek() {
 }
 
 export default function WorkerSchedule() {
+  const { t } = useT();
   const Colors = useColors();
   const router = useRouter();
   const days   = useMemo(() => buildWeek(), []);
@@ -79,7 +82,7 @@ export default function WorkerSchedule() {
   return (
     <SafeAreaView style={s.safe} edges={["top"]}>
       <View style={s.headerBar}>
-        <Text style={s.headerTitle}>Schedule</Text>
+        <Text style={s.headerTitle}>{t("Schedule")}</Text>
       </View>
 
       {/* Day picker */}
@@ -97,7 +100,7 @@ export default function WorkerSchedule() {
                 activeOpacity={0.7}
               >
                 <Text style={[s.dayLabel, isSelected && s.dayLabelActive]}>
-                  {isToday ? "TODAY" : DAY_LABELS[d.getDay()]}
+                  {isToday ? t("TODAY") : t(DAY_LABELS[d.getDay()])}
                 </Text>
                 <Text style={[s.dayNum, isSelected && s.dayNumActive]}>{d.getDate()}</Text>
               </TouchableOpacity>
@@ -115,8 +118,8 @@ export default function WorkerSchedule() {
             <View style={s.dateLabelLeft}>
               <Ionicons name="calendar-outline" size={14} color={Colors.textMuted} />
               <Text style={s.dateLabel}>
-                {isToday ? "Today — " : ""}
-                {DAY_LABELS[d.getDay()]}, {d.getDate()} {MONTH_LABELS[d.getMonth()]}
+                {isToday ? t("Today — ") : ""}
+                {t(DAY_LABELS[d.getDay()])}, {d.getDate()} {t(MONTH_LABELS[d.getMonth()])}
               </Text>
             </View>
           );
@@ -158,7 +161,7 @@ export default function WorkerSchedule() {
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <EmptyState icon="time-outline" title="No bookings" sub="Nothing scheduled for this day." />
+          <EmptyState icon="time-outline" title={t("No bookings")} sub={t("Nothing scheduled for this day.")} />
         }
       />
     </SafeAreaView>

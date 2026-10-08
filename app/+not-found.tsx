@@ -3,8 +3,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { useColors } from "@/lib/theme";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 export default function NotFound() {
+  const { t } = useT();
   const Colors = useColors();
 
   const s = StyleSheet.create({
@@ -29,13 +31,13 @@ export default function NotFound() {
       </View>
 
       <Text style={s.code}>404</Text>
-      <Text style={s.title}>Screen not found</Text>
-      <Text style={s.sub}>The page you're looking for doesn't exist or has been moved.</Text>
+      <Text style={s.title}>{t("Screen not found")}</Text>
+      <Text style={s.sub}>{t("The page you're looking for doesn't exist or has been moved.")}</Text>
 
       <Link href="/" asChild>
         <TouchableOpacity style={s.btn} activeOpacity={0.85}>
           <Ionicons name="home-outline" size={18} color={Colors.navy} />
-          <Text style={s.btnText}>Go Home</Text>
+          <Text style={s.btnText}>{t("Go Home")}</Text>
         </TouchableOpacity>
       </Link>
     </LinearGradient>

@@ -9,17 +9,20 @@ import { useEarnings, useEarningsTrends, type EarningsRange } from "@/lib/querie
 import { useColors } from "@/lib/theme";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { formatLKR } from "@/lib/utils";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
 const RANGES: { key: EarningsRange; label: string }[] = [
-  { key: "month", label: "This Month" },
-  { key: "30d",   label: "30 Days"    },
-  { key: "90d",   label: "90 Days"    },
-  { key: "all",   label: "All Time"   },
+  { key: "month", label: tk("This Month") },
+  { key: "30d",   label: tk("30 Days")    },
+  { key: "90d",   label: tk("90 Days")    },
+  { key: "all",   label: tk("All Time")   },
 ];
 
 const CHART_H = 100;
 
 export default function EarningsScreen() {
+  const { t } = useT();
   const Colors = useColors();
   const router = useRouter();
   const [range,      setRange]      = useState<EarningsRange>("month");
@@ -117,10 +120,10 @@ export default function EarningsScreen() {
 
   function PayBadge({ method, confirmed }: { method: string; confirmed: boolean }) {
     if (method === "ONLINE")
-      return <View style={[s.badge, { backgroundColor: "#dbeafe" }]}><Text style={[s.badgeText, { color: "#1d4ed8" }]}>Card</Text></View>;
+      return <View style={[s.badge, { backgroundColor: "#dbeafe" }]}><Text style={[s.badgeText, { color: "#1d4ed8" }]}>{t("Card")}</Text></View>;
     if (confirmed)
-      return <View style={[s.badge, { backgroundColor: "#dcfce7" }]}><Text style={[s.badgeText, { color: "#14532d" }]}>Cash ✓</Text></View>;
-    return <View style={[s.badge, { backgroundColor: "#fef3c7" }]}><Text style={[s.badgeText, { color: "#92400e" }]}>Pending</Text></View>;
+      return <View style={[s.badge, { backgroundColor: "#dcfce7" }]}><Text style={[s.badgeText, { color: "#14532d" }]}>{t("Cash ✓")}</Text></View>;
+    return <View style={[s.badge, { backgroundColor: "#fef3c7" }]}><Text style={[s.badgeText, { color: "#92400e" }]}>{t("Pending")}</Text></View>;
   }
 
   function EarningsChart({ labels, revenue }: { labels: string[]; revenue: number[] }) {
@@ -170,7 +173,7 @@ export default function EarningsScreen() {
             onPress={() => setRange(r.key)}
             activeOpacity={0.7}
           >
-            <Text style={[s.chipText, range === r.key && s.chipTextActive]}>{r.label}</Text>
+            <Text style={[s.chipText, range === r.key && s.chipTextActive]}>{t(r.label)}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -182,23 +185,23 @@ export default function EarningsScreen() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <Text style={s.heroLabel}>Net Earnings</Text>
+        <Text style={s.heroLabel}>{t("Net Earnings")}</Text>
         <Text style={s.heroAmount}>{formatLKR(s_?.totalNet ?? 0)}</Text>
 
         <View style={s.heroStats}>
           <View style={s.heroStat}>
             <Text style={s.heroStatVal}>{formatLKR(s_?.totalGross ?? 0)}</Text>
-            <Text style={s.heroStatLabel}>Gross</Text>
+            <Text style={s.heroStatLabel}>{t("Gross")}</Text>
           </View>
           <View style={s.heroStatDivider} />
           <View style={s.heroStat}>
             <Text style={s.heroStatVal}>−{formatLKR(s_?.totalFee ?? 0)}</Text>
-            <Text style={s.heroStatLabel}>Platform fee</Text>
+            <Text style={s.heroStatLabel}>{t("Platform fee")}</Text>
           </View>
           <View style={s.heroStatDivider} />
           <View style={s.heroStat}>
             <Text style={s.heroStatVal}>{s_?.totalCount ?? 0}</Text>
-            <Text style={s.heroStatLabel}>Sessions</Text>
+            <Text style={s.heroStatLabel}>{t("Sessions")}</Text>
           </View>
         </View>
 
@@ -231,8 +234,8 @@ export default function EarningsScreen() {
             <Ionicons name="receipt-outline" size={20} color={Colors.primary} />
           </View>
           <View>
-            <Text style={s.payTitle}>Payments</Text>
-            <Text style={s.paySub}>Review transfer receipts · refunds due</Text>
+            <Text style={s.payTitle}>{t("Payments")}</Text>
+            <Text style={s.paySub}>{t("Review transfer receipts · refunds due")}</Text>
           </View>
         </View>
         <Ionicons name="chevron-forward" size={18} color={Colors.primary} />
@@ -247,8 +250,8 @@ export default function EarningsScreen() {
             <Ionicons name="business-outline" size={20} color={Colors.primary} />
           </View>
           <View>
-            <Text style={s.payTitle}>Payment Details</Text>
-            <Text style={s.paySub}>Bank account players pay online to</Text>
+            <Text style={s.payTitle}>{t("Payment Details")}</Text>
+            <Text style={s.paySub}>{t("Bank account players pay online to")}</Text>
           </View>
         </View>
         <Ionicons name="chevron-forward" size={18} color={Colors.primary} />
@@ -257,7 +260,7 @@ export default function EarningsScreen() {
       {/* ── Facility breakdown ── */}
       {facs.length > 0 && (
         <View style={s.section}>
-          <Text style={s.sectionLabel}>By facility</Text>
+          <Text style={s.sectionLabel}>{t("By facility")}</Text>
           {facs.map((f, i) => {
             const pct      = (s_?.totalNet ?? 0) > 0 ? Math.round((f.net / s_!.totalNet) * 100) : 0;
             const color    = FAC_COLORS[i % FAC_COLORS.length];
@@ -299,10 +302,10 @@ export default function EarningsScreen() {
                 {expanded && (
                   <View style={s.bookingList}>
                     <View style={s.bookingListHeader}>
-                      <Text style={[s.col1, s.colHead]}>Booking</Text>
-                      <Text style={[s.colAmt, s.colHead]}>Gross</Text>
-                      <Text style={[s.colAmt, s.colHead]}>Fee</Text>
-                      <Text style={[s.colAmt, s.colHead]}>Net</Text>
+                      <Text style={[s.col1, s.colHead]}>{t("Booking")}</Text>
+                      <Text style={[s.colAmt, s.colHead]}>{t("Gross")}</Text>
+                      <Text style={[s.colAmt, s.colHead]}>{t("Fee")}</Text>
+                      <Text style={[s.colAmt, s.colHead]}>{t("Net")}</Text>
                     </View>
 
                     {(f.earnings ?? []).map((e) => {
@@ -317,7 +320,7 @@ export default function EarningsScreen() {
                               <Text style={s.playerName} numberOfLines={1}>{playerName}</Text>
                               {isWalkIn && (
                                 <View style={s.walkInBadge}>
-                                  <Text style={s.walkInBadgeText}>Walk-in</Text>
+                                  <Text style={s.walkInBadgeText}>{t("Walk-in")}</Text>
                                 </View>
                               )}
                               <PayBadge method={e.paymentMethod} confirmed={e.cashConfirmed} />
@@ -338,7 +341,7 @@ export default function EarningsScreen() {
                     })}
 
                     <View style={s.facFooter}>
-                      <Text style={[s.col1, s.footerLabel]}>Total</Text>
+                      <Text style={[s.col1, s.footerLabel]}>{t("Total")}</Text>
                       <Text style={[s.colAmt, s.footerGross]}>{formatLKR(f.gross)}</Text>
                       <Text style={[s.colAmt, s.footerFee]}>−{formatLKR(f.fee)}</Text>
                       <Text style={[s.colAmt, s.footerNet]}>{formatLKR(f.net)}</Text>

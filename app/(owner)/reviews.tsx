@@ -12,14 +12,16 @@ import LoadingScreen from "@/components/ui/LoadingScreen";
 import EmptyState from "@/components/ui/EmptyState";
 import { formatDate } from "@/lib/utils";
 import type { Review, ReviewStats } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
 type StarFilter = 0 | 1 | 2 | 3 | 4 | 5;
 type SortKey   = "newest" | "highest" | "lowest";
 
 const SORTS: { key: SortKey; label: string; icon: string }[] = [
-  { key: "newest",  label: "Newest",  icon: "time-outline"        },
-  { key: "highest", label: "Top",     icon: "arrow-up-outline"    },
-  { key: "lowest",  label: "Lowest",  icon: "arrow-down-outline"  },
+  { key: "newest",  label: tk("Newest"),  icon: "time-outline"        },
+  { key: "highest", label: tk("Top"),     icon: "arrow-up-outline"    },
+  { key: "lowest",  label: tk("Lowest"),  icon: "arrow-down-outline"  },
 ];
 
 const AVATAR_COLORS = [
@@ -55,6 +57,7 @@ function Stars({ rating, size }: { rating: number; size: number }) {
 }
 
 export default function ReviewsScreen() {
+  const { t, tn } = useT();
   const Colors = useColors();
   const keyboardPad = useKeyboardPadding();
   const [star, setStar] = useState<StarFilter>(0);
@@ -169,18 +172,18 @@ export default function ReviewsScreen() {
       { id: reportModal.id, reason: reportReason.trim() || undefined },
       {
         onSuccess: () => { setReportModal(null); setReportReason(""); },
-        onError:   (e) => Alert.alert("Error", e.message),
+        onError:   (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
 
   function handleUnreport(review: Review) {
-    Alert.alert("Remove Flag", "Remove the flag from this review?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("Remove Flag"), t("Remove the flag from this review?"), [
+      { text: t("Cancel"), style: "cancel" },
       {
-        text: "Remove Flag", style: "default",
+        text: t("Remove Flag"), style: "default",
         onPress: () =>
-          unreport(review.id, { onError: (e) => Alert.alert("Error", e.message) }),
+          unreport(review.id, { onError: (e) => Alert.alert(t("Error"), e.message) }),
       },
     ]);
   }
@@ -215,7 +218,7 @@ export default function ReviewsScreen() {
             <Ionicons name="calendar-outline" size={14} color="#0891b2" />
             <View>
               <Text style={[s.statPillVal, { color: "#0891b2" }]}>{stats.thisWeek}</Text>
-              <Text style={[s.statPillLabel, { color: "#0891b2" + "cc" }]}>This week</Text>
+              <Text style={[s.statPillLabel, { color: "#0891b2" + "cc" }]}>{t("This week")}</Text>
             </View>
           </View>
           {stats.reported > 0 && (
@@ -223,7 +226,7 @@ export default function ReviewsScreen() {
               <Ionicons name="flag-outline" size={14} color={Colors.error} />
               <View>
                 <Text style={[s.statPillVal, { color: Colors.error }]}>{stats.reported}</Text>
-                <Text style={[s.statPillLabel, { color: Colors.error + "cc" }]}>Flagged</Text>
+                <Text style={[s.statPillLabel, { color: Colors.error + "cc" }]}>{t("Flagged")}</Text>
               </View>
             </View>
           )}
@@ -232,7 +235,7 @@ export default function ReviewsScreen() {
               <Ionicons name="star-outline" size={14} color="#f59e0b" />
               <View>
                 <Text style={[s.statPillVal, { color: "#f59e0b" }]}>{stats.avgRating?.toFixed(1) ?? "—"}</Text>
-                <Text style={[s.statPillLabel, { color: "#f59e0b" + "cc" }]}>Avg rating</Text>
+                <Text style={[s.statPillLabel, { color: "#f59e0b" + "cc" }]}>{t("Avg rating")}</Text>
               </View>
             </View>
           )}
@@ -248,7 +251,7 @@ export default function ReviewsScreen() {
       {/* Header */}
       <View style={s.header}>
         <View>
-          <Text style={s.headerTitle}>Reviews</Text>
+          <Text style={s.headerTitle}>{t("Reviews")}</Text>
           {stats && stats.total > 0 && (
             <Text style={s.headerSub}>{stats.total} total · {stats.avgRating?.toFixed(1) ?? "—"} avg</Text>
           )}
@@ -276,7 +279,7 @@ export default function ReviewsScreen() {
 
             {/* Filters */}
             <View style={s.filterCard}>
-              <Text style={s.filterLabel}>Sort by</Text>
+              <Text style={s.filterLabel}>{t("Sort by")}</Text>
               <View style={s.sortRow}>
                 {SORTS.map((item) => (
                   <TouchableOpacity
@@ -291,20 +294,20 @@ export default function ReviewsScreen() {
                       color={sort === item.key ? Colors.white : Colors.textMuted}
                     />
                     <Text style={[s.sortChipText, sort === item.key && s.sortChipTextActive]}>
-                      {item.label}
+                      {t(item.label)}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <Text style={[s.filterLabel, { marginTop: 12 }]}>Filter by stars</Text>
+              <Text style={[s.filterLabel, { marginTop: 12 }]}>{t("Filter by stars")}</Text>
               <View style={s.starRow}>
                 <TouchableOpacity
                   style={[s.starChip, star === 0 && s.starChipActive]}
                   onPress={() => setStar(0)}
                   activeOpacity={0.7}
                 >
-                  <Text style={[s.starChipText, star === 0 && s.starChipTextActive]}>All</Text>
+                  <Text style={[s.starChipText, star === 0 && s.starChipTextActive]}>{t("All")}</Text>
                 </TouchableOpacity>
                 {([5, 4, 3, 2, 1] as StarFilter[]).map((n) => (
                   <TouchableOpacity
@@ -326,8 +329,9 @@ export default function ReviewsScreen() {
 
             {reviews.length > 0 && (
               <Text style={s.countText}>
-                Showing {data?.filteredTotal ?? reviews.length} review{(data?.filteredTotal ?? 0) !== 1 ? "s" : ""}
-                {star > 0 ? ` with ${star} star${star > 1 ? "s" : ""}` : ""}
+                {star > 0
+                  ? t("Showing {n} reviews with {stars} stars", { n: data?.filteredTotal ?? reviews.length, stars: star })
+                  : tn(data?.filteredTotal ?? reviews.length, "Showing {n} review", "Showing {n} reviews")}
               </Text>
             )}
           </>
@@ -359,7 +363,7 @@ export default function ReviewsScreen() {
               {item.reviewText ? (
                 <Text style={s.reviewText}>{item.reviewText}</Text>
               ) : (
-                <Text style={s.noText}>No written comment</Text>
+                <Text style={s.noText}>{t("No written comment")}</Text>
               )}
               {item.reported && (
                 <View style={s.flaggedRow}>
@@ -373,12 +377,12 @@ export default function ReviewsScreen() {
                 {item.reported ? (
                   <TouchableOpacity style={s.unflagBtn} onPress={() => handleUnreport(item)} disabled={unreporting} activeOpacity={0.75}>
                     <Ionicons name="flag" size={13} color={Colors.primary} />
-                    <Text style={s.unflagText}>{unreporting ? "Removing…" : "Remove Flag"}</Text>
+                    <Text style={s.unflagText}>{unreporting ? t("Removing…") : t("Remove Flag")}</Text>
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity style={s.reportBtn} onPress={() => { setReportModal(item); setReportReason(""); }} activeOpacity={0.75}>
                     <Ionicons name="flag-outline" size={13} color={Colors.textMuted} />
-                    <Text style={s.reportText}>Flag</Text>
+                    <Text style={s.reportText}>{t("Flag")}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -388,10 +392,10 @@ export default function ReviewsScreen() {
         ListEmptyComponent={
           <EmptyState
             icon="star-outline"
-            title="No reviews"
+            title={t("No reviews")}
             sub={star > 0
-              ? `No ${star}-star reviews found.`
-              : "Reviews from players will appear here after completed sessions."}
+              ? t("No {n}-star reviews found.", { n: star })
+              : t("Reviews from players will appear here after completed sessions.")}
           />
         }
       />
@@ -411,17 +415,17 @@ export default function ReviewsScreen() {
                 <Ionicons name="flag" size={18} color={Colors.error} />
               </View>
               <View>
-                <Text style={s.sheetTitle}>Flag Review</Text>
-                <Text style={s.sheetSub}>Report to admin for guideline violations</Text>
+                <Text style={s.sheetTitle}>{t("Flag Review")}</Text>
+                <Text style={s.sheetSub}>{t("Report to admin for guideline violations")}</Text>
               </View>
             </View>
 
-            <Text style={s.fieldLabel}>REASON (OPTIONAL)</Text>
+            <Text style={s.fieldLabel}>{t("REASON (OPTIONAL)")}</Text>
             <TextInput
               style={s.input}
               value={reportReason}
               onChangeText={setReportReason}
-              placeholder="e.g. Offensive language, not a real booking…"
+              placeholder={t("e.g. Offensive language, not a real booking…")}
               placeholderTextColor={Colors.textMuted}
               multiline
               numberOfLines={3}
@@ -433,7 +437,7 @@ export default function ReviewsScreen() {
 
             <View style={s.sheetActions}>
               <TouchableOpacity style={s.cancelBtn} onPress={() => setReportModal(null)}>
-                <Text style={s.cancelText}>Cancel</Text>
+                <Text style={s.cancelText}>{t("Cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.flagBtn, reporting && s.flagBtnBusy]}
@@ -444,7 +448,7 @@ export default function ReviewsScreen() {
                   ? <ActivityIndicator color={Colors.white} size="small" />
                   : <>
                       <Ionicons name="flag" size={15} color={Colors.white} />
-                      <Text style={s.flagBtnText}>Flag Review</Text>
+                      <Text style={s.flagBtnText}>{t("Flag Review")}</Text>
                     </>
                 }
               </TouchableOpacity>

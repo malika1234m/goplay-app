@@ -14,16 +14,19 @@ import { useAuth } from "@/lib/auth";
 import { BASE_URL } from "@/lib/api";
 import { useColors } from "@/lib/theme";
 import * as SecureStore from "expo-secure-store";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk } from "@/lib/i18n/core";
 
 type FieldKey = "current" | "next" | "confirm";
 
 const FIELDS: { key: FieldKey; label: string; placeholder: string; icon: "lock-closed-outline" | "lock-open-outline" | "checkmark-circle-outline" }[] = [
-  { key: "current", label: "Current Password",     placeholder: "••••••••", icon: "lock-closed-outline"   },
-  { key: "next",    label: "New Password",          placeholder: "••••••••", icon: "lock-open-outline"     },
-  { key: "confirm", label: "Confirm New Password",  placeholder: "••••••••", icon: "checkmark-circle-outline" },
+  { key: "current", label: tk("Current Password"),     placeholder: "••••••••", icon: "lock-closed-outline"   },
+  { key: "next",    label: tk("New Password"),          placeholder: "••••••••", icon: "lock-open-outline"     },
+  { key: "confirm", label: tk("Confirm New Password"),  placeholder: "••••••••", icon: "checkmark-circle-outline" },
 ];
 
 export default function ChangePasswordScreen() {
+  const { t } = useT();
   const keyboardPad = useKeyboardPadding();
   const Colors = useColors();
   const router = useRouter();
@@ -88,19 +91,19 @@ export default function ChangePasswordScreen() {
 
   async function handleSubmit() {
     if (!values.current || !values.next || !values.confirm) {
-      setError("All fields are required.");
+      setError(t("All fields are required."));
       return;
     }
     if (values.next.length < 8) {
-      setError("New password must be at least 8 characters.");
+      setError(t("New password must be at least 8 characters."));
       return;
     }
     if (values.next === values.current) {
-      setError("New password must be different from your current password.");
+      setError(t("New password must be different from your current password."));
       return;
     }
     if (values.next !== values.confirm) {
-      setError("Passwords do not match.");
+      setError(t("Passwords do not match."));
       return;
     }
 
@@ -126,12 +129,12 @@ export default function ChangePasswordScreen() {
         return;
       }
       if (!res.ok) {
-        setError((data as any)?.error ?? "Failed to update password.");
+        setError((data as any)?.error ?? t("Failed to update password."));
         return;
       }
       await signOut();
     } catch {
-      setError("Network error — check your connection.");
+      setError(t("Network error — check your connection."));
     } finally {
       setLoading(false);
     }
@@ -148,10 +151,10 @@ export default function ChangePasswordScreen() {
         {/* Fixed header — always visible above keyboard */}
         <SafeAreaView edges={["top"]}>
           <View style={s.header}>
-            <Text style={s.headerTitle}>Security Update</Text>
+            <Text style={s.headerTitle}>{t("Security Update")}</Text>
             <TouchableOpacity style={s.signOutBtn} onPress={signOut} activeOpacity={0.75}>
               <Ionicons name="log-out-outline" size={15} color="rgba(255,255,255,0.75)" />
-              <Text style={s.signOutText}>Sign out</Text>
+              <Text style={s.signOutText}>{t("Sign out")}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -163,32 +166,32 @@ export default function ChangePasswordScreen() {
             <View style={s.iconCircle}>
               <Ionicons name="shield-checkmark-outline" size={36} color={Colors.white} />
             </View>
-            <Text style={s.brandTitle}>Security Update</Text>
-            <Text style={s.brandSub}>Update required before you continue</Text>
+            <Text style={s.brandTitle}>{t("Security Update")}</Text>
+            <Text style={s.brandSub}>{t("Update required before you continue")}</Text>
           </View>
 
           {/* Card */}
           <View style={s.card}>
             <View style={s.badge}>
               <Ionicons name="warning-outline" size={13} color={Colors.warning} />
-              <Text style={s.badgeText}>Action required</Text>
+              <Text style={s.badgeText}>{t("Action required")}</Text>
             </View>
-            <Text style={s.cardTitle}>Change your password</Text>
+            <Text style={s.cardTitle}>{t("Change your password")}</Text>
             <Text style={s.cardSub}>
-              Your account requires a password change before you can continue.
+              {t("Your account requires a password change before you can continue.")}
             </Text>
 
             {!!error && (
               <View style={s.errorBox}>
                 <Ionicons name="alert-circle-outline" size={16} color={Colors.error} />
-                <Text style={s.errorText}>{error}</Text>
+                <Text style={s.errorText}>{t(error)}</Text>
               </View>
             )}
 
             <View style={s.fieldGroup}>
               {FIELDS.map(({ key, label, placeholder, icon }) => (
                 <View key={key}>
-                  <Text style={s.fieldLabel}>{label}</Text>
+                  <Text style={s.fieldLabel}>{t(label)}</Text>
                   <View style={[s.inputWrap, focused === key && s.inputWrapFocused]}>
                     <Ionicons
                       name={icon}
@@ -236,7 +239,7 @@ export default function ChangePasswordScreen() {
                 {loading
                   ? <ActivityIndicator color={Colors.white} />
                   : <>
-                      <Text style={s.btnText}>Update Password</Text>
+                      <Text style={s.btnText}>{t("Update Password")}</Text>
                       <Ionicons name="arrow-forward" size={18} color={Colors.white} />
                     </>
                 }

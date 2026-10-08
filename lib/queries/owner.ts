@@ -121,6 +121,7 @@ export function useCreateGround() {
       amenities?:   string[];
       categoryIds:  string[];
       images?:      string[];
+      paymentOptions?: "ON_ARRIVAL_ONLY" | "ONLINE_ONLY" | "BOTH";
     }) => api.post("/api/ground-owner/grounds", body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["owner", "grounds"] });

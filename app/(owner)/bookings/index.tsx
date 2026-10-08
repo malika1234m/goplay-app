@@ -17,6 +17,8 @@ import ReceiptsBanner from "@/components/payments/ReceiptsBanner";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { isoDate } from "@/lib/utils";
 import type { BookingStatus } from "@/types";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { tk, formatDay } from "@/lib/i18n/core";
 
 type ListItem =
   | { type: "header"; title: string; subtitle: string; color: string }
@@ -29,14 +31,15 @@ const STATUS_PRIORITY: Record<string, number> = {
 type Filter = "ALL" | "PENDING" | "CONFIRMED" | "COMPLETED" | "HISTORY";
 
 const FILTERS: { key: Filter; label: string }[] = [
-  { key: "ALL",       label: "Active"    },
-  { key: "PENDING",   label: "Pending"   },
-  { key: "CONFIRMED", label: "Confirmed" },
-  { key: "COMPLETED", label: "Completed" },
-  { key: "HISTORY",   label: "History"   },
+  { key: "ALL",       label: tk("Active")    },
+  { key: "PENDING",   label: tk("Pending")   },
+  { key: "CONFIRMED", label: tk("Confirmed") },
+  { key: "COMPLETED", label: tk("Completed") },
+  { key: "HISTORY",   label: tk("History")   },
 ];
 
 export default function BookingsList() {
+  const { t, tn } = useT();
   const Colors = useColors();
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("ALL");
@@ -86,8 +89,8 @@ export default function BookingsList() {
     if (needsAction.length > 0) {
       items.push({
         type:     "header",
-        title:    "Needs Action",
-        subtitle: `${needsAction.filter(b => b.status === "PENDING").length} to confirm · ${needsAction.filter(b => b.status === "CONFIRMED").length} to complete`,
+        title:    t("Needs Action"),
+        subtitle: t("{a} to confirm · {b} to complete", { a: needsAction.filter(b => b.status === "PENDING").length, b: needsAction.filter(b => b.status === "CONFIRMED").length }),
         color:    "#f59e0b",
       });
       needsAction.forEach((booking) => items.push({ type: "booking", booking }));
@@ -97,7 +100,7 @@ export default function BookingsList() {
       items.push({
         type:     "header",
         title:    "Done",
-        subtitle: `${done.length} booking${done.length !== 1 ? "s" : ""}`,
+        subtitle: tn(done.length, "{n} booking", "{n} bookings"),
         color:    "#64748b",
       });
       done.forEach((booking) => items.push({ type: "booking", booking }));
@@ -144,7 +147,7 @@ export default function BookingsList() {
             onPress={() => setFilter(item.key)}
             activeOpacity={0.7}
           >
-            <Text style={[s.chipText, filter === item.key && s.chipTextActive]}>{item.label}</Text>
+            <Text style={[s.chipText, filter === item.key && s.chipTextActive]}>{t(item.label)}</Text>
           </TouchableOpacity>
         )}
       />
@@ -171,7 +174,7 @@ export default function BookingsList() {
         <Ionicons name="search-outline" size={16} color={Colors.textMuted} style={s.searchIcon} />
         <TextInput
           style={s.searchInput}
-          placeholder="Search by player or court…"
+          placeholder={t("Search by player or court…")}
           placeholderTextColor={Colors.textMuted}
           value={search}
           onChangeText={setSearch}
@@ -196,8 +199,8 @@ export default function BookingsList() {
             return (
               <View style={[s.sectionHeader, { borderLeftColor: item.color }]}>
                 <View style={{ flex: 1 }}>
-                  <Text style={[s.sectionTitle, { color: item.color }]}>{item.title}</Text>
-                  <Text style={s.sectionSub}>{item.subtitle}</Text>
+                  <Text style={[s.sectionTitle, { color: item.color }]}>{t(item.title)}</Text>
+                  <Text style={s.sectionSub}>{t(item.subtitle)}</Text>
                 </View>
               </View>
             );
@@ -211,14 +214,14 @@ export default function BookingsList() {
         }}
         ListEmptyComponent={
           error ? (
-            <EmptyState icon="alert-circle-outline" title="Failed to load bookings" sub="Pull down to retry." />
+            <EmptyState icon="alert-circle-outline" title={t("Failed to load bookings")} sub={t("Pull down to retry.")} />
           ) : search.trim() ? (
-            <EmptyState icon="search-outline" title="No results" sub={`No bookings match "${search}".`} />
+            <EmptyState icon="search-outline" title={t("No results")} sub={`No bookings match "${search}".`} />
           ) : (
             <EmptyState
               icon="calendar-outline"
-              title="No bookings found"
-              sub={filter === "HISTORY" ? "No past bookings in this range." : "Bookings will appear here once created."}
+              title={t("No bookings found")}
+              sub={filter === "HISTORY" ? t("No past bookings in this range.") : t("Bookings will appear here once created.")}
             />
           )
         }
@@ -228,8 +231,9 @@ export default function BookingsList() {
       {bookingCount > 0 && (
         <View style={s.footer}>
           <Text style={s.footerText}>
-            {bookingCount} booking{bookingCount !== 1 ? "s" : ""}
-            {data?.total && data.total > bookingCount ? ` of ${data.total}` : ""}
+            {data?.total && data.total > bookingCount
+              ? t("Showing {shown} of {total} bookings", { shown: bookingCount, total: data.total })
+              : tn(bookingCount, "{n} booking", "{n} bookings")}
           </Text>
         </View>
       )}
@@ -241,7 +245,7 @@ export default function BookingsList() {
         activeOpacity={0.85}
       >
         <Ionicons name="add" size={26} color={Colors.white} />
-        <Text style={s.fabText}>Walk-in</Text>
+        <Text style={s.fabText}>{t("Walk-in")}</Text>
       </TouchableOpacity>
 
       <WalkInModal visible={walkInOpen} onClose={() => setWalkInOpen(false)} Colors={Colors} />
@@ -260,6 +264,7 @@ function dateToTime(d: Date) {
 
 // ─── Walk-in modal ───────────────────────────────────────────────────────────
 function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: () => void; Colors: ReturnType<typeof useColors> }) {
+  const { t, locale } = useT();
   const insets = useSafeAreaInsets();
   const { data: groundsData } = useOwnerGrounds();
   const grounds = groundsData?.grounds?.filter((g) => g.status === "ACTIVE") ?? [];
@@ -299,14 +304,14 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
 
   function handleSubmit() {
     const name = playerName.trim();
-    if (!name)              return Alert.alert("Required", "Player name is required.");
-    if (name.length < 2)    return Alert.alert("Required", "Player name must be at least 2 characters.");
-    if (!resolvedFacilityId) return Alert.alert("Required", "Please select a facility.");
-    if (courts.length > 0 && !courtId) return Alert.alert("Required", "Please select a court.");
+    if (!name)              return Alert.alert(t("Required"), t("Player name is required."));
+    if (name.length < 2)    return Alert.alert(t("Required"), t("Player name must be at least 2 characters."));
+    if (!resolvedFacilityId) return Alert.alert(t("Required"), t("Please select a facility."));
+    if (courts.length > 0 && !courtId) return Alert.alert(t("Required"), t("Please select a court."));
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const selected = new Date(bookingDate); selected.setHours(0, 0, 0, 0);
-    if (selected < today)   return Alert.alert("Invalid Date", "Booking date cannot be in the past.");
-    if (startTime >= endTime) return Alert.alert("Invalid Time", "End time must be after start time.");
+    if (selected < today)   return Alert.alert(t("Invalid Date"), t("Booking date cannot be in the past."));
+    if (startTime >= endTime) return Alert.alert(t("Invalid Time"), t("End time must be after start time."));
 
     createWalkIn(
       {
@@ -322,10 +327,10 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
       {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          Alert.alert("Booked!", `Walk-in for ${name} confirmed.`);
+          Alert.alert(t("Booked!"), `Walk-in for ${name} confirmed.`);
           handleClose();
         },
-        onError: (e) => Alert.alert("Error", e.message),
+        onError: (e) => Alert.alert(t("Error"), e.message),
       }
     );
   }
@@ -366,7 +371,7 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
           <TouchableOpacity onPress={handleClose} hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }} style={{ padding: 4 }}>
             <Ionicons name="close" size={24} color={Colors.textMuted} />
           </TouchableOpacity>
-          <Text style={w.title}>Walk-in / Phone Booking</Text>
+          <Text style={w.title}>{t("Walk-in / Phone Booking")}</Text>
           <View style={{ width: 22 }} />
         </View>
 
@@ -377,7 +382,7 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
             <View style={w.field}>
               <View style={w.fieldLabel}>
                 <Ionicons name="business-outline" size={13} color={Colors.textMuted} />
-                <Text style={w.fieldLabelText}>Facility</Text>
+                <Text style={w.fieldLabelText}>{t("Facility")}</Text>
               </View>
               <View style={w.segmentRow}>
                 {grounds.map((g) => (
@@ -401,16 +406,16 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
             <View style={w.field}>
               <View style={w.fieldLabel}>
                 <Ionicons name="grid-outline" size={13} color={Colors.textMuted} />
-                <Text style={w.fieldLabelText}>Court (optional)</Text>
+                <Text style={w.fieldLabelText}>{t("Court (optional)")}</Text>
               </View>
               {courtsLoading ? (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6 }}>
                   <ActivityIndicator size="small" color={Colors.primary} />
-                  <Text style={{ fontSize: 13, color: Colors.textMuted }}>Loading courts…</Text>
+                  <Text style={{ fontSize: 13, color: Colors.textMuted }}>{t("Loading courts…")}</Text>
                 </View>
               ) : courts.length === 0 ? (
                 <Text style={{ fontSize: 13, color: Colors.textMuted, fontStyle: "italic" }}>
-                  No courts set up — booking will apply to the whole facility.
+                  {t("No courts set up — booking will apply to the whole facility.")}
                 </Text>
               ) : (
                 <View style={w.segmentRow}>
@@ -433,11 +438,11 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
           <View style={w.field}>
             <View style={w.fieldLabel}>
               <Ionicons name="calendar-outline" size={13} color={Colors.textMuted} />
-              <Text style={w.fieldLabelText}>Date</Text>
+              <Text style={w.fieldLabelText}>{t("Date")}</Text>
             </View>
             <TouchableOpacity style={w.pickerBtn} onPress={() => setShowDate(true)} activeOpacity={0.8}>
               <Text style={w.pickerBtnText}>
-                {bookingDate.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
+                {formatDay(bookingDate, locale, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
               </Text>
               <Ionicons name="chevron-down" size={16} color={Colors.textMuted} />
             </TouchableOpacity>
@@ -458,7 +463,7 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
               <View style={w.field}>
                 <View style={w.fieldLabel}>
                   <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
-                  <Text style={w.fieldLabelText}>Start Time</Text>
+                  <Text style={w.fieldLabelText}>{t("Start Time")}</Text>
                 </View>
                 <TouchableOpacity style={w.pickerBtn} onPress={() => setShowStart(true)} activeOpacity={0.8}>
                   <Text style={w.pickerBtnText}>{startTime}</Text>
@@ -479,7 +484,7 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
               <View style={w.field}>
                 <View style={w.fieldLabel}>
                   <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
-                  <Text style={w.fieldLabelText}>End Time</Text>
+                  <Text style={w.fieldLabelText}>{t("End Time")}</Text>
                 </View>
                 <TouchableOpacity style={w.pickerBtn} onPress={() => setShowEnd(true)} activeOpacity={0.8}>
                   <Text style={w.pickerBtnText}>{endTime}</Text>
@@ -506,7 +511,7 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
                   const [sh, sm] = startTime.split(":").map(Number);
                   const [eh, em] = endTime.split(":").map(Number);
                   const hrs = (eh * 60 + em - (sh * 60 + sm)) / 60;
-                  return `${hrs}h × Rs. ${selectedGround.hourlyRate.toLocaleString()} = Rs. ${(hrs * selectedGround.hourlyRate).toLocaleString()}`;
+                  return t("{h} h × Rs. {rate} = Rs. {total}", { h: hrs, rate: selectedGround.hourlyRate.toLocaleString(), total: (hrs * selectedGround.hourlyRate).toLocaleString() });
                 })()}
               </Text>
             </View>
@@ -516,11 +521,11 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
           <View style={w.field}>
             <View style={w.fieldLabel}>
               <Ionicons name="person-outline" size={13} color={Colors.textMuted} />
-              <Text style={w.fieldLabelText}>Player Name</Text>
+              <Text style={w.fieldLabelText}>{t("Player Name")}</Text>
             </View>
             <TextInput
               style={w.input}
-              placeholder="Enter player name"
+              placeholder={t("Enter player name")}
               placeholderTextColor={Colors.textMuted}
               value={playerName}
               onChangeText={setPlayerName}
@@ -532,7 +537,7 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
           <View style={w.field}>
             <View style={w.fieldLabel}>
               <Ionicons name="call-outline" size={13} color={Colors.textMuted} />
-              <Text style={w.fieldLabelText}>Phone Number (optional)</Text>
+              <Text style={w.fieldLabelText}>{t("Phone Number (optional)")}</Text>
             </View>
             <TextInput
               style={w.input}
@@ -549,11 +554,11 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
           <View style={w.field}>
             <View style={w.fieldLabel}>
               <Ionicons name="document-text-outline" size={13} color={Colors.textMuted} />
-              <Text style={w.fieldLabelText}>Notes (optional)</Text>
+              <Text style={w.fieldLabelText}>{t("Notes (optional)")}</Text>
             </View>
             <TextInput
               style={[w.input, w.inputMulti]}
-              placeholder="Any special requests or notes…"
+              placeholder={t("Any special requests or notes…")}
               placeholderTextColor={Colors.textMuted}
               value={notes}
               onChangeText={setNotes}
@@ -577,7 +582,7 @@ function WalkInModal({ visible, onClose, Colors }: { visible: boolean; onClose: 
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={20} color={Colors.white} />
-                <Text style={w.submitText}>Confirm Walk-in Booking</Text>
+                <Text style={w.submitText}>{t("Confirm Walk-in Booking")}</Text>
               </>
             )}
           </TouchableOpacity>
