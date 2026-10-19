@@ -96,7 +96,11 @@ export default function TransferReview({ kind, id, playerName, amount, paymentSt
           <Text style={s.metaTitle}>
             {paymentStatus === "RECEIPT_SUBMITTED" ? t("Receipt to review") : paymentStatus === "PAID" ? t("Payment confirmed") : paymentStatus === "REJECTED" ? t("Receipt rejected") : t("Receipt")}
           </Text>
-          <Text style={s.metaSub}>Tap the receipt to zoom. Check your bank app for {formatLKR(amount)} before confirming.</Text>
+          <Text style={s.metaSub}>
+            {paymentStatus === "RECEIPT_SUBMITTED"
+              ? t("Tap the receipt to zoom. Check your bank app for {amount} before confirming.", { amount: formatLKR(amount) })
+              : t("Tap the receipt to zoom.")}
+          </Text>
         </View>
       </View>
 

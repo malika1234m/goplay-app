@@ -24,6 +24,8 @@ export async function apiRequest<T = unknown>(
       ...options,
       headers: {
         "Content-Type": "application/json",
+        // The website proves it is a person with a bot check; the apps identify themselves instead
+        "X-GoPlay-App":  "partner",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers ?? {}),
       },

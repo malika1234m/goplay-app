@@ -23,6 +23,8 @@ export default function BookingDetail() {
   const router       = useRouter();
   const navigation   = useNavigation();
   const [receipt, setReceipt] = useState(false);
+  // Set when this screen just confirmed the booking — the refetched booking can arrive after the sheet opens
+  const [justConfirmed, setJustConfirmed] = useState(false);
 
   const { data: active }  = useOwnerBookings({});
   const { data: pending } = useOwnerBookings({ status: "PENDING" });
@@ -84,6 +86,7 @@ export default function BookingDetail() {
   }, [booking]);
 
   if (!booking) return <LoadingScreen />;
+  const shownStatus = justConfirmed && booking.status === "PENDING" ? "CONFIRMED" : booking.status;
 
   const isWalkIn   = booking.specialRequests?.startsWith("[Walk-in]") ?? false;
   const playerName = isWalkIn
@@ -102,6 +105,7 @@ export default function BookingDetail() {
           updateStatus({ id: booking!.id, status: "CONFIRMED" }, {
             onSuccess: () => {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              setJustConfirmed(true);
               setReceipt(true);
             },
             onError: (e) => Alert.alert(t("Error"), e.message),
@@ -249,7 +253,7 @@ export default function BookingDetail() {
             <View style={s.row}><Text style={s.rowLabel}>{t("Name")}</Text><Text style={s.rowValue} numberOfLines={2}>{playerName}</Text></View>
             {!isWalkIn && <View style={s.row}><Text style={s.rowLabel}>{t("Email")}</Text><Text style={s.rowValue} numberOfLines={2}>{booking.user.email}</Text></View>}
             {booking.contactNumber && <View style={s.row}><Text style={s.rowLabel}>{t("Phone")}</Text><Text style={s.rowValue} numberOfLines={2}>{booking.contactNumber}</Text></View>}
-            {!isWalkIn && booking.user.phone && <View style={s.row}><Text style={s.rowLabel}>{t("Phone")}</Text><Text style={s.rowValue} numberOfLines={2}>{booking.user.phone}</Text></View>}
+            {!isWalkIn && booking.user.phone && booking.user.phone !== booking.contactNumber && <View style={s.row}><Text style={s.rowLabel}>{t("Phone")}</Text><Text style={s.rowValue} numberOfLines={2}>{booking.user.phone}</Text></View>}
           </View>
         </View>
 
@@ -294,7 +298,7 @@ export default function BookingDetail() {
                 paymentStatus={booking.paymentStatus}
                 receiptUrl={booking.receiptUrl}
                 rejectReason={booking.receiptRejectReason}
-                onReviewed={(action) => { if (action === "confirm") setReceipt(true); }}
+                onReviewed={(action) => { if (action === "confirm") { setJustConfirmed(true); setReceipt(true); } }}
               />
             </View>
           )}
@@ -355,10 +359,10 @@ export default function BookingDetail() {
               <View style={r.row}><Text style={r.rowLabel}>{t("Time")}</Text><Text style={r.rowValue}>{`${booking.startTime} – ${booking.endTime}`}</Text></View>
               <View style={r.row}><Text style={r.rowLabel}>{t("Payment")}</Text><Text style={r.rowValue}>{booking.paymentMethod === "ONLINE" ? t("Bank transfer") : t("Cash on Arrival")}</Text></View>
               <View style={r.divider} />
-              <View style={r.row}><Text style={r.rowLabel}>{t("Status")}</Text><Text style={[r.rowValue, { color: Colors.primary, fontWeight: "700" }]}>{booking.status}</Text></View>
+              <View style={[r.row, { alignItems: "center" }]}><Text style={r.rowLabel}>{t("Status")}</Text><Badge status={shownStatus} /></View>
             </View>
 
-            <TouchableOpacity style={r.closeBtn} onPress={() => { setReceipt(false); if (booking.status === "CONFIRMED") router.back(); }} activeOpacity={0.85}>
+            <TouchableOpacity style={r.closeBtn} onPress={() => { setReceipt(false); if (shownStatus === "CONFIRMED") router.back(); }} activeOpacity={0.85}>
               <Text style={r.closeBtnText}>{t("Done")}</Text>
             </TouchableOpacity>
           </View>

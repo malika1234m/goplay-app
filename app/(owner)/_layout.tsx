@@ -384,6 +384,8 @@ export default function OwnerLayout() {
   return (
     <Tabs
       tabBar={(props) => <OwnerTabBar {...(props as any)} />}
+      // Back returns to the tab you came from (e.g. a setup-guide step back to the guide), not always Home
+      backBehavior="history"
       screenOptions={{ headerShown: false }}
     >
       <Tabs.Screen name="index"         options={{ tabBarIcon: ({ focused }) => <PillIcon name="grid"          focused={focused} label={t("Home")}     /> }} />

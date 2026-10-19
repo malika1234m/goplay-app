@@ -218,7 +218,7 @@ export default function EditGround() {
       {statusMeta && (
         <View style={[s.statusBanner, { backgroundColor: statusMeta.bg, borderColor: statusMeta.color + "44" }]}>
           <Ionicons name={statusMeta.icon as never} size={16} color={statusMeta.color} />
-          <Text style={[s.statusBannerText, { color: statusMeta.color }]}>{statusMeta.msg}</Text>
+          <Text style={[s.statusBannerText, { color: statusMeta.color }]}>{t(statusMeta.msg)}</Text>
         </View>
       )}
 
@@ -267,7 +267,8 @@ export default function EditGround() {
           <Text style={s.sectionLabel}>{t("AMENITIES")}</Text>
         </View>
         <View style={s.chipWrap}>
-          {AMENITIES.map((a) => {
+          {/* Grounds added on the web can carry amenities this list doesn't have (e.g. "Wi-Fi") — show them too so they can be removed */}
+          {[...AMENITIES, ...amenities.filter((a) => !AMENITIES.includes(a))].map((a) => {
             const active = amenities.includes(a);
             return (
               <TouchableOpacity key={a} style={[s.chip, active && s.chipActive]} onPress={() => toggleAmenity(a)} activeOpacity={0.7}>

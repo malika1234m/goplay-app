@@ -1,4 +1,14 @@
-import { QueryClient } from "@tanstack/react-query";
+import { AppState, Platform } from "react-native";
+import { QueryClient, focusManager } from "@tanstack/react-query";
+
+// React Query only knows about browser focus. Tell it when the app returns to the
+// foreground so stale screens refetch — e.g. a booking the other side just confirmed.
+if (Platform.OS !== "web") {
+  focusManager.setEventListener((handleFocus) => {
+    const sub = AppState.addEventListener("change", (state) => handleFocus(state === "active"));
+    return () => sub.remove();
+  });
+}
 
 /**
  * The app's single QueryClient.

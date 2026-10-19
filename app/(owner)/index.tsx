@@ -14,6 +14,7 @@ import { useOwnerStats } from "@/lib/queries/owner";
 import { useColors } from "@/lib/theme";
 import Badge from "@/components/ui/Badge";
 import ReceiptsBanner from "@/components/payments/ReceiptsBanner";
+import SetupBanner from "@/components/SetupBanner";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { formatLKR } from "@/lib/utils";
 import type { TodayBooking } from "@/types";
@@ -237,6 +238,7 @@ export default function OwnerDashboard() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={Colors.primary} />}
       >
+        <SetupBanner />
         <ReceiptsBanner href="/(owner)/bookings/payments" />
 
         {/* Quick actions */}

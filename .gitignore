@@ -45,3 +45,6 @@ google-play-key.json
 
 # Local env (keep .env.example but not .env)
 .env
+
+# Firebase config — supplied to EAS as the GOOGLE_SERVICES_JSON file variable
+google-services.json

@@ -71,7 +71,7 @@ export default function EarningsScreen() {
 
     // Payments shortcuts
     payCard:  { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: Colors.card, borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1.5, borderColor: Colors.primaryMid },
-    payLeft:  { flexDirection: "row", alignItems: "center", gap: 12 },
+    payLeft:  { flexDirection: "row", alignItems: "center", gap: 12, flex: 1, marginRight: 8 },
     payIcon:  { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight, alignItems: "center", justifyContent: "center" },
     payTitle: { fontSize: 15, fontWeight: "700", color: Colors.text },
     paySub:   { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
@@ -233,7 +233,7 @@ export default function EarningsScreen() {
           <View style={s.payIcon}>
             <Ionicons name="receipt-outline" size={20} color={Colors.primary} />
           </View>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={s.payTitle}>{t("Payments")}</Text>
             <Text style={s.paySub}>{t("Review transfer receipts · refunds due")}</Text>
           </View>
@@ -249,7 +249,7 @@ export default function EarningsScreen() {
           <View style={s.payIcon}>
             <Ionicons name="business-outline" size={20} color={Colors.primary} />
           </View>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={s.payTitle}>{t("Payment Details")}</Text>
             <Text style={s.paySub}>{t("Bank account players pay online to")}</Text>
           </View>

@@ -161,8 +161,12 @@ export default function ApplyScreen() {
     errorBox: { flexDirection: "row", alignItems: "flex-start", gap: 8, backgroundColor: Colors.errorLight, borderRadius: 12, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: "#fecaca" },
     errorText:{ fontSize: 13, color: Colors.error, flex: 1, lineHeight: 19 },
 
+    // Same label look as FieldInput, for the sports and amenities pickers
+    field:      fieldStyles(Colors).field,
+    fieldLabel: fieldStyles(Colors).fieldLabel,
+
     tagsWrap:  { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-    tag:       { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 20, borderWidth: 1.5 },
+    tag:     { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 20, borderWidth: 1.5 },
     tagText:   { fontSize: 13, fontWeight: "600" },
 
     reviewSection: { backgroundColor: Colors.background, borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: Colors.border },
@@ -412,7 +416,7 @@ export default function ApplyScreen() {
 
                 <View style={s.field}>
                   <Text style={s.fieldLabel}>
-                    SPORTS *{categoryIds.length > 0 && <Text style={{ color: Colors.primary, fontWeight: "700" }}>  {categoryIds.length} selected</Text>}
+                    {t("SPORTS *")}{categoryIds.length > 0 && <Text style={{ color: Colors.primary, fontWeight: "700" }}>  {t("{n} selected", { n: categoryIds.length })}</Text>}
                   </Text>
                   <View style={s.tagsWrap}>
                     {categories.map((c) => {

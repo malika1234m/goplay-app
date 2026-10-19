@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { File } from "expo-file-system";
 import { api, uploadFormData } from "@/lib/api";
 import type {
   GroundDetail, Court, AvailabilityDay, BlockedDate, Category,
@@ -100,13 +101,10 @@ export function useSaveAvailability() {
 export function useUploadGroundImages() {
   return useMutation({
     mutationFn: async (assets: Array<{ uri: string; mimeType?: string | null; fileName?: string | null }>) => {
+      // Expo's fetch (SDK 56) rejects React Native's { uri, type, name } parts; it reads expo-file-system Files
       const form = new FormData();
       for (const a of assets) {
-        form.append("images", {
-          uri:  a.uri,
-          type: a.mimeType ?? "image/jpeg",
-          name: a.fileName ?? "photo.jpg",
-        } as any);
+        form.append("images", new File(a.uri) as unknown as Blob);
       }
       return uploadFormData<{ urls: string[] }>("/api/upload/ground-images", form);
     },

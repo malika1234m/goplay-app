@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { View, StyleSheet } from "react-native";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import * as SecureStore from "expo-secure-store";
-import * as Notifications from "expo-notifications";
+import { getNotifications } from "@/lib/notifications";
 import * as Application from "expo-application";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/lib/auth";
@@ -16,6 +17,14 @@ import ForceUpdateScreen from "@/components/ui/ForceUpdateScreen";
 import OTAUpdateBanner from "@/components/ui/OTAUpdateBanner";
 import { BASE_URL } from "@/lib/api";
 import { ONBOARDING_KEY } from "@/app/onboarding";
+
+/** Notifications carry website paths (e.g. /ground-owner/bookings); open the matching app screen instead. */
+function mapWebLink(link: string, role?: string): string {
+  if (role === "GROUND_WORKER") return link.includes("/bookings") ? "/(worker)/bookings" : "/(worker)";
+  if (link.startsWith("/ground-owner/bookings")) return "/(owner)/bookings";
+  if (link.startsWith("/ground-owner/earnings")) return "/(owner)/earnings";
+  return "/(owner)/notifications";
+}
 
 // Compare semver strings — returns true if current < min
 function isOutdated(current: string, min: string): boolean {
@@ -44,20 +53,23 @@ function AuthGuard() {
   const [appConfig,   setAppConfig]   = useState<AppConfig | null>(null);
   const [configReady, setConfigReady] = useState(false);
 
-  const notifListener    = useRef<Notifications.Subscription | null>(null);
-  const responseListener = useRef<Notifications.Subscription | null>(null);
+  const notifListener    = useRef<{ remove: () => void } | null>(null);
+  const responseListener = useRef<{ remove: () => void } | null>(null);
 
-  // Handle notification taps
+  // Handle notification taps. No-ops where push is unavailable (Expo Go) — see lib/notifications
   useEffect(() => {
+    const Notifications = getNotifications();
+    if (!Notifications) return;
+
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
       const link = response.notification.request.content.data?.link as string | undefined;
-      if (link) router.push(link as any);
+      if (link) router.push(mapWebLink(link, user?.role) as any);
     });
     return () => {
       notifListener.current?.remove();
       responseListener.current?.remove();
     };
-  }, [router]);
+  }, [router, user?.role]);
 
   const fetchAppConfig = useCallback(async () => {
     try {
@@ -133,15 +145,29 @@ function AuthGuard() {
     );
   }
 
+  // "/" resolves to (owner)/index, so the dashboard mounts before the redirect above runs.
+  // Keep the navigator mounted (the redirect needs it) but cover it until the route matches.
+  const group = segments[0] as string | undefined;
+  const home  = user?.role === "GROUND_OWNER" ? "(owner)" : user?.role === "GROUND_WORKER" ? "(worker)" : null;
+  const settled = group === "+not-found"
+    || (user ? (home === null || group === home) : group === "(auth)" || group === "onboarding");
+
   return (
     <>
-      <Stack screenOptions={{ headerShown: false }}>
+      {/* Root changes are auth redirects — animating one slides the screen being left (often a
+          dashboard mounted only because "/" resolves to it) across the screen for a moment */}
+      <Stack screenOptions={{ headerShown: false, animation: "none" }}>
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(auth)"     />
         <Stack.Screen name="(owner)"    />
         <Stack.Screen name="(worker)"   />
         <Stack.Screen name="+not-found" />
       </Stack>
+      {!settled && (
+        <View style={StyleSheet.absoluteFill}>
+          <LoadingScreen />
+        </View>
+      )}
       <OTAUpdateBanner />
     </>
   );

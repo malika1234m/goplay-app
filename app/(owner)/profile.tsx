@@ -15,8 +15,10 @@ import LoadingScreen from "@/components/ui/LoadingScreen";
 import { useT } from "@/lib/i18n/I18nProvider";
 import LanguageSwitch from "@/components/ui/LanguageSwitch";
 
+import { useRouter } from "expo-router";
 export default function OwnerProfile() {
   const { t } = useT();
+  const router = useRouter();
   const Colors                       = useColors();
   const keyboardPad = useKeyboardPadding();
   const { logout }                   = useAuth();
@@ -324,6 +326,16 @@ export default function OwnerProfile() {
               <Text style={s.cardLabel}>{t("SECURITY")}</Text>
             </View>
           </View>
+          <TouchableOpacity style={s.secRow} onPress={() => router.push("/(owner)/grounds/setup")} activeOpacity={0.7}>
+            <View style={s.secLeft}>
+              <Ionicons name="list-outline" size={18} color={Colors.textSecondary} />
+              <View>
+                <Text style={s.secLabel}>{t("Setup guide")}</Text>
+                <Text style={s.secSub}>{t("Everything players need before your first booking.")}</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+          </TouchableOpacity>
           <TouchableOpacity style={s.secRow} onPress={() => setPwdModal(true)} activeOpacity={0.7}>
             <View style={s.secLeft}>
               <Ionicons name="lock-closed-outline" size={18} color={Colors.textSecondary} />

@@ -613,5 +613,7 @@ const d: Record<string, string> = {
   "Payment stays as pending.": "ගෙවීම පොරොත්තුවෙන් පවතී.",
   "All live grounds take online payments": "සියලු සක්‍රීය ක්‍රීඩාංගණවලට ඔන්ලයින් ගෙවිය හැක",
   "Only needed if players book courts separately.": "ක්‍රීඩකයින් කෝට් වෙන වෙනම වෙන්කරනවා නම් පමණක්.",
+  "Finish setup": "සැකසීම අවසන් කරන්න",
+  "Separate account": "වෙනම ගිණුමක්",
 };
 export default d;

@@ -14,6 +14,27 @@ export interface OwnerProfileResponse {
     totalGrounds: number; activeGrounds: number; pendingGrounds: number;
     totalBookings: number; totalReviews: number;
   };
+  /** Setup guide progress — the same checks the web guide uses */
+  setup?: {
+    contact: boolean; business: boolean; ground: boolean; approved: boolean; photos: boolean;
+    hours: boolean; method: boolean; payments: boolean; workers: boolean;
+  };
+  grounds?: SetupGround[];
+}
+
+export interface SetupGround {
+  id: string; name: string; status: string; photos: number;
+  paymentOptions: "ON_ARRIVAL_ONLY" | "ONLINE_ONLY" | "BOTH" | null;
+  hasAccount: boolean; openDays: number;
+}
+
+/** Required steps done / total, counted like the web guide (bank account only when online payment is on). */
+export function setupProgress(p: OwnerProfileResponse | undefined) {
+  if (!p?.setup) return null;
+  const s = p.setup;
+  const online = (p.grounds ?? []).some((g) => g.paymentOptions !== "ON_ARRIVAL_ONLY");
+  const steps = [s.contact && s.business, s.method, ...(online ? [s.payments] : []), s.photos, s.hours, s.approved];
+  return { done: steps.filter(Boolean).length, total: steps.length, online };
 }
 
 export function useOwnerProfile() {

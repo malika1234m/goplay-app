@@ -69,7 +69,7 @@ export default function ForgotPasswordScreen() {
     try {
       const res = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-GoPlay-App": "partner" },
         body:    JSON.stringify({ email: trimEmail }),
       });
       if (!res.ok) {
