@@ -6,7 +6,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { useWorkers, useAddWorker, useRemoveWorker } from "@/lib/queries/workers";
+import { useWorkers, useAddWorker, useRemoveWorker, useWithdrawInvite } from "@/lib/queries/workers";
 import { useColors } from "@/lib/theme";
 import { useKeyboardPadding } from "@/lib/keyboard";
 import LoadingScreen from "@/components/ui/LoadingScreen";
@@ -23,6 +23,8 @@ export default function WorkersScreen() {
   const { data, isLoading, refetch, isRefetching } = useWorkers(facilityId);
   const { mutate: addWorker,    isPending: adding   } = useAddWorker();
   const { mutate: removeWorker, isPending: removing } = useRemoveWorker(facilityId);
+  const { mutate: withdrawInvite, isPending: withdrawing } = useWithdrawInvite(facilityId);
+  const invites = data?.invites ?? [];
 
   const [showModal, setShowModal] = useState(false);
   const [email,     setEmail]     = useState("");
@@ -53,6 +55,9 @@ export default function WorkersScreen() {
     workerJoined:{ fontSize: 11, color: Colors.textMuted },
     removeBtn:  { flexDirection: "row", alignItems: "center", gap: 3 },
     removeText: { fontSize: 12, fontWeight: "600", color: Colors.error },
+    inviteBox:  { backgroundColor: Colors.warningLight, borderRadius: 14, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: Colors.border },
+    inviteTitle:{ fontSize: 12, fontWeight: "700", color: Colors.textMuted, marginBottom: 6, textTransform: "uppercase" },
+    inviteRow:  { flexDirection: "row", alignItems: "center", paddingVertical: 8 },
 
     overlay:      { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
     sheet:        { backgroundColor: Colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
@@ -92,7 +97,13 @@ export default function WorkersScreen() {
           setEmail("");
           setWorkerName("");
 
-          if (res.isNewAccount && res.tempPassword) {
+          if (res.invited) {
+            Alert.alert(
+              t("Invitation sent"),
+              t("{name} already has a GoPlay account, so we sent them an invitation. They become your worker once they accept it.", { name: res.worker.name }),
+              [{ text: t("Got it") }]
+            );
+          } else if (res.isNewAccount && res.tempPassword) {
             Alert.alert(
               t("Worker Account Created"),
               t("A new account was created for {name}.\n\nTemporary password:\n\n{password}\n\nShare this with the worker. They will be asked to change it on first login.", { name: res.worker.name, password: res.tempPassword }),
@@ -156,6 +167,28 @@ export default function WorkersScreen() {
                 {t("Workers can view bookings, manage schedules, and create walk-in bookings for this facility.")}
               </Text>
             </View>
+            {invites.length > 0 && (
+              <View style={s.inviteBox}>
+                <Text style={s.inviteTitle}>{t("Waiting for them to accept")}</Text>
+                {invites.map((inv) => (
+                  <View key={inv.id} style={s.inviteRow}>
+                    <View style={s.workerInfo}>
+                      <Text style={s.workerName}>{inv.name}</Text>
+                      <Text style={s.workerEmail}>{inv.email} · {t("Invited")} {formatDate(inv.sentAt)}</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => withdrawInvite(inv.id, { onError: (e) => Alert.alert(t("Error"), e.message) })}
+                      disabled={withdrawing}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      accessibilityRole="button"
+                      accessibilityLabel={t("Withdraw invitation")}
+                    >
+                      <Text style={s.removeText}>{withdrawing ? "…" : t("Withdraw")}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
           </>
         }
         renderItem={({ item, index }) => {

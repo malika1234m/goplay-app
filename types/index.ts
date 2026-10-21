@@ -317,8 +317,17 @@ export interface Worker {
   joinedAt: string;
 }
 
+/** An invitation sent to an existing GoPlay account; it becomes a worker once they accept. */
+export interface WorkerInvite {
+  id:     string;
+  name:   string;
+  email:  string;
+  sentAt: string;
+}
+
 export interface WorkersResponse {
-  workers: Worker[];
+  workers:  Worker[];
+  invites?: WorkerInvite[];
 }
 
 // ── Worker app data ──────────────────────────────────────────────────────────

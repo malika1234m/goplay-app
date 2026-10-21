@@ -615,5 +615,12 @@ const d: Record<string, string> = {
   "Only needed if players book courts separately.": "ක්‍රීඩකයින් කෝට් වෙන වෙනම වෙන්කරනවා නම් පමණක්.",
   "Finish setup": "සැකසීම අවසන් කරන්න",
   "Separate account": "වෙනම ගිණුමක්",
+  // Workers join by invitation when they already have a GoPlay account (Oct 2026)
+  "Invitation sent": "ආරාධනාව යැව්වා",
+  "{name} already has a GoPlay account, so we sent them an invitation. They become your worker once they accept it.": "{name}ට දැනටමත් GoPlay ගිණුමක් ඇති නිසා අපි ආරාධනාවක් යැව්වා. ඔවුන් එය පිළිගත් පසු ඔබේ සේවකයා වේ.",
+  "Waiting for them to accept": "ඔවුන් පිළිගන්නා තෙක් රැඳී සිටී",
+  "Invited": "ආරාධනා කළේ",
+  "Withdraw invitation": "ආරාධනාව ආපසු ගන්න",
+  "Withdraw": "ආපසු ගන්න",
 };
 export default d;

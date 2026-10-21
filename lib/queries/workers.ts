@@ -16,12 +16,23 @@ export function useAddWorker() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: { facilityId: string; email: string; name?: string }) =>
-      api.post<{ worker: Worker; isNewAccount: boolean; tempPassword?: string }>(
+      // An existing GoPlay account gets an invitation instead (invited: true) and joins once they accept
+      api.post<{ worker: Worker; isNewAccount: boolean; tempPassword?: string; invited?: boolean; message?: string }>(
         "/api/ground-owner/workers",
         body
       ),
     onSuccess: (_data, vars) =>
       qc.invalidateQueries({ queryKey: ["owner", "workers", vars.facilityId] }),
+  });
+}
+
+export function useWithdrawInvite(facilityId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (inviteId: string) =>
+      api.delete(`/api/ground-owner/workers/invites/${inviteId}`),
+    onSettled: () =>
+      qc.invalidateQueries({ queryKey: ["owner", "workers", facilityId] }),
   });
 }
 
