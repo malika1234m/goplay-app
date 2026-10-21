@@ -466,5 +466,9 @@ const d: Record<string, string> = {
   "Check Again": "නැවත පරීක්ෂා කරන්න",
   "Updating...": "යාවත්කාලීන වෙමින්...",
   "Restart Now": "දැන් නැවත ආරම්භ කරන්න",
+  // Workers screen: existing GoPlay accounts are invited (Oct 2026)
+  "{name} already has a GoPlay account, so we sent them an invitation. They become your worker once they accept it.": "{name}ට දැනටමත් GoPlay ගිණුමක් ඇති නිසා අපි ආරාධනාවක් යැව්වා. ඔවුන් එය පිළිගත් පසු ඔබේ සේවකයා වේ.",
+  "Invited": "ආරාධනා කළේ",
+  "Withdraw invitation": "ආරාධනාව ආපසු ගන්න",
 };
 export default d;
